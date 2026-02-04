@@ -478,3 +478,51 @@ This verifies the full JS runner path from CLI to query results.
 
 ### Technical details
 - Integration test: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactorio/js_run_test.go`.
+
+## Step 11: Add JS API Guide and Example Scripts
+I documented the JS index API in a standalone guide and added multiple runnable scripts under `testdata/js`. This gives new contributors a starting point for writing queries and shows how to use the CLI runner in practice.
+
+The guide follows the documentation style rules and includes troubleshooting and cross-references.
+
+### Prompt Context
+**User prompt (verbatim):** "what's js_trace.jsonl for? Add a bunch of examples in testdata. Add a full document purely about the JS API and how to use it and how to write scripts, in exhaustive detail so that someone new to the codebase can get started writing scripts. (see glazed/pkg/doc/topics/how-to-write-good-documentation-pages.md )."
+
+**Assistant interpretation:** Explain `js_trace.jsonl`, add JS example scripts under testdata, and write a full usage guide for the JS API following the documentation style guide.
+
+**Inferred user intent:** Make the JS API approachable and self-serve for new contributors.
+
+**Commit (code):** 6d5cc5b — "refactorio: add js api guide and examples"
+
+### What I did
+- Added JS example scripts under `refactorio/testdata/js`.
+- Wrote `design/01-js-index-api-guide.md` with exhaustive usage guidance and troubleshooting.
+- Linked the guide to the relevant code and examples via docmgr.
+
+### Why
+- New contributors need a clear, runnable set of examples and a single authoritative guide.
+
+### What worked
+- The guide includes runnable examples and a troubleshooting table aligned with the style guide.
+
+### What didn't work
+- N/A
+
+### What I learned
+- A dedicated JS API guide reduces the need for repeated onboarding support.
+
+### What was tricky to build
+- Balancing brevity with completeness while following the documentation style checklist.
+
+### What warrants a second pair of eyes
+- Ensure the guide matches the current CLI flags and API behavior.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/ttmp/2026/02/04/REF-006-INDEX-LAYER-JS--index-layer-js-api/design/01-js-index-api-guide.md` for completeness.
+- Review `refactorio/testdata/js/` for script correctness and readability.
+
+### Technical details
+- Guide doc: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ttmp/2026/02/04/REF-006-INDEX-LAYER-JS--index-layer-js-api/design/01-js-index-api-guide.md`.
+- Examples: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/testdata/js/`.
