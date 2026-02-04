@@ -11,6 +11,10 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: refactorio/pkg/refactorindex/ingest_commits_range_smoke_test.go
+      Note: FTS + v_last_commit_per_file smoke checks
+    - Path: refactorio/pkg/refactorindex/ingest_symbols_code_units_smoke_test.go
+      Note: FTS assertions for code units and symbols
     - Path: refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/glazed-03-latest-commit-for-file.sql
       Note: Use v_last_commit_per_file + files_fts
     - Path: refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/glazed-07-code-units-search.sql
@@ -27,6 +31,7 @@ LastUpdated: 2026-02-04T18:05:00-05:00
 WhatFor: Track changes, decisions, and validations while implementing search improvements.
 WhenToUse: Use while executing REF-004 tasks to record progress and validation steps.
 ---
+
 
 
 
@@ -434,3 +439,51 @@ The updates focus on commits, code units, symbol definitions, file paths, and th
 
 ### Technical details
 - Updated scripts to use `commits_fts`, `code_unit_snapshots_fts`, `symbol_defs_fts`, `files_fts`, and `v_last_commit_per_file`.
+
+## Step 10: Task 9 - Expand smoke tests for new FTS tables and view
+I extended the existing refactorindex smoke tests to assert that the new FTS tables and the last-commit-per-file view are populated after ingestion. This gives us quick regression coverage for the schema additions without needing full end-to-end runs.
+
+The new assertions are folded into existing commit and symbol/code-unit ingest tests so they run as part of the normal `go test` workflow.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 7)
+
+**Assistant interpretation:** Add smoke tests that verify the new FTS tables and view are populated.
+
+**Inferred user intent:** Ensure the schema additions are exercised and won’t silently regress.
+
+**Commit (code):** e89f7f8 — "refactorindex: extend FTS/view smoke tests"
+
+### What I did
+- Added FTS row-count assertions for `code_unit_snapshots_fts` and `symbol_defs_fts` in the symbols/code-units smoke test.
+- Added FTS row-count assertions for `commits_fts` and `files_fts` plus a `v_last_commit_per_file` sanity check in the commits smoke test.
+- Ran `go test ./refactorio/pkg/refactorindex -count=1`.
+
+### Why
+- We need fast verification that new FTS tables and views are created and populated during ingestion.
+
+### What worked
+- Tests pass and confirm row counts plus view semantics.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- Ensuring the view test validates one row per file without over-constraining commit counts.
+
+### What warrants a second pair of eyes
+- Confirm that the view sanity check aligns with intended semantics for renames and deletions.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/ingest_symbols_code_units_smoke_test.go` and `refactorio/pkg/refactorindex/ingest_commits_range_smoke_test.go`.
+- Validate with `go test ./refactorio/pkg/refactorindex -count=1`.
+
+### Technical details
+- Added FTS row-count checks for `code_unit_snapshots_fts`, `symbol_defs_fts`, `commits_fts`, `files_fts`.
+- Added `v_last_commit_per_file` row-count vs distinct file-id validation.

@@ -28,7 +28,7 @@
 - [x] Refactor existing search SQL examples to use new FTS tables and view.
 
 ## Task 9: Tests
-- [ ] Add/extend smoke tests for new FTS tables and view.
+- [x] Add/extend smoke tests for new FTS tables and view.
 
 ## Task 10: Docs
 - [ ] Update search design + help/tutorials to mention new FTS tables and view.

@@ -86,3 +86,12 @@ Step 9: update search SQL examples for new FTS tables (commit 231e68b).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/glazed-03-latest-commit-for-file.sql — Use v_last_commit_per_file + files_fts
 
+
+## 2026-02-04
+
+Step 10: add FTS/view smoke checks (commit e89f7f8).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_commits_range_smoke_test.go — New FTS + view assertions
+
