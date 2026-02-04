@@ -681,7 +681,7 @@ I wrote a multi-angle deep review of the JS index API work, covering architectur
 
 **Inferred user intent:** Get an honest, structured critique to evaluate design and implementation quality.
 
-**Commit (code):** <pending>
+**Commit (code):** 2ae3751 — "docs: add js api deep review"
 
 ### What I did
 - Authored `analysis/02-js-index-api-deep-review.md` with 12 review angles and priority follow-ups.
