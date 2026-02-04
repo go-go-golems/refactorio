@@ -589,7 +589,7 @@ I added a trace example script and expanded the JS guide with a troubleshooting-
 
 **Inferred user intent:** Make tracing and common error resolution obvious for new contributors.
 
-**Commit (code):** <pending>
+**Commit (code):** a9cc49a — "docs: add js trace example"
 
 ### What I did
 - Added `testdata/js/trace_example.js` and updated the examples list.
