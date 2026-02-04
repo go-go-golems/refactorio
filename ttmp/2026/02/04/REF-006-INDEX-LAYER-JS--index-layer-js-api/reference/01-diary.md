@@ -67,3 +67,50 @@ I also marked the first task complete in the REF-006 task list to reflect the re
 
 ### Technical details
 - Reviewed: `go-go-goja/engine/runtime.go`, `go-go-goja/modules/common.go`.
+
+## Step 2: Add goja Runtime Helper
+I implemented a minimal goja runtime helper in refactorio that wires `require()` and enforces a strict allow-list of native modules. This is the baseline needed to expose the index query API without pulling in unsafe modules like fs/exec.
+
+The implementation mirrors go-go-goja’s runtime approach but keeps module registration explicit and controlled via runtime options.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement the next task in the REF-006 list by adding the goja runtime helper, then record and commit the change.
+
+**Inferred user intent:** Build the JS runtime foundation before exposing any query modules.
+
+**Commit (code):** 4f698af — "refactorio: add goja runtime helper"
+
+### What I did
+- Added `pkg/refactor/js/runtime.go` with `NewRuntime` and `RuntimeOptions`.
+- Added goja and goja_nodejs dependencies to `refactorio/go.mod`.
+- Ran `go mod tidy` to update `go.sum`.
+
+### Why
+- The runtime helper is required to load any JS modules safely and deterministically.
+
+### What worked
+- The runtime helper compiles and is isolated from unsafe modules.
+
+### What didn't work
+- N/A
+
+### What I learned
+- A simple ModuleSpec allow-list is enough to keep the runtime controlled until the registry is added.
+
+### What was tricky to build
+- Ensuring the runtime API is minimal while still aligning with go-go-goja’s require wiring.
+
+### What warrants a second pair of eyes
+- Verify that the chosen goja/goja_nodejs versions align with workspace expectations.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactor/js/runtime.go` for API clarity and error handling.
+- Review `refactorio/go.mod` and `refactorio/go.sum` for the new goja deps.
+
+### Technical details
+- Runtime helper: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/runtime.go`.
