@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -16,19 +17,30 @@ import (
 
 // IngestSymbolsConfig controls AST symbol ingestion.
 type IngestSymbolsConfig struct {
-	DBPath     string
-	RootDir    string
-	SourcesDir string
-	CommitID   *int64
+	DBPath              string
+	RootDir             string
+	SourcesDir          string
+	CommitID            *int64
+	IgnorePackageErrors bool
 }
 
 // IngestSymbolsResult reports counts for symbol ingestion.
 type IngestSymbolsResult struct {
-	RunID       int64
-	Symbols     int
-	Occurrences int
-	Packages    int
-	Files       int
+	RunID              int64
+	Symbols            int
+	Occurrences        int
+	Packages           int
+	PackagesWithErrors int
+	PackagesSkipped    int
+	Files              int
+}
+
+type goPackagesErrorMeta struct {
+	Severity string `json:"severity"`
+	Package  string `json:"package"`
+	Position string `json:"position,omitempty"`
+	Kind     string `json:"kind,omitempty"`
+	Message  string `json:"message"`
 }
 
 func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (_ *IngestSymbolsResult, err error) {
@@ -86,8 +98,32 @@ func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (_ *IngestSymbo
 	if err != nil {
 		return nil, errors.Wrap(err, "load packages")
 	}
-	if packages.PrintErrors(pkgs) > 0 {
-		return nil, errors.New("package load errors")
+	packageErrorCount := packages.PrintErrors(pkgs)
+	packagesWithErrors := 0
+	for _, pkg := range pkgs {
+		if len(pkg.Errors) == 0 {
+			continue
+		}
+		packagesWithErrors++
+	}
+	if packageErrorCount > 0 {
+		if !cfg.IgnorePackageErrors {
+			return nil, errors.New("package load errors")
+		}
+		for _, pkg := range pkgs {
+			for _, perr := range pkg.Errors {
+				meta := goPackagesErrorMeta{
+					Severity: "warning",
+					Package:  pkg.PkgPath,
+					Position: perr.Pos,
+					Kind:     fmt.Sprint(perr.Kind),
+					Message:  perr.Msg,
+				}
+				if err := store.InsertRunMetadataJSON(ctx, runID, "go_packages_error", meta); err != nil {
+					return nil, err
+				}
+			}
+		}
 	}
 
 	tx, err := store.BeginTx(ctx)
@@ -102,9 +138,15 @@ func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (_ *IngestSymbo
 	symbolCount := 0
 	occurrenceCount := 0
 	fileCount := 0
+	packagesSkipped := 0
 
 	for _, pkg := range pkgs {
+		if len(pkg.Errors) > 0 {
+			packagesSkipped++
+			continue
+		}
 		if pkg.Types == nil || pkg.TypesInfo == nil || pkg.Fset == nil {
+			packagesSkipped++
 			continue
 		}
 		qualifier := types.RelativeTo(pkg.Types)
@@ -206,11 +248,13 @@ func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (_ *IngestSymbo
 	}
 
 	return &IngestSymbolsResult{
-		RunID:       runID,
-		Symbols:     symbolCount,
-		Occurrences: occurrenceCount,
-		Packages:    len(pkgs),
-		Files:       fileCount,
+		RunID:              runID,
+		Symbols:            symbolCount,
+		Occurrences:        occurrenceCount,
+		Packages:           len(pkgs),
+		PackagesWithErrors: packagesWithErrors,
+		PackagesSkipped:    packagesSkipped,
+		Files:              fileCount,
 	}, nil
 }
 

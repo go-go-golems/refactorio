@@ -75,19 +75,29 @@ func (c *IngestSymbolsCommand) RunIntoGlazeProcessor(
 		return err
 	}
 
-	if err := gp.AddRow(ctx, ingestSymbolsRow(result.RunID, result.Symbols, result.Occurrences, result.Packages, result.Files)); err != nil {
+	if err := gp.AddRow(ctx, ingestSymbolsRow(
+		result.RunID,
+		result.Symbols,
+		result.Occurrences,
+		result.Packages,
+		result.PackagesWithErrors,
+		result.PackagesSkipped,
+		result.Files,
+	)); err != nil {
 		return errors.Wrap(err, "add ingest symbols row")
 	}
 
 	return nil
 }
 
-func ingestSymbolsRow(runID int64, symbols int, occurrences int, packages int, files int) types.Row {
+func ingestSymbolsRow(runID int64, symbols int, occurrences int, packages int, packagesWithErrors int, packagesSkipped int, files int) types.Row {
 	return types.NewRow(
 		types.MRP("run_id", runID),
 		types.MRP("symbols", symbols),
 		types.MRP("occurrences", occurrences),
 		types.MRP("packages", packages),
+		types.MRP("packages_with_errors", packagesWithErrors),
+		types.MRP("packages_skipped", packagesSkipped),
 		types.MRP("files", files),
 	)
 }
