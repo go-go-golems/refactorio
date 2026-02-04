@@ -14,7 +14,7 @@
 - [x] Add query tracing artifact `js_trace.jsonl`.
 - [x] Implement `refactorio js run` CLI command to execute scripts.
 - [x] Add fixtures and tests for each query API.
-- [ ] Add integration test for `refactorio js run`.
+- [x] Add integration test for `refactorio js run`.
 
 ## Done
 - [ ] (none)

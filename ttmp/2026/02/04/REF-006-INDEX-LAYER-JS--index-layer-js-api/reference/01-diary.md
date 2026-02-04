@@ -433,3 +433,48 @@ This ensures the query layer behaves correctly before adding more advanced scrip
 
 ### Technical details
 - Tests: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/refactorindex/refactorindex_test.go`.
+
+## Step 10: Add JS Runner Integration Test
+I added an integration test for the `refactorio js run` command. The test creates a temporary refactor-index DB, writes a JS script, runs the CLI via `go run`, and asserts the output contains the expected symbol.
+
+This verifies the full JS runner path from CLI to query results.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Add an integration test that exercises `refactorio js run` end-to-end.
+
+**Inferred user intent:** Ensure the CLI runner works before expanding JS functionality.
+
+**Commit (code):** f5d08d3 — "refactorio: add js run integration test"
+
+### What I did
+- Added `cmd/refactorio/js_run_test.go` with an end-to-end CLI invocation.
+- Ran `go test ./cmd/refactorio -run TestJSRunCommand`.
+
+### Why
+- The integration test validates runtime wiring, module registration, and CLI flags together.
+
+### What worked
+- The test successfully ran the CLI and validated output.
+
+### What didn't work
+- N/A
+
+### What I learned
+- `go run` inside the test is fast enough for this integration check.
+
+### What was tricky to build
+- Ensuring the temporary DB and script path are correctly scoped to the module root.
+
+### What warrants a second pair of eyes
+- Confirm the test remains stable under CI environments with slower Go builds.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/cmd/refactorio/js_run_test.go` for test flow and assertions.
+
+### Technical details
+- Integration test: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactorio/js_run_test.go`.
