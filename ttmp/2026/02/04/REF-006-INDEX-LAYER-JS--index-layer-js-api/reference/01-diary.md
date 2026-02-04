@@ -341,3 +341,49 @@ This is the foundation for writing `js_trace.jsonl` artifacts once the runner wi
 
 ### Technical details
 - Trace support added in: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go`.
+
+## Step 8: Add `refactorio js run` Command
+I wired a minimal `refactorio js run` command that executes a JS script against a refactor-index SQLite DB. The command sets up the goja runtime, registers the refactor-index module, and optionally writes query traces to a JSONL file.
+
+This provides the first end-to-end execution path for JS queries without any apply/refactor functionality.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Add a CLI entrypoint so JS scripts can be executed against the index layer.
+
+**Inferred user intent:** Make the JS query API usable from the CLI for early validation and experimentation.
+
+**Commit (code):** 8d77acd — "refactorio: add js run command"
+
+### What I did
+- Added cobra root and `js` subcommand wiring in `cmd/refactorio`.
+- Implemented `js run` with flags for script, index DB, run ID, trace path, and output format.
+- Loaded scripts with `RunString` and printed JSON results when returned.
+
+### Why
+- The CLI runner is required to validate JS query scripts in real workflows.
+
+### What worked
+- The command wires the runtime and module cleanly without exposing filesystem module access.
+
+### What didn't work
+- N/A
+
+### What I learned
+- A simple cobra wrapper is sufficient to iterate on the JS runtime without full refactorio CLI scaffolding.
+
+### What was tricky to build
+- Ensuring safe defaults (no file-module loading) while still reading the script file from disk.
+
+### What warrants a second pair of eyes
+- Confirm the CLI flag defaults and output formatting meet expected usage patterns.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/cmd/refactorio/js_run.go` for runtime setup and flag handling.
+- Review `refactorio/cmd/refactorio/root.go` and `refactorio/cmd/refactorio/main.go` for command wiring.
+### Technical details
+- JS runner: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactorio/js_run.go`.
