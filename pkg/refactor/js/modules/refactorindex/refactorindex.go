@@ -2,7 +2,10 @@ package refactorindex
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"sort"
 
 	"github.com/bmatcuk/doublestar/v4"
@@ -17,6 +20,9 @@ type Module struct {
 	runID      int64
 	maxResults int
 	ctx        context.Context
+	traceSeq   int
+	traceEnc   *json.Encoder
+	traceClose io.Closer
 }
 
 var _ modules.NativeModule = (*Module)(nil)
@@ -28,6 +34,37 @@ func NewModule(store *refactorindex.Store, runID int64) *Module {
 		maxResults: 5000,
 		ctx:        context.Background(),
 	}
+}
+
+func (m *Module) EnableTrace(writer io.Writer) {
+	if writer == nil {
+		m.traceEnc = nil
+		m.traceClose = nil
+		return
+	}
+	m.traceEnc = json.NewEncoder(writer)
+}
+
+func (m *Module) EnableTraceFile(path string) error {
+	if path == "" {
+		return errors.New("trace path is required")
+	}
+	f, err := os.Create(path)
+	if err != nil {
+		return errors.Wrap(err, "create trace file")
+	}
+	m.traceClose = f
+	m.traceEnc = json.NewEncoder(f)
+	return nil
+}
+
+func (m *Module) CloseTrace() error {
+	if m.traceClose == nil {
+		return nil
+	}
+	err := m.traceClose.Close()
+	m.traceClose = nil
+	return err
 }
 
 func (m *Module) Name() string { return "refactor-index" }
@@ -152,6 +189,7 @@ func (m *Module) querySymbols(vm *goja.Runtime, call goja.FunctionCall) ([]map[s
 			"is_exported": record.IsExported,
 		})
 	}
+	m.writeTrace("querySymbols", filter, len(results))
 	return results, nil
 }
 
@@ -202,6 +240,7 @@ func (m *Module) queryRefs(vm *goja.Runtime, call goja.FunctionCall) ([]map[stri
 			"commit_hash": record.CommitHash,
 		})
 	}
+	m.writeTrace("queryRefs", map[string]interface{}{"symbol_hash": symbolHash}, len(results))
 	return results, nil
 }
 
@@ -261,6 +300,7 @@ func (m *Module) queryDocHits(vm *goja.Runtime, call goja.FunctionCall) ([]map[s
 			"match_text": record.MatchText,
 		})
 	}
+	m.writeTrace("queryDocHits", map[string]interface{}{"terms": terms, "fileset": fs}, len(results))
 	return results, nil
 }
 
@@ -300,6 +340,7 @@ func (m *Module) queryFiles(vm *goja.Runtime, call goja.FunctionCall) ([]map[str
 			"is_binary": record.IsBinary,
 		})
 	}
+	m.writeTrace("queryFiles", fs, len(results))
 	return results, nil
 }
 
@@ -311,6 +352,26 @@ func clampLimit(value, max int) int {
 		return max
 	}
 	return value
+}
+
+type traceEntry struct {
+	Seq         int         `json:"seq"`
+	Action      string      `json:"action"`
+	Args        interface{} `json:"args"`
+	ResultCount int         `json:"result_count"`
+}
+
+func (m *Module) writeTrace(action string, args interface{}, count int) {
+	if m.traceEnc == nil {
+		return
+	}
+	m.traceSeq++
+	_ = m.traceEnc.Encode(traceEntry{
+		Seq:         m.traceSeq,
+		Action:      action,
+		Args:        args,
+		ResultCount: count,
+	})
 }
 
 func matchFileset(path string, fs fileset) (bool, error) {
