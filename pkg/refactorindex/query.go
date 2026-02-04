@@ -3,6 +3,7 @@ package refactorindex
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -265,6 +266,258 @@ func (s *Store) ListSymbolRefsUnresolved(ctx context.Context, filter SymbolRefUn
 	}
 	if err := rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "iterate unresolved symbol refs")
+	}
+	return results, nil
+}
+
+type SymbolRefFilter struct {
+	RunID      int64
+	SymbolHash string
+	Path       string
+	Limit      int
+	Offset     int
+}
+
+type SymbolRefRecord struct {
+	RunID      int64
+	CommitHash string
+	SymbolHash string
+	FilePath   string
+	Line       int
+	Col        int
+	IsDecl     bool
+	Source     string
+}
+
+type DocHitFilter struct {
+	RunID  int64
+	Terms  []string
+	Path   string
+	Limit  int
+	Offset int
+}
+
+type DocHitRecord struct {
+	RunID     int64
+	Term      string
+	FilePath  string
+	Line      int
+	Col       int
+	MatchText string
+}
+
+type FileFilter struct {
+	Path     string
+	Ext      string
+	Exists   *bool
+	IsBinary *bool
+	Limit    int
+	Offset   int
+}
+
+type FileRecord struct {
+	Path     string
+	Ext      string
+	Exists   bool
+	IsBinary bool
+}
+
+func (s *Store) ListSymbolRefs(ctx context.Context, filter SymbolRefFilter) ([]SymbolRefRecord, error) {
+	query := `
+		SELECT r.run_id, c.hash, d.symbol_hash, f.path, r.line, r.col, r.is_decl, r.source
+		FROM symbol_refs r
+		LEFT JOIN commits c ON c.id = r.commit_id
+		JOIN symbol_defs d ON d.id = r.symbol_def_id
+		JOIN files f ON f.id = r.file_id
+		WHERE (? = 0 OR r.run_id = ?)
+		  AND (? = '' OR d.symbol_hash = ?)
+		  AND (? = '' OR f.path = ?)
+		ORDER BY r.run_id, f.path, r.line, r.col`
+
+	args := []interface{}{
+		filter.RunID,
+		filter.RunID,
+		filter.SymbolHash,
+		filter.SymbolHash,
+		filter.Path,
+		filter.Path,
+	}
+
+	if filter.Limit > 0 {
+		query += " LIMIT ?"
+		args = append(args, filter.Limit)
+		if filter.Offset > 0 {
+			query += " OFFSET ?"
+			args = append(args, filter.Offset)
+		}
+	} else if filter.Offset > 0 {
+		query += " LIMIT -1 OFFSET ?"
+		args = append(args, filter.Offset)
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "query symbol refs")
+	}
+	defer rows.Close()
+
+	var results []SymbolRefRecord
+	for rows.Next() {
+		var record SymbolRefRecord
+		var commitHash sql.NullString
+		var isDecl int
+		if err := rows.Scan(
+			&record.RunID,
+			&commitHash,
+			&record.SymbolHash,
+			&record.FilePath,
+			&record.Line,
+			&record.Col,
+			&isDecl,
+			&record.Source,
+		); err != nil {
+			return nil, errors.Wrap(err, "scan symbol refs")
+		}
+		if commitHash.Valid {
+			record.CommitHash = commitHash.String
+		}
+		record.IsDecl = isDecl == 1
+		results = append(results, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "iterate symbol refs")
+	}
+	return results, nil
+}
+
+func (s *Store) ListDocHits(ctx context.Context, filter DocHitFilter) ([]DocHitRecord, error) {
+	query := `
+		SELECT h.run_id, h.term, f.path, h.line, h.col, h.match_text
+		FROM doc_hits h
+		JOIN files f ON f.id = h.file_id
+		WHERE (? = 0 OR h.run_id = ?)`
+
+	args := []interface{}{
+		filter.RunID,
+		filter.RunID,
+	}
+
+	if len(filter.Terms) > 0 {
+		placeholders := make([]string, len(filter.Terms))
+		for i, term := range filter.Terms {
+			placeholders[i] = "?"
+			args = append(args, term)
+		}
+		query += " AND h.term IN (" + strings.Join(placeholders, ",") + ")"
+	}
+	if filter.Path != "" {
+		query += " AND f.path = ?"
+		args = append(args, filter.Path)
+	}
+
+	query += " ORDER BY h.run_id, f.path, h.line, h.col"
+
+	if filter.Limit > 0 {
+		query += " LIMIT ?"
+		args = append(args, filter.Limit)
+		if filter.Offset > 0 {
+			query += " OFFSET ?"
+			args = append(args, filter.Offset)
+		}
+	} else if filter.Offset > 0 {
+		query += " LIMIT -1 OFFSET ?"
+		args = append(args, filter.Offset)
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "query doc hits")
+	}
+	defer rows.Close()
+
+	var results []DocHitRecord
+	for rows.Next() {
+		var record DocHitRecord
+		if err := rows.Scan(
+			&record.RunID,
+			&record.Term,
+			&record.FilePath,
+			&record.Line,
+			&record.Col,
+			&record.MatchText,
+		); err != nil {
+			return nil, errors.Wrap(err, "scan doc hit")
+		}
+		results = append(results, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "iterate doc hits")
+	}
+	return results, nil
+}
+
+func (s *Store) ListFiles(ctx context.Context, filter FileFilter) ([]FileRecord, error) {
+	query := `
+		SELECT path, ext, file_exists, is_binary
+		FROM files
+		WHERE (? = '' OR path = ?)
+		  AND (? = '' OR ext = ?)`
+
+	args := []interface{}{
+		filter.Path,
+		filter.Path,
+		filter.Ext,
+		filter.Ext,
+	}
+
+	if filter.Exists != nil {
+		query += " AND file_exists = ?"
+		args = append(args, boolToInt(*filter.Exists))
+	}
+	if filter.IsBinary != nil {
+		query += " AND is_binary = ?"
+		args = append(args, boolToInt(*filter.IsBinary))
+	}
+
+	query += " ORDER BY path"
+
+	if filter.Limit > 0 {
+		query += " LIMIT ?"
+		args = append(args, filter.Limit)
+		if filter.Offset > 0 {
+			query += " OFFSET ?"
+			args = append(args, filter.Offset)
+		}
+	} else if filter.Offset > 0 {
+		query += " LIMIT -1 OFFSET ?"
+		args = append(args, filter.Offset)
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "query files")
+	}
+	defer rows.Close()
+
+	var results []FileRecord
+	for rows.Next() {
+		var record FileRecord
+		var exists int
+		var isBinary int
+		if err := rows.Scan(
+			&record.Path,
+			&record.Ext,
+			&exists,
+			&isBinary,
+		); err != nil {
+			return nil, errors.Wrap(err, "scan file")
+		}
+		record.Exists = exists == 1
+		record.IsBinary = isBinary == 1
+		results = append(results, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "iterate files")
 	}
 	return results, nil
 }
