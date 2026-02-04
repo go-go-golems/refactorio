@@ -89,6 +89,7 @@ func TestIngestDiffGolden(t *testing.T) {
 	assertStatus(t, byPath, "fileD.txt", "A", "", "fileD.txt")
 
 	assertTableCounts(t, db, result.RunID)
+	assertDiffLinesFTSCount(t, db)
 }
 
 func assertRawOutputs(t *testing.T, runDir string) {
@@ -123,6 +124,16 @@ func assertTableCounts(t *testing.T, db *sql.DB, runID int64) {
 	}
 	if diffLineCount == 0 {
 		t.Fatalf("expected diff_lines rows > 0")
+	}
+}
+
+func assertDiffLinesFTSCount(t *testing.T, db *sql.DB) {
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM diff_lines_fts").Scan(&count); err != nil {
+		t.Fatalf("count diff_lines_fts: %v", err)
+	}
+	if count == 0 {
+		t.Fatalf("expected diff_lines_fts rows > 0")
 	}
 }
 

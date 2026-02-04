@@ -71,6 +71,16 @@ func TestIngestDocHits(t *testing.T) {
 	if result.Hits == 0 {
 		t.Fatalf("expected hits > 0")
 	}
+
+	db, err := OpenDB(ctx, dbPath)
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	defer func() {
+		_ = db.Close()
+	}()
+
+	assertDocHitsFTSCount(t, db)
 }
 
 func TestParseGoplsLocation(t *testing.T) {
@@ -103,5 +113,15 @@ func assertCapture(t *testing.T, db *sql.DB, queryName string, captureName strin
 	}
 	if count == 0 {
 		t.Fatalf("expected capture for %s/%s", queryName, captureName)
+	}
+}
+
+func assertDocHitsFTSCount(t *testing.T, db *sql.DB) {
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM doc_hits_fts").Scan(&count); err != nil {
+		t.Fatalf("count doc_hits_fts: %v", err)
+	}
+	if count == 0 {
+		t.Fatalf("expected doc_hits_fts rows > 0")
 	}
 }

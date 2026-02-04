@@ -103,6 +103,12 @@ func (s *Store) InitSchema(ctx context.Context) error {
 	if _, err := tx.ExecContext(ctx, "CREATE INDEX IF NOT EXISTS idx_code_unit_snapshots_commit_id ON code_unit_snapshots(commit_id)"); err != nil {
 		return errors.Wrap(err, "create code_unit_snapshots commit_id index")
 	}
+	if err := ensureFTS(ctx, tx, "doc_hits", "doc_hits_fts", "match_text"); err != nil {
+		return err
+	}
+	if err := ensureFTS(ctx, tx, "diff_lines", "diff_lines_fts", "text"); err != nil {
+		return err
+	}
 	if err := insertSchemaVersion(ctx, tx); err != nil {
 		return err
 	}
@@ -562,6 +568,65 @@ func ensureColumn(ctx context.Context, tx *sql.Tx, table string, column string, 
 		return errors.Wrap(err, "add column")
 	}
 	return nil
+}
+
+func ensureFTS(ctx context.Context, tx *sql.Tx, table string, ftsTable string, column string) error {
+	exists, err := tableExists(ctx, tx, ftsTable)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		stmt := "CREATE VIRTUAL TABLE " + ftsTable + " USING fts5(" + column + ", content='" + table + "', content_rowid='id')"
+		if _, err := tx.ExecContext(ctx, stmt); err != nil {
+			return errors.Wrap(err, "create fts table")
+		}
+	}
+
+	if err := ensureFTSTriggers(ctx, tx, table, ftsTable, column); err != nil {
+		return err
+	}
+
+	if !exists {
+		rebuild := "INSERT INTO " + ftsTable + "(" + ftsTable + ") VALUES('rebuild')"
+		if _, err := tx.ExecContext(ctx, rebuild); err != nil {
+			return errors.Wrap(err, "rebuild fts index")
+		}
+	}
+
+	return nil
+}
+
+func ensureFTSTriggers(ctx context.Context, tx *sql.Tx, table string, ftsTable string, column string) error {
+	ai := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_ai AFTER INSERT ON " + table +
+		" BEGIN INSERT INTO " + ftsTable + "(rowid, " + column + ") VALUES (new.id, new." + column + "); END;"
+	ad := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_ad AFTER DELETE ON " + table +
+		" BEGIN INSERT INTO " + ftsTable + "(" + ftsTable + ", rowid, " + column + ") VALUES('delete', old.id, old." + column + "); END;"
+	au := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_au AFTER UPDATE ON " + table +
+		" BEGIN " +
+		"INSERT INTO " + ftsTable + "(" + ftsTable + ", rowid, " + column + ") VALUES('delete', old.id, old." + column + "); " +
+		"INSERT INTO " + ftsTable + "(rowid, " + column + ") VALUES (new.id, new." + column + "); " +
+		"END;"
+
+	if _, err := tx.ExecContext(ctx, ai); err != nil {
+		return errors.Wrap(err, "create fts insert trigger")
+	}
+	if _, err := tx.ExecContext(ctx, ad); err != nil {
+		return errors.Wrap(err, "create fts delete trigger")
+	}
+	if _, err := tx.ExecContext(ctx, au); err != nil {
+		return errors.Wrap(err, "create fts update trigger")
+	}
+
+	return nil
+}
+
+func tableExists(ctx context.Context, tx *sql.Tx, name string) (bool, error) {
+	var count int
+	if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name = ?", name).Scan(&count); err != nil {
+		return false, errors.Wrap(err, "check table exists")
+	}
+	return count > 0, nil
 }
 
 func nullIfEmpty(value string) interface{} {
