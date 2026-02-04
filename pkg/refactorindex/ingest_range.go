@@ -91,6 +91,10 @@ func IngestCommitRange(ctx context.Context, cfg RangeIngestConfig) (*RangeIngest
 		}
 		commitIDs[hash] = commitID
 	}
+	rootCommits, err := loadRootCommits(ctx, cfg.RepoPath)
+	if err != nil {
+		return nil, err
+	}
 
 	worktreeRoot, err := os.MkdirTemp("", "refactor-index-worktrees-*")
 	if err != nil {
@@ -110,13 +114,19 @@ func IngestCommitRange(ctx context.Context, cfg RangeIngestConfig) (*RangeIngest
 		commitRun := CommitRunInfo{CommitHash: hash, WorktreePath: worktreePath}
 		commitID := commitIDs[hash]
 		if cfg.IncludeDiff {
-			diffResult, err := IngestDiff(ctx, IngestDiffConfig{
+			diffConfig := IngestDiffConfig{
 				DBPath:     cfg.DBPath,
 				RepoPath:   cfg.RepoPath,
 				FromRef:    hash + "^",
 				ToRef:      hash,
 				SourcesDir: cfg.SourcesDir,
-			})
+			}
+			if isRootCommitHash(rootCommits, hash) {
+				diffConfig.FromRef = hash
+				diffConfig.ToRef = hash
+				diffConfig.UseRootDiff = true
+			}
+			diffResult, err := IngestDiff(ctx, diffConfig)
 			if err != nil {
 				_ = removeWorktree(ctx, cfg.RepoPath, worktreePath)
 				return nil, err

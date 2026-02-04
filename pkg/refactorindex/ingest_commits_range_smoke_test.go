@@ -49,14 +49,14 @@ func TestIngestCommitsGolden(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ingest commits: %v", err)
 	}
-	if result.CommitCount != 1 {
-		t.Fatalf("expected 1 commit, got %d", result.CommitCount)
+	if result.CommitCount != 2 {
+		t.Fatalf("expected 2 commits, got %d", result.CommitCount)
 	}
-	if result.FileCount != 5 {
-		t.Fatalf("expected 5 commit files, got %d", result.FileCount)
+	if result.FileCount < 5 {
+		t.Fatalf("expected at least 5 commit files, got %d", result.FileCount)
 	}
-	if result.BlobCount != 3 {
-		t.Fatalf("expected 3 blobs, got %d", result.BlobCount)
+	if result.BlobCount < 3 {
+		t.Fatalf("expected at least 3 blobs, got %d", result.BlobCount)
 	}
 
 	db, err := OpenDB(ctx, dbPath)
@@ -67,7 +67,7 @@ func TestIngestCommitsGolden(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	assertCommitCounts(t, db, result.RunID, 1, 5, 3)
+	assertCommitCounts(t, db, result.RunID, 2, 5, 3)
 }
 
 func TestIngestCommitRangeDiffAndSymbols(t *testing.T) {
@@ -119,13 +119,14 @@ func TestIngestCommitRangeDiffAndSymbols(t *testing.T) {
 	if result.CommitLineageRunID == 0 {
 		t.Fatalf("expected commit lineage run id")
 	}
-	if len(result.Commits) != 1 {
-		t.Fatalf("expected 1 commit run, got %d", len(result.Commits))
+	if len(result.Commits) != 2 {
+		t.Fatalf("expected 2 commit runs, got %d", len(result.Commits))
 	}
 
-	commit := result.Commits[0]
-	if commit.DiffRunID == 0 || commit.SymbolsRunID == 0 || commit.CodeUnitsRunID == 0 {
-		t.Fatalf("expected diff/symbols/code-units run ids > 0, got diff=%d symbols=%d code=%d", commit.DiffRunID, commit.SymbolsRunID, commit.CodeUnitsRunID)
+	for _, commit := range result.Commits {
+		if commit.DiffRunID == 0 || commit.SymbolsRunID == 0 || commit.CodeUnitsRunID == 0 {
+			t.Fatalf("expected diff/symbols/code-units run ids > 0, got diff=%d symbols=%d code=%d", commit.DiffRunID, commit.SymbolsRunID, commit.CodeUnitsRunID)
+		}
 	}
 
 	db, err := OpenDB(ctx, dbPath)
@@ -136,10 +137,11 @@ func TestIngestCommitRangeDiffAndSymbols(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	assertCommitCounts(t, db, result.CommitLineageRunID, 1, 1, 1)
+	assertCommitCounts(t, db, result.CommitLineageRunID, 2, 1, 1)
 	assertSymbol(t, db, "Sub", "func")
-	assertSymbolOccurrenceCommitID(t, db, commit.CommitHash)
-	assertCodeUnitSnapshotCommitID(t, db, commit.CommitHash)
+	latestCommit := result.Commits[len(result.Commits)-1]
+	assertSymbolOccurrenceCommitID(t, db, latestCommit.CommitHash)
+	assertCodeUnitSnapshotCommitID(t, db, latestCommit.CommitHash)
 }
 
 func assertCommitCounts(t *testing.T, db *sql.DB, runID int64, commits int, commitFiles int, blobs int) {

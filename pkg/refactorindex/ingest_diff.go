@@ -14,11 +14,12 @@ import (
 const ToolVersion = "dev"
 
 type IngestDiffConfig struct {
-	DBPath     string
-	RepoPath   string
-	FromRef    string
-	ToRef      string
-	SourcesDir string
+	DBPath      string
+	RepoPath    string
+	FromRef     string
+	ToRef       string
+	SourcesDir  string
+	UseRootDiff bool
 }
 
 type IngestDiffResult struct {
@@ -67,6 +68,7 @@ func IngestDiff(ctx context.Context, cfg IngestDiffConfig) (_ *IngestDiffResult,
 		"to":          cfg.ToRef,
 		"repo":        repoPath,
 		"sources_dir": sourcesDir,
+		"root_diff":   fmt.Sprint(cfg.UseRootDiff),
 	})
 	if err != nil {
 		return nil, err
@@ -99,7 +101,12 @@ func IngestDiff(ctx context.Context, cfg IngestDiffConfig) (_ *IngestDiffResult,
 
 	runDir := filepath.Join(sourcesDir, fmt.Sprintf("%d", runID))
 
-	nameStatusOutput, err := runGit(ctx, repoPath, "diff", "--name-status", "-z", cfg.FromRef, cfg.ToRef)
+	var nameStatusOutput []byte
+	if cfg.UseRootDiff {
+		nameStatusOutput, err = runGit(ctx, repoPath, "diff", "--root", "--name-status", "-z", cfg.ToRef)
+	} else {
+		nameStatusOutput, err = runGit(ctx, repoPath, "diff", "--name-status", "-z", cfg.FromRef, cfg.ToRef)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +119,12 @@ func IngestDiff(ctx context.Context, cfg IngestDiffConfig) (_ *IngestDiffResult,
 		return nil, err
 	}
 
-	patchOutput, err := runGit(ctx, repoPath, "diff", "-U0", "--no-color", cfg.FromRef, cfg.ToRef)
+	var patchOutput []byte
+	if cfg.UseRootDiff {
+		patchOutput, err = runGit(ctx, repoPath, "diff", "--root", "-U0", "--no-color", cfg.ToRef)
+	} else {
+		patchOutput, err = runGit(ctx, repoPath, "diff", "-U0", "--no-color", cfg.FromRef, cfg.ToRef)
+	}
 	if err != nil {
 		return nil, err
 	}

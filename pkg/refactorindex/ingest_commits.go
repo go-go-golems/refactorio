@@ -84,11 +84,27 @@ func IngestCommits(ctx context.Context, cfg IngestCommitsConfig) (_ *IngestCommi
 		_ = tx.Rollback()
 	}()
 
-	commitList, err := runGit(ctx, cfg.RepoPath, "rev-list", "--reverse", fmt.Sprintf("%s..%s", cfg.FromRef, cfg.ToRef))
+	fromHash, err := resolveCommitHash(ctx, cfg.RepoPath, cfg.FromRef)
+	if err != nil {
+		return nil, err
+	}
+	toHash, err := resolveCommitHash(ctx, cfg.RepoPath, cfg.ToRef)
+	if err != nil {
+		return nil, err
+	}
+
+	commitList, err := runGit(ctx, cfg.RepoPath, "rev-list", "--reverse", fmt.Sprintf("%s..%s", fromHash, toHash))
 	if err != nil {
 		return nil, err
 	}
 	commits := splitLines(commitList)
+	rootCommits, err := loadRootCommits(ctx, cfg.RepoPath)
+	if err != nil {
+		return nil, err
+	}
+	if isRootCommitHash(rootCommits, fromHash) {
+		commits = append([]string{fromHash}, commits...)
+	}
 	if len(commits) == 0 {
 		if err := tx.Commit(); err != nil {
 			return nil, errors.Wrap(err, "commit empty commit ingestion")
@@ -246,4 +262,40 @@ func splitLines(data []byte) []string {
 		lines = append(lines, line)
 	}
 	return lines
+}
+
+func resolveCommitHash(ctx context.Context, repoPath string, ref string) (string, error) {
+	if strings.TrimSpace(ref) == "" {
+		return "", errors.New("ref is required")
+	}
+	out, err := runGit(ctx, repoPath, "rev-parse", ref)
+	if err != nil {
+		return "", err
+	}
+	hash := strings.TrimSpace(string(out))
+	if hash == "" {
+		return "", errors.New("empty commit hash")
+	}
+	return hash, nil
+}
+
+func loadRootCommits(ctx context.Context, repoPath string) (map[string]struct{}, error) {
+	out, err := runGit(ctx, repoPath, "rev-list", "--max-parents=0", "--all")
+	if err != nil {
+		return nil, err
+	}
+	roots := splitLines(out)
+	rootSet := make(map[string]struct{}, len(roots))
+	for _, root := range roots {
+		rootSet[root] = struct{}{}
+	}
+	return rootSet, nil
+}
+
+func isRootCommitHash(rootSet map[string]struct{}, hash string) bool {
+	if hash == "" {
+		return false
+	}
+	_, ok := rootSet[hash]
+	return ok
 }
