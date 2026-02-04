@@ -713,3 +713,47 @@ I wrote a multi-angle deep review of the JS index API work, covering architectur
 
 ### Technical details
 - Review doc: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ttmp/2026/02/04/REF-006-INDEX-LAYER-JS--index-layer-js-api/analysis/02-js-index-api-deep-review.md`.
+
+## Step 16: Add Glazed Help Entries for JS API
+I added two Glazed help entries under `pkg/doc/topics`: a user guide and a full reference document. They follow the documentation style guide and provide detailed onboarding and lookup information for JS scripts.
+
+### Prompt Context
+**User prompt (verbatim):** "write a rich user guide on how to use the JS api, how to write scripts, where to look, and another detailed reference document. Both that you add as refactorio/pkg/doc glazed help entry, see glazed/pkg/doc/topics/how-to-write-good-documentation-pages.md and glazed/pkg/doc/topics/14-writing-help-entries.md ."
+
+**Assistant interpretation:** Add two help entries in `pkg/doc` with a user guide and a reference document, following the Glazed documentation rules.
+
+**Inferred user intent:** Provide in-tool help for JS scripts and make it discoverable via Glazed’s help system.
+
+**Commit (code):** <pending>
+
+### What I did
+- Added `pkg/doc/topics/02-js-index-api-guide.md` (user guide).
+- Added `pkg/doc/topics/03-js-index-api-reference.md` (reference doc).
+
+### Why
+- Glazed help entries allow users to access documentation via CLI help commands.
+
+### What worked
+- Both docs include frontmatter and structured sections as required.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Keeping the user guide distinct from the reference doc reduces redundancy and improves scanability.
+
+### What was tricky to build
+- Ensuring both docs provide sufficient detail without duplicating content.
+
+### What warrants a second pair of eyes
+- Validate that slugs are unique and the docs load correctly in the help system.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/doc/topics/02-js-index-api-guide.md`.
+- Review `refactorio/pkg/doc/topics/03-js-index-api-reference.md`.
+
+### Technical details
+- Help entries: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/doc/topics/`.
