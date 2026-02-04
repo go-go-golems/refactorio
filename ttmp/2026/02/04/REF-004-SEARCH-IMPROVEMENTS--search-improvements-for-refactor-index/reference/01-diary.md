@@ -11,6 +11,12 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/glazed-03-latest-commit-for-file.sql
+      Note: Use v_last_commit_per_file + files_fts
+    - Path: refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/glazed-07-code-units-search.sql
+      Note: Updated code unit search to FTS
+    - Path: refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/glazed-08-symbol-refs.sql
+      Note: Symbol defs FTS + refs example
     - Path: refactorio/ttmp/2026/02/04/REF-004-SEARCH-IMPROVEMENTS--search-improvements-for-refactor-index/design-doc/01-search-improvements-implementation-plan.md
       Note: Removed tree-sitter references
     - Path: refactorio/ttmp/2026/02/04/REF-004-SEARCH-IMPROVEMENTS--search-improvements-for-refactor-index/tasks.md
@@ -21,6 +27,7 @@ LastUpdated: 2026-02-04T18:05:00-05:00
 WhatFor: Track changes, decisions, and validations while implementing search improvements.
 WhenToUse: Use while executing REF-004 tasks to record progress and validation steps.
 ---
+
 
 
 # Diary
@@ -381,3 +388,49 @@ I added the `v_last_commit_per_file` view using a window function to select the 
 
 ### Technical details
 - View partitions by `run_id` and `file_id`, ordered by `commits.id DESC`.
+
+## Step 9: Task 8 - Refresh search SQL examples
+I updated the refactor-index SQL example scripts to use the new FTS tables and the last-commit-per-file view, so the playbook queries reflect the expanded search surface. This keeps the runnable scripts aligned with the current schema and reduces the need for manual joins.
+
+The updates focus on commits, code units, symbol definitions, file paths, and the simplified last-commit query. That way each newly-added FTS table has a concrete example in the playbook.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 7)
+
+**Assistant interpretation:** Update the stored SQL scripts to use the new FTS tables and the view.
+
+**Inferred user intent:** Keep search examples in the playbook aligned with the latest schema additions.
+
+**Commit (code):** 231e68b — "docs: refresh refactor-index search SQL scripts"
+
+### What I did
+- Updated the glazed SQL scripts under `refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/` to use `commits_fts`, `code_unit_snapshots_fts`, `symbol_defs_fts`, and `files_fts`.
+- Rewrote the “latest commit for file” example to use `v_last_commit_per_file` and `files_fts`.
+- Added FTS table counts to the table-counts script.
+
+### Why
+- The playbook scripts should exercise the same FTS tables and view that refactor-index now produces.
+
+### What worked
+- The SQL examples now align with the expanded FTS coverage and simplified view.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- FTS matching for file paths requires choosing queries that tokenize well (paths contain punctuation).
+
+### What warrants a second pair of eyes
+- Verify the example FTS MATCH strings are sensible for real-world file path and symbol searches.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review the SQL scripts in `refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/`.
+
+### Technical details
+- Updated scripts to use `commits_fts`, `code_unit_snapshots_fts`, `symbol_defs_fts`, `files_fts`, and `v_last_commit_per_file`.

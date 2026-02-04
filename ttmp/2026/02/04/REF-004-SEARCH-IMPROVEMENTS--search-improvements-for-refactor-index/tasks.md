@@ -25,7 +25,7 @@
 - [x] Add `v_last_commit_per_file` view with run_id, file path, commit hash, date, status.
 
 ## Task 8: Update search SQL examples
-- [ ] Refactor existing search SQL examples to use new FTS tables and view.
+- [x] Refactor existing search SQL examples to use new FTS tables and view.
 
 ## Task 9: Tests
 - [ ] Add/extend smoke tests for new FTS tables and view.

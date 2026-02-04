@@ -77,3 +77,12 @@ Complete Task 7: add v_last_commit_per_file view (commit 45e4934).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/schema.go — v_last_commit_per_file view
 
+
+## 2026-02-04
+
+Step 9: update search SQL examples for new FTS tables (commit 231e68b).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/glazed-03-latest-commit-for-file.sql — Use v_last_commit_per_file + files_fts
+
