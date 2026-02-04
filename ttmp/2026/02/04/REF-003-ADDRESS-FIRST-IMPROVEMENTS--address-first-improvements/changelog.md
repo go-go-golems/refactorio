@@ -74,3 +74,13 @@ Complete Task 2: add ignore-package-errors flags and code-units best-effort hand
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactor-index/ingest_symbols.go — Flag wiring
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_code_units.go — Best-effort handling
 
+
+## 2026-02-04
+
+Complete Task 3: add limit/offset paging to list commands (commit 5c8a03c).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactor-index/list_diff_files.go — New flags
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/query.go — Pagination support
+

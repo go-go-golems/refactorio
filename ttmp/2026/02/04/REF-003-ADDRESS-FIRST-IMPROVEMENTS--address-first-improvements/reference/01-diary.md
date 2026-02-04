@@ -393,3 +393,49 @@ This makes the best-effort behavior available from the CLI and keeps range inges
 
 ### Technical details
 - Shared warning metadata helper in `refactorio/pkg/refactorindex/package_errors.go`.
+
+## Step 8: Task 3 - Add limit/offset for list commands
+I added `--limit` and `--offset` support to list diff-files and added offset support to list symbols, along with query helper updates. This makes large result sets easier to page through.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Add paging controls for list commands to manage large output sets.
+
+**Inferred user intent:** Enable scalable querying without dumping full tables.
+
+**Commit (code):** 5c8a03c — "refactorindex: add limit/offset for list commands"
+
+### What I did
+- Added limit/offset flags to list diff-files and list symbols.
+- Updated query helpers to accept limit/offset and added offset support to symbol inventory queries.
+- Adjusted diff ingestion smoke test for the new filter struct.
+
+### Why
+- Large runs require pagination support for list commands.
+
+### What worked
+- List commands now support paging without altering the underlying schema.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Confirm list diff-files pagination order matches expectations for downstream tooling.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/query.go` for new limit/offset handling.
+- Review `refactorio/cmd/refactor-index/list_diff_files.go` and `list_symbols.go` for flag wiring.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- List diff-files now uses a `DiffFileFilter` with limit/offset.

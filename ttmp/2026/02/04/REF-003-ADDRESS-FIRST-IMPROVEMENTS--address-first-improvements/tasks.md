@@ -14,9 +14,9 @@
 - [x] Apply best-effort behavior for code-units.
 
 ## Task 3: Add --limit/--offset flags for list commands
-- [ ] Add limit/offset to list diff-files.
-- [ ] Add offset to list symbols.
-- [ ] Update query helpers and tests.
+- [x] Add limit/offset to list diff-files.
+- [x] Add offset to list symbols.
+- [x] Update query helpers and tests.
 
 ## Task 4: Record run failures with status + error_json and run metadata table
 - [x] Add meta_runs.status and meta_runs.error_json columns.
