@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 1
+const SchemaVersion = 2
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -68,7 +68,62 @@ CREATE TABLE IF NOT EXISTS diff_lines (
     FOREIGN KEY(hunk_id) REFERENCES diff_hunks(id)
 );
 
+CREATE TABLE IF NOT EXISTS symbol_defs (
+    id INTEGER PRIMARY KEY,
+    pkg TEXT NOT NULL,
+    name TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    recv TEXT,
+    signature TEXT,
+    symbol_hash TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS symbol_occurrences (
+    id INTEGER PRIMARY KEY,
+    run_id INTEGER NOT NULL,
+    file_id INTEGER NOT NULL,
+    symbol_def_id INTEGER NOT NULL,
+    line INTEGER NOT NULL,
+    col INTEGER NOT NULL,
+    is_exported INTEGER NOT NULL,
+    FOREIGN KEY(run_id) REFERENCES meta_runs(id),
+    FOREIGN KEY(file_id) REFERENCES files(id),
+    FOREIGN KEY(symbol_def_id) REFERENCES symbol_defs(id)
+);
+
+CREATE TABLE IF NOT EXISTS code_units (
+    id INTEGER PRIMARY KEY,
+    kind TEXT NOT NULL,
+    name TEXT NOT NULL,
+    pkg TEXT NOT NULL,
+    recv TEXT,
+    signature TEXT,
+    unit_hash TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS code_unit_snapshots (
+    id INTEGER PRIMARY KEY,
+    run_id INTEGER NOT NULL,
+    file_id INTEGER NOT NULL,
+    code_unit_id INTEGER NOT NULL,
+    start_line INTEGER NOT NULL,
+    start_col INTEGER NOT NULL,
+    end_line INTEGER NOT NULL,
+    end_col INTEGER NOT NULL,
+    body_hash TEXT NOT NULL,
+    body_text TEXT NOT NULL,
+    doc_text TEXT,
+    FOREIGN KEY(run_id) REFERENCES meta_runs(id),
+    FOREIGN KEY(file_id) REFERENCES files(id),
+    FOREIGN KEY(code_unit_id) REFERENCES code_units(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_diff_files_run_id ON diff_files(run_id);
 CREATE INDEX IF NOT EXISTS idx_diff_hunks_diff_file_id ON diff_hunks(diff_file_id);
 CREATE INDEX IF NOT EXISTS idx_diff_lines_hunk_id ON diff_lines(hunk_id);
+CREATE INDEX IF NOT EXISTS idx_symbol_defs_hash ON symbol_defs(symbol_hash);
+CREATE INDEX IF NOT EXISTS idx_symbol_occurrences_run_id ON symbol_occurrences(run_id);
+CREATE INDEX IF NOT EXISTS idx_symbol_occurrences_symbol_id ON symbol_occurrences(symbol_def_id);
+CREATE INDEX IF NOT EXISTS idx_code_units_hash ON code_units(unit_hash);
+CREATE INDEX IF NOT EXISTS idx_code_unit_snapshots_run_id ON code_unit_snapshots(run_id);
 `
