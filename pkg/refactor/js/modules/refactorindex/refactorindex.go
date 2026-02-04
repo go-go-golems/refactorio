@@ -3,6 +3,7 @@ package refactorindex
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/dop251/goja"
@@ -114,6 +115,25 @@ func (m *Module) querySymbols(vm *goja.Runtime, call goja.FunctionCall) ([]map[s
 		return nil, err
 	}
 
+	sort.Slice(records, func(i, j int) bool {
+		if records[i].Pkg != records[j].Pkg {
+			return records[i].Pkg < records[j].Pkg
+		}
+		if records[i].Name != records[j].Name {
+			return records[i].Name < records[j].Name
+		}
+		if records[i].Kind != records[j].Kind {
+			return records[i].Kind < records[j].Kind
+		}
+		if records[i].FilePath != records[j].FilePath {
+			return records[i].FilePath < records[j].FilePath
+		}
+		if records[i].Line != records[j].Line {
+			return records[i].Line < records[j].Line
+		}
+		return records[i].Col < records[j].Col
+	})
+
 	results := make([]map[string]interface{}, 0, len(records))
 	for _, record := range records {
 		results = append(results, map[string]interface{}{
@@ -154,6 +174,19 @@ func (m *Module) queryRefs(vm *goja.Runtime, call goja.FunctionCall) ([]map[stri
 		return nil, err
 	}
 
+	sort.Slice(records, func(i, j int) bool {
+		if records[i].FilePath != records[j].FilePath {
+			return records[i].FilePath < records[j].FilePath
+		}
+		if records[i].Line != records[j].Line {
+			return records[i].Line < records[j].Line
+		}
+		if records[i].Col != records[j].Col {
+			return records[i].Col < records[j].Col
+		}
+		return records[i].SymbolHash < records[j].SymbolHash
+	})
+
 	results := make([]map[string]interface{}, 0, len(records))
 	for _, record := range records {
 		results = append(results, map[string]interface{}{
@@ -191,13 +224,31 @@ func (m *Module) queryDocHits(vm *goja.Runtime, call goja.FunctionCall) ([]map[s
 		return nil, err
 	}
 
-	results := make([]map[string]interface{}, 0, len(records))
+	filtered := make([]refactorindex.DocHitRecord, 0, len(records))
 	for _, record := range records {
 		if ok, err := matchFileset(record.FilePath, fs); err != nil {
 			return nil, err
 		} else if !ok {
 			continue
 		}
+		filtered = append(filtered, record)
+	}
+
+	sort.Slice(filtered, func(i, j int) bool {
+		if filtered[i].FilePath != filtered[j].FilePath {
+			return filtered[i].FilePath < filtered[j].FilePath
+		}
+		if filtered[i].Line != filtered[j].Line {
+			return filtered[i].Line < filtered[j].Line
+		}
+		if filtered[i].Col != filtered[j].Col {
+			return filtered[i].Col < filtered[j].Col
+		}
+		return filtered[i].Term < filtered[j].Term
+	})
+
+	results := make([]map[string]interface{}, 0, len(filtered))
+	for _, record := range filtered {
 		results = append(results, map[string]interface{}{
 			"term":       record.Term,
 			"path":       record.FilePath,
@@ -222,13 +273,22 @@ func (m *Module) queryFiles(vm *goja.Runtime, call goja.FunctionCall) ([]map[str
 		return nil, err
 	}
 
-	results := make([]map[string]interface{}, 0, len(records))
+	filtered := make([]refactorindex.FileRecord, 0, len(records))
 	for _, record := range records {
 		if ok, err := matchFileset(record.Path, fs); err != nil {
 			return nil, err
 		} else if !ok {
 			continue
 		}
+		filtered = append(filtered, record)
+	}
+
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].Path < filtered[j].Path
+	})
+
+	results := make([]map[string]interface{}, 0, len(filtered))
+	for _, record := range filtered {
 		results = append(results, map[string]interface{}{
 			"path":      record.Path,
 			"ext":       record.Ext,
