@@ -21,6 +21,8 @@ type ListDiffFilesCommand struct {
 type ListDiffFilesSettings struct {
 	DBPath string `glazed:"db"`
 	RunID  int64  `glazed:"run-id"`
+	Limit  int    `glazed:"limit"`
+	Offset int    `glazed:"offset"`
 }
 
 var _ cmds.GlazeCommand = &ListDiffFilesCommand{}
@@ -41,6 +43,18 @@ func NewListDiffFilesCommand() (*ListDiffFilesCommand, error) {
 				"run-id",
 				fields.TypeInteger,
 				fields.WithHelp("Filter by a specific run id (optional)"),
+				fields.WithDefault(0),
+			),
+			fields.New(
+				"limit",
+				fields.TypeInteger,
+				fields.WithHelp("Limit number of rows (optional)"),
+				fields.WithDefault(0),
+			),
+			fields.New(
+				"offset",
+				fields.TypeInteger,
+				fields.WithHelp("Offset rows (optional)"),
 				fields.WithDefault(0),
 			),
 		),
@@ -68,7 +82,11 @@ func (c *ListDiffFilesCommand) RunIntoGlazeProcessor(
 	}()
 
 	store := refactorindex.NewStore(db)
-	records, err := store.ListDiffFiles(ctx, settings.RunID)
+	records, err := store.ListDiffFiles(ctx, refactorindex.DiffFileFilter{
+		RunID:  settings.RunID,
+		Limit:  settings.Limit,
+		Offset: settings.Offset,
+	})
 	if err != nil {
 		return err
 	}

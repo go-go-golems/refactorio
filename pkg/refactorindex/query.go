@@ -15,6 +15,12 @@ type DiffFileRecord struct {
 	NewPath string
 }
 
+type DiffFileFilter struct {
+	RunID  int64
+	Limit  int
+	Offset int
+}
+
 type SymbolInventoryFilter struct {
 	RunID        int64
 	ExportedOnly bool
@@ -23,6 +29,7 @@ type SymbolInventoryFilter struct {
 	Pkg          string
 	Path         string
 	Limit        int
+	Offset       int
 }
 
 type SymbolInventoryRecord struct {
@@ -47,17 +54,32 @@ func (s *Store) GetCommitIDByHash(ctx context.Context, runID int64, hash string)
 	return id, nil
 }
 
-func (s *Store) ListDiffFiles(ctx context.Context, runID int64) ([]DiffFileRecord, error) {
-	rows, err := s.db.QueryContext(
-		ctx,
-		`SELECT df.run_id, df.status, f.path, df.old_path, df.new_path
-		 FROM diff_files df
-		 LEFT JOIN files f ON f.id = df.file_id
-		 WHERE (? = 0 OR df.run_id = ?)
-		 ORDER BY df.run_id, f.path`,
-		runID,
-		runID,
-	)
+func (s *Store) ListDiffFiles(ctx context.Context, filter DiffFileFilter) ([]DiffFileRecord, error) {
+	query := `
+		SELECT df.run_id, df.status, f.path, df.old_path, df.new_path
+		FROM diff_files df
+		LEFT JOIN files f ON f.id = df.file_id
+		WHERE (? = 0 OR df.run_id = ?)
+		ORDER BY df.run_id, f.path`
+
+	args := []interface{}{
+		filter.RunID,
+		filter.RunID,
+	}
+
+	if filter.Limit > 0 {
+		query += " LIMIT ?"
+		args = append(args, filter.Limit)
+		if filter.Offset > 0 {
+			query += " OFFSET ?"
+			args = append(args, filter.Offset)
+		}
+	} else if filter.Offset > 0 {
+		query += " LIMIT -1 OFFSET ?"
+		args = append(args, filter.Offset)
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "query diff files")
 	}
@@ -117,6 +139,10 @@ func (s *Store) ListSymbolInventory(ctx context.Context, filter SymbolInventoryF
 	if filter.Limit > 0 {
 		query += " LIMIT ?"
 		args = append(args, filter.Limit)
+	}
+	if filter.Offset > 0 {
+		query += " OFFSET ?"
+		args = append(args, filter.Offset)
 	}
 
 	rows, err := s.db.QueryContext(ctx, query, args...)

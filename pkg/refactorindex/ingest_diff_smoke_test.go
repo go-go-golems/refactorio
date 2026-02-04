@@ -70,7 +70,7 @@ func TestIngestDiffGolden(t *testing.T) {
 	}()
 
 	store := NewStore(db)
-	records, err := store.ListDiffFiles(ctx, result.RunID)
+	records, err := store.ListDiffFiles(ctx, DiffFileFilter{RunID: result.RunID})
 	if err != nil {
 		t.Fatalf("list diff files: %v", err)
 	}

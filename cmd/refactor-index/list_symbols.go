@@ -28,6 +28,7 @@ type ListSymbolsSettings struct {
 	Pkg          string `glazed:"pkg"`
 	Path         string `glazed:"path"`
 	Limit        int    `glazed:"limit"`
+	Offset       int    `glazed:"offset"`
 }
 
 var _ cmds.GlazeCommand = &ListSymbolsCommand{}
@@ -86,6 +87,12 @@ func NewListSymbolsCommand() (*ListSymbolsCommand, error) {
 				fields.WithHelp("Limit number of rows (optional)"),
 				fields.WithDefault(0),
 			),
+			fields.New(
+				"offset",
+				fields.TypeInteger,
+				fields.WithHelp("Offset rows (optional)"),
+				fields.WithDefault(0),
+			),
 		),
 	)
 
@@ -119,6 +126,7 @@ func (c *ListSymbolsCommand) RunIntoGlazeProcessor(
 		Pkg:          settings.Pkg,
 		Path:         settings.Path,
 		Limit:        settings.Limit,
+		Offset:       settings.Offset,
 	})
 	if err != nil {
 		return err
