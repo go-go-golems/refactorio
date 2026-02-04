@@ -1,0 +1,9 @@
+# Diff Files Report
+
+Run ID: {{ .RunID }}
+
+| status | path | old_path | new_path |
+| --- | --- | --- | --- |
+{{- range .Rows }}
+| {{ .status }} | {{ .path }} | {{ .old_path }} | {{ .new_path }} |
+{{- end }}
