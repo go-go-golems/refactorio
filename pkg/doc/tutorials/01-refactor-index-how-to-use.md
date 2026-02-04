@@ -100,6 +100,8 @@ GOWORK=off go run ./cmd/refactor-index ingest code-units --db "$DB" --root .
 
 You should see counts for symbols, occurrences, code units, and snapshots. These rows are the basis for list queries and gopls targeting.
 
+Note: symbol/code-unit ingestion requires a buildable repo. If `go/packages` reports errors, fix the build or pass `--ignore-package-errors` to proceed with partial results.
+
 Implementation links:
 - Symbol ingestion: `refactorio/pkg/refactorindex/ingest_symbols.go`
 - Code unit ingestion: `refactorio/pkg/refactorindex/ingest_code_units.go`

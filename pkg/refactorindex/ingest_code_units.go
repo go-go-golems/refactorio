@@ -102,7 +102,7 @@ func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (_ *IngestC
 	}
 	if packageErrorCount > 0 {
 		if !cfg.IgnorePackageErrors {
-			return nil, errors.New("package load errors")
+			return nil, errors.New("package load errors (repository must compile; use --ignore-package-errors to continue)")
 		}
 		if err := recordGoPackagesErrors(ctx, store, runID, pkgs); err != nil {
 			return nil, err

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -33,14 +32,6 @@ type IngestSymbolsResult struct {
 	PackagesWithErrors int
 	PackagesSkipped    int
 	Files              int
-}
-
-type goPackagesErrorMeta struct {
-	Severity string `json:"severity"`
-	Package  string `json:"package"`
-	Position string `json:"position,omitempty"`
-	Kind     string `json:"kind,omitempty"`
-	Message  string `json:"message"`
 }
 
 func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (_ *IngestSymbolsResult, err error) {
@@ -108,21 +99,10 @@ func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (_ *IngestSymbo
 	}
 	if packageErrorCount > 0 {
 		if !cfg.IgnorePackageErrors {
-			return nil, errors.New("package load errors")
+			return nil, errors.New("package load errors (repository must compile; use --ignore-package-errors to continue)")
 		}
-		for _, pkg := range pkgs {
-			for _, perr := range pkg.Errors {
-				meta := goPackagesErrorMeta{
-					Severity: "warning",
-					Package:  pkg.PkgPath,
-					Position: perr.Pos,
-					Kind:     fmt.Sprint(perr.Kind),
-					Message:  perr.Msg,
-				}
-				if err := store.InsertRunMetadataJSON(ctx, runID, "go_packages_error", meta); err != nil {
-					return nil, err
-				}
-			}
+		if err := recordGoPackagesErrors(ctx, store, runID, pkgs); err != nil {
+			return nil, err
 		}
 	}
 
