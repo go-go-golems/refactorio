@@ -86,6 +86,8 @@ const Answer = 42
 	assertSnapshotCount(t, db, codeUnitsResult.RunID, 3)
 	assertSnapshotBodyLike(t, db, "type Person")
 	assertSnapshotBodyLike(t, db, "func Add")
+	assertCodeUnitSnapshotsFTSCount(t, db)
+	assertSymbolDefsFTSCount(t, db)
 }
 
 func assertSymbol(t *testing.T, db *sql.DB, name string, kind string) {
@@ -125,6 +127,26 @@ func assertSnapshotBodyLike(t *testing.T, db *sql.DB, needle string) {
 	}
 	if count == 0 {
 		t.Fatalf("expected snapshot body containing %q", needle)
+	}
+}
+
+func assertCodeUnitSnapshotsFTSCount(t *testing.T, db *sql.DB) {
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM code_unit_snapshots_fts").Scan(&count); err != nil {
+		t.Fatalf("count code_unit_snapshots_fts: %v", err)
+	}
+	if count == 0 {
+		t.Fatalf("expected code_unit_snapshots_fts rows > 0")
+	}
+}
+
+func assertSymbolDefsFTSCount(t *testing.T, db *sql.DB) {
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM symbol_defs_fts").Scan(&count); err != nil {
+		t.Fatalf("count symbol_defs_fts: %v", err)
+	}
+	if count == 0 {
+		t.Fatalf("expected symbol_defs_fts rows > 0")
 	}
 }
 

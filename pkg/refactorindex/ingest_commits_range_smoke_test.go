@@ -68,6 +68,9 @@ func TestIngestCommitsGolden(t *testing.T) {
 	}()
 
 	assertCommitCounts(t, db, result.RunID, 2, 5, 3)
+	assertCommitsFTSCount(t, db)
+	assertFilesFTSCount(t, db)
+	assertLastCommitPerFileView(t, db, result.RunID)
 }
 
 func TestIngestCommitRangeDiffAndSymbols(t *testing.T) {
@@ -166,6 +169,50 @@ func assertCommitCounts(t *testing.T, db *sql.DB, runID int64, commits int, comm
 	}
 	if blobCount < blobs {
 		t.Fatalf("expected at least %d file_blobs, got %d", blobs, blobCount)
+	}
+}
+
+func assertCommitsFTSCount(t *testing.T, db *sql.DB) {
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM commits_fts").Scan(&count); err != nil {
+		t.Fatalf("count commits_fts: %v", err)
+	}
+	if count == 0 {
+		t.Fatalf("expected commits_fts rows > 0")
+	}
+}
+
+func assertFilesFTSCount(t *testing.T, db *sql.DB) {
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM files_fts").Scan(&count); err != nil {
+		t.Fatalf("count files_fts: %v", err)
+	}
+	if count == 0 {
+		t.Fatalf("expected files_fts rows > 0")
+	}
+}
+
+func assertLastCommitPerFileView(t *testing.T, db *sql.DB, runID int64) {
+	var viewCount int
+	if err := db.QueryRow("SELECT COUNT(*) FROM v_last_commit_per_file WHERE run_id = ?", runID).Scan(&viewCount); err != nil {
+		t.Fatalf("count v_last_commit_per_file: %v", err)
+	}
+	if viewCount == 0 {
+		t.Fatalf("expected v_last_commit_per_file rows > 0")
+	}
+
+	var distinctFiles int
+	if err := db.QueryRow(
+		`SELECT COUNT(DISTINCT cf.file_id)
+		 FROM commit_files cf
+		 JOIN commits c ON c.id = cf.commit_id
+		 WHERE c.run_id = ?`,
+		runID,
+	).Scan(&distinctFiles); err != nil {
+		t.Fatalf("count distinct commit file ids: %v", err)
+	}
+	if viewCount != distinctFiles {
+		t.Fatalf("expected v_last_commit_per_file rows %d to equal distinct files %d", viewCount, distinctFiles)
 	}
 }
 
