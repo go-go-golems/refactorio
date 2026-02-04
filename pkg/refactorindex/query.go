@@ -46,6 +46,23 @@ type SymbolInventoryRecord struct {
 	IsExported bool
 }
 
+type SymbolRefUnresolvedFilter struct {
+	RunID  int64
+	Limit  int
+	Offset int
+}
+
+type SymbolRefUnresolvedRecord struct {
+	RunID      int64
+	CommitHash string
+	SymbolHash string
+	FilePath   string
+	Line       int
+	Col        int
+	IsDecl     bool
+	Source     string
+}
+
 func (s *Store) GetCommitIDByHash(ctx context.Context, runID int64, hash string) (int64, error) {
 	var id int64
 	if err := s.db.QueryRowContext(ctx, "SELECT id FROM commits WHERE run_id = ? AND hash = ?", runID, hash).Scan(&id); err != nil {
@@ -183,6 +200,71 @@ func (s *Store) ListSymbolInventory(ctx context.Context, filter SymbolInventoryF
 	}
 	if err := rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "iterate symbol inventory")
+	}
+	return results, nil
+}
+
+func (s *Store) ListSymbolRefsUnresolved(ctx context.Context, filter SymbolRefUnresolvedFilter) ([]SymbolRefUnresolvedRecord, error) {
+	query := `
+		SELECT r.run_id, c.hash, r.symbol_hash, f.path, r.line, r.col, r.is_decl, r.source
+		FROM symbol_refs_unresolved r
+		LEFT JOIN commits c ON c.id = r.commit_id
+		JOIN files f ON f.id = r.file_id
+		WHERE (? = 0 OR r.run_id = ?)
+		ORDER BY r.run_id, f.path, r.line, r.col`
+
+	args := []interface{}{
+		filter.RunID,
+		filter.RunID,
+	}
+
+	if filter.Limit > 0 {
+		query += " LIMIT ?"
+		args = append(args, filter.Limit)
+		if filter.Offset > 0 {
+			query += " OFFSET ?"
+			args = append(args, filter.Offset)
+		}
+	} else if filter.Offset > 0 {
+		query += " LIMIT -1 OFFSET ?"
+		args = append(args, filter.Offset)
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "query unresolved symbol refs")
+	}
+	defer rows.Close()
+
+	var results []SymbolRefUnresolvedRecord
+	for rows.Next() {
+		var record SymbolRefUnresolvedRecord
+		var commitHash sql.NullString
+		var symbolHash sql.NullString
+		var isDecl int
+		if err := rows.Scan(
+			&record.RunID,
+			&commitHash,
+			&symbolHash,
+			&record.FilePath,
+			&record.Line,
+			&record.Col,
+			&isDecl,
+			&record.Source,
+		); err != nil {
+			return nil, errors.Wrap(err, "scan unresolved symbol refs")
+		}
+		if commitHash.Valid {
+			record.CommitHash = commitHash.String
+		}
+		if symbolHash.Valid {
+			record.SymbolHash = symbolHash.String
+		}
+		record.IsDecl = isDecl == 1
+		results = append(results, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "iterate unresolved symbol refs")
 	}
 	return results, nil
 }

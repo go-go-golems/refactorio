@@ -120,6 +120,16 @@ func NewRootCommand() (*cobra.Command, error) {
 		return nil, errors.Wrap(err, "wire list symbols command")
 	}
 	listCmd.AddCommand(cobraListSymbolsCmd)
+
+	listUnresolvedGoplsCmd, err := NewListGoplsRefsUnresolvedCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build list gopls refs unresolved command")
+	}
+	cobraListUnresolvedGoplsCmd, err := cli.BuildCobraCommand(listUnresolvedGoplsCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire list gopls refs unresolved command")
+	}
+	listCmd.AddCommand(cobraListUnresolvedGoplsCmd)
 	rootCmd.AddCommand(listCmd)
 
 	return rootCmd, nil
