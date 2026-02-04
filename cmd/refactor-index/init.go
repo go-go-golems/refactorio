@@ -48,7 +48,7 @@ func (c *InitCommand) RunIntoGlazeProcessor(
 	gp middlewares.Processor,
 ) error {
 	settings := &InitSettings{}
-	if err := values.DecodeSectionInto(vals, schema.DefaultSlug, settings); err != nil {
+	if err := vals.DecodeSectionInto(schema.DefaultSlug, settings); err != nil {
 		return err
 	}
 
@@ -72,7 +72,7 @@ func (c *InitCommand) RunIntoGlazeProcessor(
 	return nil
 }
 
-func initRow(dbPath string, schemaVersion int) *types.Row {
+func initRow(dbPath string, schemaVersion int) types.Row {
 	return types.NewRow(
 		types.MRP("db_path", dbPath),
 		types.MRP("schema_version", schemaVersion),

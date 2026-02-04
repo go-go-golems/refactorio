@@ -76,7 +76,7 @@ func (c *IngestDiffCommand) RunIntoGlazeProcessor(
 	gp middlewares.Processor,
 ) error {
 	settings := &IngestDiffSettings{}
-	if err := values.DecodeSectionInto(vals, schema.DefaultSlug, settings); err != nil {
+	if err := vals.DecodeSectionInto(schema.DefaultSlug, settings); err != nil {
 		return err
 	}
 
@@ -98,7 +98,7 @@ func (c *IngestDiffCommand) RunIntoGlazeProcessor(
 	return nil
 }
 
-func ingestDiffRow(runID int64, files int, hunks int, lines int) *types.Row {
+func ingestDiffRow(runID int64, files int, hunks int, lines int) types.Row {
 	return types.NewRow(
 		types.MRP("run_id", runID),
 		types.MRP("files", files),

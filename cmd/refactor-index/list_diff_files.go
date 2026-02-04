@@ -55,7 +55,7 @@ func (c *ListDiffFilesCommand) RunIntoGlazeProcessor(
 	gp middlewares.Processor,
 ) error {
 	settings := &ListDiffFilesSettings{}
-	if err := values.DecodeSectionInto(vals, schema.DefaultSlug, settings); err != nil {
+	if err := vals.DecodeSectionInto(schema.DefaultSlug, settings); err != nil {
 		return err
 	}
 
@@ -82,7 +82,7 @@ func (c *ListDiffFilesCommand) RunIntoGlazeProcessor(
 	return nil
 }
 
-func diffFileRow(runID int64, status string, path string, oldPath string, newPath string) *types.Row {
+func diffFileRow(runID int64, status string, path string, oldPath string, newPath string) types.Row {
 	return types.NewRow(
 		types.MRP("run_id", runID),
 		types.MRP("status", status),
