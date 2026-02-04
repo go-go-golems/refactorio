@@ -76,16 +76,6 @@ func NewRootCommand() (*cobra.Command, error) {
 	}
 	ingestCmd.AddCommand(cobraIngestDocHitsCmd)
 
-	ingestTreeSitterCmd, err := NewIngestTreeSitterCommand()
-	if err != nil {
-		return nil, errors.Wrap(err, "build ingest tree-sitter command")
-	}
-	cobraIngestTreeSitterCmd, err := cli.BuildCobraCommand(ingestTreeSitterCmd)
-	if err != nil {
-		return nil, errors.Wrap(err, "wire ingest tree-sitter command")
-	}
-	ingestCmd.AddCommand(cobraIngestTreeSitterCmd)
-
 	ingestGoplsRefsCmd, err := NewIngestGoplsRefsCommand()
 	if err != nil {
 		return nil, errors.Wrap(err, "build ingest gopls-refs command")

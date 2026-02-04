@@ -101,17 +101,16 @@ func TestIngestCommitRangeDiffAndSymbols(t *testing.T) {
 	dbPath := filepath.Join(root, "index.sqlite")
 
 	result, err := IngestCommitRange(ctx, RangeIngestConfig{
-		DBPath:            dbPath,
-		RepoPath:          repoPath,
-		FromRef:           fromRef,
-		ToRef:             toRef,
-		SourcesDir:        filepath.Join(root, "sources"),
-		IncludeDiff:       true,
-		IncludeSymbols:    true,
-		IncludeCodeUnits:  true,
-		IncludeDocHits:    false,
-		IncludeTreeSitter: false,
-		IncludeGopls:      false,
+		DBPath:           dbPath,
+		RepoPath:         repoPath,
+		FromRef:          fromRef,
+		ToRef:            toRef,
+		SourcesDir:       filepath.Join(root, "sources"),
+		IncludeDiff:      true,
+		IncludeSymbols:   true,
+		IncludeCodeUnits: true,
+		IncludeDocHits:   false,
+		IncludeGopls:     false,
 	})
 	if err != nil {
 		t.Fatalf("ingest range: %v", err)

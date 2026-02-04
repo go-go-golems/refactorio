@@ -30,14 +30,10 @@ type IngestRangeSettings struct {
 	IncludeSymbols      bool `glazed:"include-symbols"`
 	IncludeCodeUnits    bool `glazed:"include-code-units"`
 	IncludeDocHits      bool `glazed:"include-doc-hits"`
-	IncludeTreeSitter   bool `glazed:"include-tree-sitter"`
 	IncludeGopls        bool `glazed:"include-gopls"`
 	IgnorePackageErrors bool `glazed:"ignore-package-errors"`
 
 	TermsFile             string   `glazed:"terms"`
-	TreeSitterLanguage    string   `glazed:"ts-language"`
-	TreeSitterQueries     string   `glazed:"ts-queries"`
-	TreeSitterGlob        string   `glazed:"ts-glob"`
 	GoplsTargets          []string `glazed:"gopls-target"`
 	GoplsTargetsFile      string   `glazed:"gopls-targets-file"`
 	GoplsTargetsJSON      string   `glazed:"gopls-targets-json"`
@@ -50,7 +46,7 @@ func NewIngestRangeCommand() (*IngestRangeCommand, error) {
 	cmdDesc := cmds.NewCommandDescription(
 		"range",
 		cmds.WithShort("Ingest multiple passes across a commit range"),
-		cmds.WithLong("Orchestrate commit lineage plus optional diff/symbols/code units/doc hits/tree-sitter/gopls ingestion."),
+		cmds.WithLong("Orchestrate commit lineage plus optional diff/symbols/code units/doc hits/gopls ingestion."),
 		cmds.WithFlags(
 			fields.New(
 				"db",
@@ -107,12 +103,6 @@ func NewIngestRangeCommand() (*IngestRangeCommand, error) {
 				fields.WithDefault(false),
 			),
 			fields.New(
-				"include-tree-sitter",
-				fields.TypeBool,
-				fields.WithHelp("Include tree-sitter ingestion per commit"),
-				fields.WithDefault(false),
-			),
-			fields.New(
 				"include-gopls",
 				fields.TypeBool,
 				fields.WithHelp("Include gopls references ingestion per commit"),
@@ -128,24 +118,6 @@ func NewIngestRangeCommand() (*IngestRangeCommand, error) {
 				"terms",
 				fields.TypeString,
 				fields.WithHelp("Terms file for doc hits"),
-				fields.WithDefault(""),
-			),
-			fields.New(
-				"ts-language",
-				fields.TypeString,
-				fields.WithHelp("Tree-sitter language"),
-				fields.WithDefault(""),
-			),
-			fields.New(
-				"ts-queries",
-				fields.TypeString,
-				fields.WithHelp("Tree-sitter queries YAML"),
-				fields.WithDefault(""),
-			),
-			fields.New(
-				"ts-glob",
-				fields.TypeString,
-				fields.WithHelp("Tree-sitter file glob"),
 				fields.WithDefault(""),
 			),
 			fields.New(
@@ -203,13 +175,9 @@ func (c *IngestRangeCommand) RunIntoGlazeProcessor(
 		IncludeSymbols:        settings.IncludeSymbols,
 		IncludeCodeUnits:      settings.IncludeCodeUnits,
 		IncludeDocHits:        settings.IncludeDocHits,
-		IncludeTreeSitter:     settings.IncludeTreeSitter,
 		IncludeGopls:          settings.IncludeGopls,
 		IgnorePackageErrors:   settings.IgnorePackageErrors,
 		TermsFile:             settings.TermsFile,
-		TreeSitterLanguage:    settings.TreeSitterLanguage,
-		TreeSitterQueries:     settings.TreeSitterQueries,
-		TreeSitterGlob:        settings.TreeSitterGlob,
 		GoplsTargets:          goplsTargets,
 		GoplsSkipSymbolLookup: settings.GoplsSkipSymbolLookup,
 	})
@@ -230,7 +198,6 @@ func (c *IngestRangeCommand) RunIntoGlazeProcessor(
 			types.MRP("symbols_run_id", commit.SymbolsRunID),
 			types.MRP("code_units_run_id", commit.CodeUnitsRunID),
 			types.MRP("doc_hits_run_id", commit.DocHitsRunID),
-			types.MRP("tree_sitter_run_id", commit.TreeSitterRunID),
 			types.MRP("gopls_run_id", commit.GoplsRunID),
 		)
 		if err := gp.AddRow(ctx, row); err != nil {
@@ -250,7 +217,6 @@ func ingestRangeSummaryRow(runID int64, commitCount int) types.Row {
 		types.MRP("symbols_run_id", 0),
 		types.MRP("code_units_run_id", 0),
 		types.MRP("doc_hits_run_id", 0),
-		types.MRP("tree_sitter_run_id", 0),
 		types.MRP("gopls_run_id", 0),
 	)
 }
@@ -263,9 +229,6 @@ func (c *IngestRangeCommand) Validate(values *values.Values) error {
 
 	if settings.IncludeDocHits && strings.TrimSpace(settings.TermsFile) == "" {
 		return errors.New("terms file is required when include-doc-hits is set")
-	}
-	if settings.IncludeTreeSitter && (strings.TrimSpace(settings.TreeSitterLanguage) == "" || strings.TrimSpace(settings.TreeSitterQueries) == "") {
-		return errors.New("ts-language and ts-queries are required when include-tree-sitter is set")
 	}
 	return nil
 }

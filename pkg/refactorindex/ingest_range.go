@@ -20,27 +20,22 @@ type RangeIngestConfig struct {
 	IncludeSymbols      bool
 	IncludeCodeUnits    bool
 	IncludeDocHits      bool
-	IncludeTreeSitter   bool
 	IncludeGopls        bool
 	IgnorePackageErrors bool
 
 	TermsFile             string
-	TreeSitterLanguage    string
-	TreeSitterQueries     string
-	TreeSitterGlob        string
 	GoplsTargets          []GoplsRefTarget
 	GoplsSkipSymbolLookup bool
 }
 
 type CommitRunInfo struct {
-	CommitHash      string
-	WorktreePath    string
-	DiffRunID       int64
-	SymbolsRunID    int64
-	CodeUnitsRunID  int64
-	DocHitsRunID    int64
-	TreeSitterRunID int64
-	GoplsRunID      int64
+	CommitHash     string
+	WorktreePath   string
+	DiffRunID      int64
+	SymbolsRunID   int64
+	CodeUnitsRunID int64
+	DocHitsRunID   int64
+	GoplsRunID     int64
 }
 
 type RangeIngestResult struct {
@@ -176,22 +171,6 @@ func IngestCommitRange(ctx context.Context, cfg RangeIngestConfig) (*RangeIngest
 				return nil, err
 			}
 			commitRun.DocHitsRunID = docResult.RunID
-		}
-
-		if cfg.IncludeTreeSitter && strings.TrimSpace(cfg.TreeSitterLanguage) != "" && strings.TrimSpace(cfg.TreeSitterQueries) != "" {
-			tsResult, err := IngestTreeSitter(ctx, IngestTreeSitterConfig{
-				DBPath:     cfg.DBPath,
-				RootDir:    worktreePath,
-				Language:   cfg.TreeSitterLanguage,
-				QueriesYML: cfg.TreeSitterQueries,
-				FileGlob:   cfg.TreeSitterGlob,
-				SourcesDir: cfg.SourcesDir,
-			})
-			if err != nil {
-				_ = removeWorktree(ctx, cfg.RepoPath, worktreePath)
-				return nil, err
-			}
-			commitRun.TreeSitterRunID = tsResult.RunID
 		}
 
 		if cfg.IncludeGopls && len(cfg.GoplsTargets) > 0 {
