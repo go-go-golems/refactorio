@@ -10,6 +10,8 @@ import (
 	"github.com/go-go-golems/glazed/pkg/middlewares"
 	"github.com/go-go-golems/glazed/pkg/types"
 	"github.com/pkg/errors"
+
+	"github.com/go-go-golems/XXX/pkg/refactorindex"
 )
 
 type ListDiffFilesCommand struct {
@@ -57,7 +59,27 @@ func (c *ListDiffFilesCommand) RunIntoGlazeProcessor(
 		return err
 	}
 
-	return errors.New("list diff-files not implemented")
+	db, err := refactorindex.OpenDB(ctx, settings.DBPath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = db.Close()
+	}()
+
+	store := refactorindex.NewStore(db)
+	records, err := store.ListDiffFiles(ctx, settings.RunID)
+	if err != nil {
+		return err
+	}
+
+	for _, record := range records {
+		if err := gp.AddRow(ctx, diffFileRow(record.RunID, record.Status, record.Path, record.OldPath, record.NewPath)); err != nil {
+			return errors.Wrap(err, "add diff file row")
+		}
+	}
+
+	return nil
 }
 
 func diffFileRow(runID int64, status string, path string, oldPath string, newPath string) *types.Row {
