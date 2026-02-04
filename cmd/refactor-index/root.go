@@ -120,6 +120,16 @@ func NewRootCommand() (*cobra.Command, error) {
 		return nil, errors.Wrap(err, "wire list diff-files command")
 	}
 	listCmd.AddCommand(cobraListDiffFilesCmd)
+
+	listSymbolsCmd, err := NewListSymbolsCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build list symbols command")
+	}
+	cobraListSymbolsCmd, err := cli.BuildCobraCommand(listSymbolsCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire list symbols command")
+	}
+	listCmd.AddCommand(cobraListSymbolsCmd)
 	rootCmd.AddCommand(listCmd)
 
 	reportCmd, err := NewReportCommand()

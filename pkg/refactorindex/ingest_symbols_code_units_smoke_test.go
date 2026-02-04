@@ -71,6 +71,9 @@ const Answer = 42
 		_ = db.Close()
 	}()
 
+	store := NewStore(db)
+	assertSymbolInventory(t, store, symbolsResult.RunID, "Person", "type")
+
 	assertSymbol(t, db, "Person", "type")
 	assertSymbol(t, db, "Greet", "method")
 	assertSymbol(t, db, "Add", "func")
@@ -122,5 +125,22 @@ func assertSnapshotBodyLike(t *testing.T, db *sql.DB, needle string) {
 	}
 	if count == 0 {
 		t.Fatalf("expected snapshot body containing %q", needle)
+	}
+}
+
+func assertSymbolInventory(t *testing.T, store *Store, runID int64, name string, kind string) {
+	records, err := store.ListSymbolInventory(context.Background(), SymbolInventoryFilter{
+		RunID: runID,
+		Name:  name,
+		Kind:  kind,
+	})
+	if err != nil {
+		t.Fatalf("list symbol inventory: %v", err)
+	}
+	if len(records) == 0 {
+		t.Fatalf("expected symbol inventory record for %s/%s", name, kind)
+	}
+	if records[0].SymbolHash == "" {
+		t.Fatalf("expected symbol hash for %s/%s", name, kind)
 	}
 }
