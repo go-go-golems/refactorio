@@ -631,19 +631,29 @@ func ensureColumn(ctx context.Context, tx *sql.Tx, table string, column string, 
 }
 
 func ensureFTS(ctx context.Context, tx *sql.Tx, table string, ftsTable string, column string) error {
+	return ensureFTSColumns(ctx, tx, table, ftsTable, []string{column})
+}
+
+func ensureFTSColumns(ctx context.Context, tx *sql.Tx, table string, ftsTable string, columns []string) error {
+	if len(columns) == 0 {
+		return errors.New("fts columns are required")
+	}
+
 	exists, err := tableExists(ctx, tx, ftsTable)
 	if err != nil {
 		return err
 	}
 
+	columnList := strings.Join(columns, ", ")
+
 	if !exists {
-		stmt := "CREATE VIRTUAL TABLE " + ftsTable + " USING fts5(" + column + ", content='" + table + "', content_rowid='id')"
+		stmt := "CREATE VIRTUAL TABLE " + ftsTable + " USING fts5(" + columnList + ", content='" + table + "', content_rowid='id')"
 		if _, err := tx.ExecContext(ctx, stmt); err != nil {
 			return errors.Wrap(err, "create fts table")
 		}
 	}
 
-	if err := ensureFTSTriggers(ctx, tx, table, ftsTable, column); err != nil {
+	if err := ensureFTSTriggersColumns(ctx, tx, table, ftsTable, columns); err != nil {
 		return err
 	}
 
@@ -657,15 +667,23 @@ func ensureFTS(ctx context.Context, tx *sql.Tx, table string, ftsTable string, c
 	return nil
 }
 
-func ensureFTSTriggers(ctx context.Context, tx *sql.Tx, table string, ftsTable string, column string) error {
+func ensureFTSTriggersColumns(ctx context.Context, tx *sql.Tx, table string, ftsTable string, columns []string) error {
+	columnList := strings.Join(columns, ", ")
+	newColumns := make([]string, 0, len(columns))
+	oldColumns := make([]string, 0, len(columns))
+	for _, column := range columns {
+		newColumns = append(newColumns, "new."+column)
+		oldColumns = append(oldColumns, "old."+column)
+	}
+
 	ai := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_ai AFTER INSERT ON " + table +
-		" BEGIN INSERT INTO " + ftsTable + "(rowid, " + column + ") VALUES (new.id, new." + column + "); END;"
+		" BEGIN INSERT INTO " + ftsTable + "(rowid, " + columnList + ") VALUES (new.id, " + strings.Join(newColumns, ", ") + "); END;"
 	ad := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_ad AFTER DELETE ON " + table +
-		" BEGIN INSERT INTO " + ftsTable + "(" + ftsTable + ", rowid, " + column + ") VALUES('delete', old.id, old." + column + "); END;"
+		" BEGIN INSERT INTO " + ftsTable + "(" + ftsTable + ", rowid, " + columnList + ") VALUES('delete', old.id, " + strings.Join(oldColumns, ", ") + "); END;"
 	au := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_au AFTER UPDATE ON " + table +
 		" BEGIN " +
-		"INSERT INTO " + ftsTable + "(" + ftsTable + ", rowid, " + column + ") VALUES('delete', old.id, old." + column + "); " +
-		"INSERT INTO " + ftsTable + "(rowid, " + column + ") VALUES (new.id, new." + column + "); " +
+		"INSERT INTO " + ftsTable + "(" + ftsTable + ", rowid, " + columnList + ") VALUES('delete', old.id, " + strings.Join(oldColumns, ", ") + "); " +
+		"INSERT INTO " + ftsTable + "(rowid, " + columnList + ") VALUES (new.id, " + strings.Join(newColumns, ", ") + "); " +
 		"END;"
 
 	if _, err := tx.ExecContext(ctx, ai); err != nil {
