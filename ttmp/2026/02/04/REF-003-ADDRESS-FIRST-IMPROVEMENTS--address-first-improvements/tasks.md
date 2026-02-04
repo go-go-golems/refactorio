@@ -25,8 +25,8 @@
 - [x] Record failures consistently across ingestion functions.
 
 ## Task 5: Gopls ingestion tolerant of missing symbol_defs (skip-symbol-lookup default true)
-- [ ] Default skip-symbol-lookup to true in CLI.
-- [ ] Allow targets without symbol_hash; store unresolved refs in a new table.
+- [x] Default skip-symbol-lookup to true in CLI.
+- [x] Allow targets without symbol_hash; store unresolved refs in a new table.
 - [ ] Add list/query support for unresolved refs (if needed).
 
 ## Task 6: Document required build state and surface clear CLI message

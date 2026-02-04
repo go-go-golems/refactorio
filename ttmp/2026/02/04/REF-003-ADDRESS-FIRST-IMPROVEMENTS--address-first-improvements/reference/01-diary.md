@@ -439,3 +439,52 @@ I added `--limit` and `--offset` support to list diff-files and added offset sup
 
 ### Technical details
 - List diff-files now uses a `DiffFileFilter` with limit/offset.
+
+## Step 9: Task 5 - Gopls ingestion with unresolved refs (skip-symbol-lookup default true)
+I added support for unresolved gopls references by introducing a `symbol_refs_unresolved` table and wiring `skip-symbol-lookup` defaults to true. The CLI now allows targets without symbol hashes, and the ingestion path stores unresolved refs when symbol lookup is skipped.
+
+This keeps gopls ingestion usable even when symbol definitions are unavailable.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Allow gopls reference ingestion without requiring symbol hash lookup, defaulting to that mode.
+
+**Inferred user intent:** Keep gopls references usable even when symbol ingestion fails or is skipped.
+
+**Commit (code):** d52479a — "refactorindex: allow unresolved gopls refs"
+
+### What I did
+- Added `symbol_refs_unresolved` table and insert helper.
+- Added `skip-symbol-lookup` flag (default true) and relaxed target parsing to allow missing symbol hashes.
+- Updated gopls ingestion to store unresolved refs when lookup is skipped.
+- Updated range ingestion and the gopls smoke test for the new behavior.
+
+### Why
+- gopls references should still be captured even when symbol_defs are missing.
+
+### What worked
+- Gopls ingestion now succeeds without symbol hashes while preserving reference locations.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Confirm downstream tooling won’t assume symbol_refs only and should also consider symbol_refs_unresolved.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/ingest_gopls_refs.go` for skip-lookup behavior.
+- Review `refactorio/pkg/refactorindex/schema.go` and `store.go` for unresolved table additions.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- `skip-symbol-lookup` now defaults to true in CLI and range ingestion.

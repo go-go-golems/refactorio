@@ -84,3 +84,13 @@ Complete Task 3: add limit/offset paging to list commands (commit 5c8a03c).
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactor-index/list_diff_files.go — New flags
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/query.go — Pagination support
 
+
+## 2026-02-04
+
+Complete Task 5 core: allow unresolved gopls refs with skip-symbol-lookup default true (commit d52479a).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_gopls_refs.go — Unresolved refs support
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/schema.go — New unresolved refs table
+
