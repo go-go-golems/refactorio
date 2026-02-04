@@ -1,0 +1,121 @@
+diff --git a/pkg/refactorindex/ingest_diff_smoke_test.go b/pkg/refactorindex/ingest_diff_smoke_test.go
+index 90ba4dd..f5ffeac 100644
+--- a/pkg/refactorindex/ingest_diff_smoke_test.go
++++ b/pkg/refactorindex/ingest_diff_smoke_test.go
+@@ -91,0 +92 @@ func TestIngestDiffGolden(t *testing.T) {
++	assertDiffLinesFTSCount(t, db)
+@@ -128,0 +130,10 @@ func assertTableCounts(t *testing.T, db *sql.DB, runID int64) {
++func assertDiffLinesFTSCount(t *testing.T, db *sql.DB) {
++	var count int
++	if err := db.QueryRow("SELECT COUNT(*) FROM diff_lines_fts").Scan(&count); err != nil {
++		t.Fatalf("count diff_lines_fts: %v", err)
++	}
++	if count == 0 {
++		t.Fatalf("expected diff_lines_fts rows > 0")
++	}
++}
++
+diff --git a/pkg/refactorindex/ingest_tree_sitter_smoke_test.go b/pkg/refactorindex/ingest_tree_sitter_smoke_test.go
+index 0397bab..975b989 100644
+--- a/pkg/refactorindex/ingest_tree_sitter_smoke_test.go
++++ b/pkg/refactorindex/ingest_tree_sitter_smoke_test.go
+@@ -73,0 +74,10 @@ func TestIngestDocHits(t *testing.T) {
++
++	db, err := OpenDB(ctx, dbPath)
++	if err != nil {
++		t.Fatalf("open db: %v", err)
++	}
++	defer func() {
++		_ = db.Close()
++	}()
++
++	assertDocHitsFTSCount(t, db)
+@@ -107,0 +118,10 @@ func assertCapture(t *testing.T, db *sql.DB, queryName string, captureName strin
++
++func assertDocHitsFTSCount(t *testing.T, db *sql.DB) {
++	var count int
++	if err := db.QueryRow("SELECT COUNT(*) FROM doc_hits_fts").Scan(&count); err != nil {
++		t.Fatalf("count doc_hits_fts: %v", err)
++	}
++	if count == 0 {
++		t.Fatalf("expected doc_hits_fts rows > 0")
++	}
++}
+diff --git a/pkg/refactorindex/schema.go b/pkg/refactorindex/schema.go
+index 47211c3..2417e20 100644
+--- a/pkg/refactorindex/schema.go
++++ b/pkg/refactorindex/schema.go
+@@ -3 +3 @@ package refactorindex
+-const SchemaVersion = 9
++const SchemaVersion = 10
+diff --git a/pkg/refactorindex/store.go b/pkg/refactorindex/store.go
+index beefbbc..566704f 100644
+--- a/pkg/refactorindex/store.go
++++ b/pkg/refactorindex/store.go
+@@ -105,0 +106,6 @@ func (s *Store) InitSchema(ctx context.Context) error {
++	if err := ensureFTS(ctx, tx, "doc_hits", "doc_hits_fts", "match_text"); err != nil {
++		return err
++	}
++	if err := ensureFTS(ctx, tx, "diff_lines", "diff_lines_fts", "text"); err != nil {
++		return err
++	}
+@@ -566,0 +573,59 @@ func ensureColumn(ctx context.Context, tx *sql.Tx, table string, column string,
++func ensureFTS(ctx context.Context, tx *sql.Tx, table string, ftsTable string, column string) error {
++	exists, err := tableExists(ctx, tx, ftsTable)
++	if err != nil {
++		return err
++	}
++
++	if !exists {
++		stmt := "CREATE VIRTUAL TABLE " + ftsTable + " USING fts5(" + column + ", content='" + table + "', content_rowid='id')"
++		if _, err := tx.ExecContext(ctx, stmt); err != nil {
++			return errors.Wrap(err, "create fts table")
++		}
++	}
++
++	if err := ensureFTSTriggers(ctx, tx, table, ftsTable, column); err != nil {
++		return err
++	}
++
++	if !exists {
++		rebuild := "INSERT INTO " + ftsTable + "(" + ftsTable + ") VALUES('rebuild')"
++		if _, err := tx.ExecContext(ctx, rebuild); err != nil {
++			return errors.Wrap(err, "rebuild fts index")
++		}
++	}
++
++	return nil
++}
++
++func ensureFTSTriggers(ctx context.Context, tx *sql.Tx, table string, ftsTable string, column string) error {
++	ai := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_ai AFTER INSERT ON " + table +
++		" BEGIN INSERT INTO " + ftsTable + "(rowid, " + column + ") VALUES (new.id, new." + column + "); END;"
++	ad := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_ad AFTER DELETE ON " + table +
++		" BEGIN INSERT INTO " + ftsTable + "(" + ftsTable + ", rowid, " + column + ") VALUES('delete', old.id, old." + column + "); END;"
++	au := "CREATE TRIGGER IF NOT EXISTS " + ftsTable + "_au AFTER UPDATE ON " + table +
++		" BEGIN " +
++		"INSERT INTO " + ftsTable + "(" + ftsTable + ", rowid, " + column + ") VALUES('delete', old.id, old." + column + "); " +
++		"INSERT INTO " + ftsTable + "(rowid, " + column + ") VALUES (new.id, new." + column + "); " +
++		"END;"
++
++	if _, err := tx.ExecContext(ctx, ai); err != nil {
++		return errors.Wrap(err, "create fts insert trigger")
++	}
++	if _, err := tx.ExecContext(ctx, ad); err != nil {
++		return errors.Wrap(err, "create fts delete trigger")
++	}
++	if _, err := tx.ExecContext(ctx, au); err != nil {
++		return errors.Wrap(err, "create fts update trigger")
++	}
++
++	return nil
++}
++
++func tableExists(ctx context.Context, tx *sql.Tx, name string) (bool, error) {
++	var count int
++	if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name = ?", name).Scan(&count); err != nil {
++		return false, errors.Wrap(err, "check table exists")
++	}
++	return count > 0, nil
++}
++

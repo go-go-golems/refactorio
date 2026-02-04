@@ -4,7 +4,6 @@ go 1.25.5
 
 require (
 	github.com/go-go-golems/glazed v0.7.14
-	github.com/go-go-golems/oak v0.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.40.0
@@ -79,5 +78,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
-
-replace github.com/go-go-golems/oak => ../oak
