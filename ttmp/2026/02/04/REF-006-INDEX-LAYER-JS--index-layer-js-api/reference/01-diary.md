@@ -625,3 +625,48 @@ I added a trace example script and expanded the JS guide with a troubleshooting-
 
 ### Technical details
 - Trace example: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/testdata/js/trace_example.js`.
+
+## Step 14: Add Trace Output Reference + Trace Test
+I added a trace output reference section to the JS guide and added a CLI integration test that asserts `--trace` produces a JSONL file with expected entries. This makes tracing easier to understand and validates the trace hook end-to-end.
+
+### Prompt Context
+**User prompt (verbatim):** "ues"
+
+**Assistant interpretation:** Add the requested trace documentation and test coverage.
+
+**Inferred user intent:** Ensure trace output is clearly documented and verified by tests.
+
+**Commit (code):** 7aaec41 — "docs: add trace reference and test"
+
+### What I did
+- Added a “Trace Output Reference” section to the JS guide.
+- Added `TestJSRunCommandTrace` to validate `--trace` output.
+- Ran `go test ./cmd/refactorio -run TestJSRunCommand`.
+
+### Why
+- The trace file is a core audit feature and should be documented and tested.
+
+### What worked
+- The trace file was produced and contained the expected action entry.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Trace output validation is straightforward when the CLI runner is used in tests.
+
+### What was tricky to build
+- Keeping the new documentation concise while still providing field-level clarity.
+
+### What warrants a second pair of eyes
+- Confirm that the trace JSON field names match any downstream tooling expectations.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/ttmp/2026/02/04/REF-006-INDEX-LAYER-JS--index-layer-js-api/design/01-js-index-api-guide.md` for the trace section.
+- Review `refactorio/cmd/refactorio/js_run_test.go` for the trace test logic.
+
+### Technical details
+- Test command: `go test ./cmd/refactorio -run TestJSRunCommand`.
