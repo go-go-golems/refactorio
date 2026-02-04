@@ -117,3 +117,48 @@ I introduced a new multi-column FTS helper that preserves the existing single-co
 
 ### Technical details
 - `ensureFTS` now calls `ensureFTSColumns` with a single column.
+
+## Step 3: Task 2 - Add FTS for code unit snapshots
+I added an FTS table for `code_unit_snapshots` covering `body_text` and `doc_text`. This extends full-text search to code unit bodies and doc comments.
+
+### Prompt Context
+**User prompt (verbatim):** "once you are done, work on REF-004"
+
+**Assistant interpretation:** Continue executing the REF-004 tasks in sequence.
+
+**Inferred user intent:** Expand search coverage to include code unit content.
+
+**Commit (code):** d6e4ce2 — "refactorindex: add FTS for code units"
+
+### What I did
+- Added `code_unit_snapshots_fts` via `ensureFTSColumns` during schema init.
+- Bumped schema version.
+
+### Why
+- Full-text search over code unit bodies and doc text is a core search improvement.
+
+### What worked
+- FTS table is created automatically on schema init.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Verify FTS trigger behavior for nullable `doc_text` fields.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/store.go` for FTS init.
+- Review `refactorio/pkg/refactorindex/schema.go` for schema version bump.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- FTS table name: `code_unit_snapshots_fts` with columns `body_text`, `doc_text`.

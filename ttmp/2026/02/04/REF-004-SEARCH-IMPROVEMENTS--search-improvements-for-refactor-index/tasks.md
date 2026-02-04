@@ -7,7 +7,7 @@
 - [x] Keep existing single-column helper behavior intact.
 
 ## Task 2: FTS for code unit snapshots
-- [ ] Add FTS table for `code_unit_snapshots` (`body_text`, `doc_text`).
+- [x] Add FTS table for `code_unit_snapshots` (`body_text`, `doc_text`).
 
 ## Task 3: FTS for symbol defs
 - [ ] Add FTS table for `symbol_defs` (`name`, `signature`, `pkg`).
