@@ -297,3 +297,51 @@ I updated the ingestion functions to mark failed runs automatically on error and
 ### Technical details
 - Schema version bumped to 11.
 - `meta_runs` now tracks `status` and `error_json`; `run_kv` stores arbitrary metadata.
+
+## Step 6: Task 1 - Best-effort symbol ingestion with warning metadata
+I extended symbol ingestion to continue when package load errors are present (when enabled) and to store go/packages error details as warning metadata. The ingestion result now surfaces counts for packages with errors and skipped packages, making partial indexing explicit.
+
+This enables symbol ingestion on imperfect repos while still capturing error context for review.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Implement best-effort symbol ingestion and store go/packages error details as warning metadata.
+
+**Inferred user intent:** Allow symbol extraction to proceed on broken repos while preserving error visibility.
+
+**Commit (code):** b62029e — "refactorindex: add best-effort symbol ingestion"
+
+### What I did
+- Added `IgnorePackageErrors` to symbol ingestion config.
+- Recorded go/packages errors in `run_kv` with `severity=warning` metadata.
+- Tracked `packages_with_errors` and `packages_skipped` in results and CLI output.
+
+### Why
+- Partial symbol ingestion is necessary for mid-refactor repos, and warnings should be preserved for diagnostics.
+
+### What worked
+- Symbols can now ingest while preserving error context in run metadata.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Validate whether skipping error packages is the right policy vs. attempting partial types.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/ingest_symbols.go` for best-effort logic and metadata writes.
+- Review `refactorio/cmd/refactor-index/ingest_symbols.go` for new output fields.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- go/packages errors are stored as `run_kv` entries with key `go_packages_error`.

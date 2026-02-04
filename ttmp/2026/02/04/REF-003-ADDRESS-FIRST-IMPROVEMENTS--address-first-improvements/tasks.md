@@ -3,9 +3,9 @@
 ## TODO
 
 ## Task 1: Best-effort symbol ingestion (partial package load)
-- [ ] Allow partial package processing when package load errors are present and ignore flag is set.
-- [ ] Record go/packages errors as run metadata with severity=warning.
-- [ ] Extend symbol ingestion result/CLI output to include skipped/error package counts.
+- [x] Allow partial package processing when package load errors are present and ignore flag is set.
+- [x] Record go/packages errors as run metadata with severity=warning.
+- [x] Extend symbol ingestion result/CLI output to include skipped/error package counts.
 - [ ] Add/update tests for partial ingestion.
 
 ## Task 2: Expose --ignore-package-errors for symbol/code-unit ingestion
