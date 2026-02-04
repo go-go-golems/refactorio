@@ -406,6 +406,37 @@ func (s *Store) InsertFileBlob(ctx context.Context, tx *sql.Tx, commitID int64, 
 	return nil
 }
 
+func (s *Store) GetSymbolDefIDByHash(ctx context.Context, tx *sql.Tx, hash string) (int64, error) {
+	if hash == "" {
+		return 0, errors.New("symbol hash is required")
+	}
+	var id int64
+	if err := tx.QueryRowContext(ctx, "SELECT id FROM symbol_defs WHERE symbol_hash = ?", hash).Scan(&id); err != nil {
+		return 0, errors.Wrap(err, "fetch symbol def id")
+	}
+	return id, nil
+}
+
+func (s *Store) InsertSymbolRef(ctx context.Context, tx *sql.Tx, runID int64, commitID *int64, symbolDefID int64, fileID int64, line int, col int, isDecl bool, source string) error {
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO symbol_refs (run_id, commit_id, symbol_def_id, file_id, line, col, is_decl, source)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		runID,
+		nullableInt64(commitID),
+		symbolDefID,
+		fileID,
+		line,
+		col,
+		boolToInt(isDecl),
+		source,
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert symbol ref")
+	}
+	return nil
+}
+
 func (s *Store) WriteRawOutput(ctx context.Context, tx *sql.Tx, runDir string, runID int64, source string, fileName string, content []byte) (string, error) {
 	if err := os.MkdirAll(runDir, 0o755); err != nil {
 		return "", errors.Wrap(err, "create sources dir")

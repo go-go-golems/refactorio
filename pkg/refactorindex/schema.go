@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 4
+const SchemaVersion = 5
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -155,6 +155,22 @@ CREATE TABLE IF NOT EXISTS file_blobs (
     FOREIGN KEY(file_id) REFERENCES files(id)
 );
 
+CREATE TABLE IF NOT EXISTS symbol_refs (
+    id INTEGER PRIMARY KEY,
+    run_id INTEGER NOT NULL,
+    commit_id INTEGER,
+    symbol_def_id INTEGER NOT NULL,
+    file_id INTEGER NOT NULL,
+    line INTEGER NOT NULL,
+    col INTEGER NOT NULL,
+    is_decl INTEGER NOT NULL,
+    source TEXT NOT NULL,
+    FOREIGN KEY(run_id) REFERENCES meta_runs(id),
+    FOREIGN KEY(commit_id) REFERENCES commits(id),
+    FOREIGN KEY(symbol_def_id) REFERENCES symbol_defs(id),
+    FOREIGN KEY(file_id) REFERENCES files(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_diff_files_run_id ON diff_files(run_id);
 CREATE INDEX IF NOT EXISTS idx_diff_hunks_diff_file_id ON diff_hunks(diff_file_id);
 CREATE INDEX IF NOT EXISTS idx_diff_lines_hunk_id ON diff_lines(hunk_id);
@@ -167,4 +183,7 @@ CREATE INDEX IF NOT EXISTS idx_commits_run_id ON commits(run_id);
 CREATE INDEX IF NOT EXISTS idx_commits_hash ON commits(hash);
 CREATE INDEX IF NOT EXISTS idx_commit_files_commit_id ON commit_files(commit_id);
 CREATE INDEX IF NOT EXISTS idx_file_blobs_commit_id ON file_blobs(commit_id);
+CREATE INDEX IF NOT EXISTS idx_symbol_refs_run_id ON symbol_refs(run_id);
+CREATE INDEX IF NOT EXISTS idx_symbol_refs_symbol_id ON symbol_refs(symbol_def_id);
+CREATE INDEX IF NOT EXISTS idx_symbol_refs_commit_id ON symbol_refs(commit_id);
 `
