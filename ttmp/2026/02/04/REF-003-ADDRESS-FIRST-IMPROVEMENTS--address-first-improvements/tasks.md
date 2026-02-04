@@ -6,7 +6,7 @@
 - [x] Allow partial package processing when package load errors are present and ignore flag is set.
 - [x] Record go/packages errors as run metadata with severity=warning.
 - [x] Extend symbol ingestion result/CLI output to include skipped/error package counts.
-- [ ] Add/update tests for partial ingestion.
+- [x] Add/update tests for partial ingestion.
 
 ## Task 2: Expose --ignore-package-errors for symbol/code-unit ingestion
 - [x] Add CLI flags for symbols and code-units.

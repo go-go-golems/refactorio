@@ -668,3 +668,46 @@ I removed the report command and its implementation, and updated the tutorial to
 
 ### Technical details
 - Report code paths were deleted; schema untouched.
+
+## Step 14: Task 1 - Add best-effort symbol ingestion test
+I added a test that creates one valid and one broken package to confirm best-effort symbol ingestion returns results and records go/packages warnings in run metadata. This closes the remaining Task 1 test subtask.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Add coverage for best-effort symbol ingestion behavior.
+
+**Inferred user intent:** Ensure partial ingestion and warning metadata are exercised by tests.
+
+**Commit (code):** 6e43dc4 — "refactorindex: add best-effort symbols test"
+
+### What I did
+- Added `TestIngestSymbolsBestEffort` to validate partial ingestion and run_kv warning metadata.
+
+### Why
+- The best-effort path needed test coverage to prevent regressions.
+
+### What worked
+- The test confirms symbols are ingested even when a package is broken.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Ensure the test’s broken package is sufficiently representative of real failures.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/ingest_symbols_best_effort_test.go`.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- The test asserts run_kv contains `go_packages_error` entries.

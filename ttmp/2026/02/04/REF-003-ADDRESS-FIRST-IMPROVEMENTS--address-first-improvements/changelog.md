@@ -134,3 +134,12 @@ Complete Task 9: remove report command and docs references (commit 5c98fd0).
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactor-index/root.go — Report command removed
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/doc/tutorials/01-refactor-index-how-to-use.md — Report step removed
 
+
+## 2026-02-04
+
+Finish Task 1 tests: add best-effort symbols test (commit 6e43dc4).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_symbols_best_effort_test.go — Best-effort test coverage
+
