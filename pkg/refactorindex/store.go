@@ -109,6 +109,9 @@ func (s *Store) InitSchema(ctx context.Context) error {
 	if err := ensureFTS(ctx, tx, "diff_lines", "diff_lines_fts", "text"); err != nil {
 		return err
 	}
+	if err := ensureFTSColumns(ctx, tx, "code_unit_snapshots", "code_unit_snapshots_fts", []string{"body_text", "doc_text"}); err != nil {
+		return err
+	}
 	if err := ensureColumn(ctx, tx, "meta_runs", "status", "TEXT"); err != nil {
 		return err
 	}
