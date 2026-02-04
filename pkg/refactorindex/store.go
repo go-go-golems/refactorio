@@ -40,6 +40,15 @@ type SymbolDef struct {
 	Hash      string
 }
 
+type CodeUnitDef struct {
+	Pkg       string
+	Name      string
+	Kind      string
+	Recv      string
+	Signature string
+	Hash      string
+}
+
 func OpenDB(ctx context.Context, path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -270,6 +279,53 @@ func (s *Store) InsertSymbolOccurrence(ctx context.Context, tx *sql.Tx, runID in
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert symbol occurrence")
+	}
+	return nil
+}
+
+func (s *Store) GetOrCreateCodeUnit(ctx context.Context, tx *sql.Tx, def CodeUnitDef) (int64, error) {
+	if def.Hash == "" {
+		return 0, errors.New("code unit hash is required")
+	}
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT OR IGNORE INTO code_units (kind, name, pkg, recv, signature, unit_hash)
+		 VALUES (?, ?, ?, ?, ?, ?)`,
+		def.Kind,
+		def.Name,
+		def.Pkg,
+		nullIfEmpty(def.Recv),
+		nullIfEmpty(def.Signature),
+		def.Hash,
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "insert code unit")
+	}
+	var id int64
+	if err := tx.QueryRowContext(ctx, "SELECT id FROM code_units WHERE unit_hash = ?", def.Hash).Scan(&id); err != nil {
+		return 0, errors.Wrap(err, "fetch code unit id")
+	}
+	return id, nil
+}
+
+func (s *Store) InsertCodeUnitSnapshot(ctx context.Context, tx *sql.Tx, runID int64, fileID int64, codeUnitID int64, startLine int, startCol int, endLine int, endCol int, bodyHash string, bodyText string, docText string) error {
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO code_unit_snapshots (run_id, file_id, code_unit_id, start_line, start_col, end_line, end_col, body_hash, body_text, doc_text)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		runID,
+		fileID,
+		codeUnitID,
+		startLine,
+		startCol,
+		endLine,
+		endCol,
+		bodyHash,
+		bodyText,
+		nullIfEmpty(docText),
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert code unit snapshot")
 	}
 	return nil
 }
