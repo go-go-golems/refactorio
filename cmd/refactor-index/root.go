@@ -122,15 +122,5 @@ func NewRootCommand() (*cobra.Command, error) {
 	listCmd.AddCommand(cobraListSymbolsCmd)
 	rootCmd.AddCommand(listCmd)
 
-	reportCmd, err := NewReportCommand()
-	if err != nil {
-		return nil, errors.Wrap(err, "build report command")
-	}
-	cobraReportCmd, err := cli.BuildCobraCommand(reportCmd)
-	if err != nil {
-		return nil, errors.Wrap(err, "wire report command")
-	}
-	rootCmd.AddCommand(cobraReportCmd)
-
 	return rootCmd, nil
 }
