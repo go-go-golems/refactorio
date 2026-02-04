@@ -11,6 +11,8 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: refactorio/pkg/doc/tutorials/01-refactor-index-how-to-use.md
+      Note: Add FTS/view query examples
     - Path: refactorio/pkg/refactorindex/ingest_commits_range_smoke_test.go
       Note: FTS + v_last_commit_per_file smoke checks
     - Path: refactorio/pkg/refactorindex/ingest_symbols_code_units_smoke_test.go
@@ -21,6 +23,8 @@ RelatedFiles:
       Note: Updated code unit search to FTS
     - Path: refactorio/ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/scripts/search-queries/glazed-08-symbol-refs.sql
       Note: Symbol defs FTS + refs example
+    - Path: refactorio/ttmp/2026/02/04/REF-002-SEARCH-FUNCTIONALITY--search-functionality/design/01-search-system-design.md
+      Note: Document current FTS tables + view
     - Path: refactorio/ttmp/2026/02/04/REF-004-SEARCH-IMPROVEMENTS--search-improvements-for-refactor-index/design-doc/01-search-improvements-implementation-plan.md
       Note: Removed tree-sitter references
     - Path: refactorio/ttmp/2026/02/04/REF-004-SEARCH-IMPROVEMENTS--search-improvements-for-refactor-index/tasks.md
@@ -31,6 +35,7 @@ LastUpdated: 2026-02-04T18:05:00-05:00
 WhatFor: Track changes, decisions, and validations while implementing search improvements.
 WhenToUse: Use while executing REF-004 tasks to record progress and validation steps.
 ---
+
 
 
 
@@ -487,3 +492,50 @@ The new assertions are folded into existing commit and symbol/code-unit ingest t
 ### Technical details
 - Added FTS row-count checks for `code_unit_snapshots_fts`, `symbol_defs_fts`, `commits_fts`, `files_fts`.
 - Added `v_last_commit_per_file` row-count vs distinct file-id validation.
+
+## Step 11: Task 10 - Update search design and tutorial docs
+I refreshed the search design doc and the refactor-index tutorial to describe the new FTS tables and the `v_last_commit_per_file` view. This keeps guidance aligned with the schema changes and gives readers concrete SQL examples they can run.
+
+The changes focus on documenting what FTS coverage now exists, noting tree-sitter as optional, and adding examples in the help tutorial so users can validate their data quickly.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 7)
+
+**Assistant interpretation:** Update docs to mention the new FTS tables and view.
+
+**Inferred user intent:** Ensure search documentation and tutorials reflect the latest schema improvements.
+
+**Commit (code):** f63adb9 — "docs: update search design and tutorial for FTS"
+
+### What I did
+- Updated the search system design doc with current FTS coverage and the `v_last_commit_per_file` view.
+- Added an FTS + view query section to the refactor-index tutorial.
+- Marked tree-sitter ingestion as optional/disabled in the design doc.
+
+### Why
+- Documentation should match the current schema surface so users can apply search examples without guesswork.
+
+### What worked
+- The tutorial now includes quick `sqlite3` snippets for FTS and view usage.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- Balancing forward-looking design notes with the reality that tree-sitter ingestion is currently disabled.
+
+### What warrants a second pair of eyes
+- Confirm the updated guidance matches current CLI and schema behaviors.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/ttmp/2026/02/04/REF-002-SEARCH-FUNCTIONALITY--search-functionality/design/01-search-system-design.md` for the updated schema notes.
+- Review `refactorio/pkg/doc/tutorials/01-refactor-index-how-to-use.md` for the new FTS example queries.
+
+### Technical details
+- Added references to `code_unit_snapshots_fts`, `symbol_defs_fts`, `commits_fts`, `files_fts`, and `v_last_commit_per_file`.

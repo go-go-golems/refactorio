@@ -95,3 +95,12 @@ Step 10: add FTS/view smoke checks (commit e89f7f8).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_commits_range_smoke_test.go — New FTS + view assertions
 
+
+## 2026-02-04
+
+Step 11: update search design + tutorial docs (commit f63adb9).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/doc/tutorials/01-refactor-index-how-to-use.md — FTS/view query examples
+
