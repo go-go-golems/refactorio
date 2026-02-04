@@ -158,3 +158,50 @@ The registry is intentionally minimal and will be used by the upcoming `refactor
 
 ### Technical details
 - Registry file: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/common.go`.
+
+## Step 4: Add Refactor-Index JS Module
+I implemented the `refactor-index` JS module to expose the query APIs needed by scripts: symbols, refs, doc hits, and files. This module wraps the refactor-index store queries and returns plain JS objects to keep the API easy to consume.
+
+To support the module, I also added new query helpers in `refactorindex/query.go` for symbol refs, doc hits, and files, and included glob filtering for filesets using doublestar.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement the refactor-index JS module and its query endpoints as the next task in the REF-006 list.
+
+**Inferred user intent:** Make the query layer usable from JS before building apply/refactor features.
+
+**Commit (code):** 78d697b — "refactorio: add refactor-index js module"
+
+### What I did
+- Added `pkg/refactor/js/modules/refactorindex/refactorindex.go` with `querySymbols`, `queryRefs`, `queryDocHits`, and `queryFiles`.
+- Added query helper types and functions to `pkg/refactorindex/query.go`.
+- Added `github.com/bmatcuk/doublestar/v4` for fileset glob matching.
+
+### Why
+- JS scripts need a stable query surface to build plans and audits.
+
+### What worked
+- The module returns plain JS objects and filters by fileset globs.
+
+### What didn't work
+- N/A
+
+### What I learned
+- It is simpler to add query helpers to refactor-index than to expose raw SQL to JS.
+
+### What was tricky to build
+- Keeping the module API minimal while still supporting fileset filtering.
+
+### What warrants a second pair of eyes
+- Validate the new query helper SQL for correctness and performance.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go` for API and filtering logic.
+- Review `refactorio/pkg/refactorindex/query.go` for new query helpers.
+
+### Technical details
+- Module file: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go`.
