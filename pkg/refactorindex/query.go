@@ -2,6 +2,7 @@ package refactorindex
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/pkg/errors"
 )
@@ -33,8 +34,16 @@ func (s *Store) ListDiffFiles(ctx context.Context, runID int64) ([]DiffFileRecor
 	var results []DiffFileRecord
 	for rows.Next() {
 		var record DiffFileRecord
-		if err := rows.Scan(&record.RunID, &record.Status, &record.Path, &record.OldPath, &record.NewPath); err != nil {
+		var oldPath sql.NullString
+		var newPath sql.NullString
+		if err := rows.Scan(&record.RunID, &record.Status, &record.Path, &oldPath, &newPath); err != nil {
 			return nil, errors.Wrap(err, "scan diff file")
+		}
+		if oldPath.Valid {
+			record.OldPath = oldPath.String
+		}
+		if newPath.Valid {
+			record.NewPath = newPath.String
 		}
 		results = append(results, record)
 	}

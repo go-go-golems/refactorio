@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS files (
     id INTEGER PRIMARY KEY,
     path TEXT NOT NULL UNIQUE,
     ext TEXT,
-    exists INTEGER,
+    file_exists INTEGER,
     is_binary INTEGER
 );
 
