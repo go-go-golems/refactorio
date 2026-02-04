@@ -4,6 +4,7 @@ go 1.25.5
 
 require (
 	github.com/go-go-golems/glazed v0.7.14
+	github.com/go-go-golems/oak v0.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.40.0
@@ -49,6 +50,7 @@ require (
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
+	github.com/smacker/go-tree-sitter v0.0.0-20231219031718-233c2f923ac7 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
@@ -77,3 +79,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
+
+replace github.com/go-go-golems/oak => ../oak

@@ -437,6 +437,29 @@ func (s *Store) InsertSymbolRef(ctx context.Context, tx *sql.Tx, runID int64, co
 	return nil
 }
 
+func (s *Store) InsertTreeSitterCapture(ctx context.Context, tx *sql.Tx, runID int64, commitID *int64, fileID int64, queryName string, captureName string, nodeType string, startLine int, startCol int, endLine int, endCol int, snippet string) error {
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO ts_captures (run_id, commit_id, file_id, query_name, capture_name, node_type, start_line, start_col, end_line, end_col, snippet)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		runID,
+		nullableInt64(commitID),
+		fileID,
+		queryName,
+		captureName,
+		nullIfEmpty(nodeType),
+		startLine,
+		startCol,
+		endLine,
+		endCol,
+		snippet,
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert tree-sitter capture")
+	}
+	return nil
+}
+
 func (s *Store) WriteRawOutput(ctx context.Context, tx *sql.Tx, runDir string, runID int64, source string, fileName string, content []byte) (string, error) {
 	if err := os.MkdirAll(runDir, 0o755); err != nil {
 		return "", errors.Wrap(err, "create sources dir")
