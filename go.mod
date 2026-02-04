@@ -1,4 +1,4 @@
-module github.com/go-go-golems/XXX
+module github.com/go-go-golems/refactorio
 
 go 1.25.5
 

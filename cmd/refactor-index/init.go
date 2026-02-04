@@ -11,7 +11,7 @@ import (
 	"github.com/go-go-golems/glazed/pkg/types"
 	"github.com/pkg/errors"
 
-	"github.com/go-go-golems/XXX/pkg/refactorindex"
+	"github.com/go-go-golems/refactorio/pkg/refactorindex"
 )
 
 type InitCommand struct {
