@@ -1,0 +1,262 @@
+package refactorindex
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/pkg/errors"
+	_ "modernc.org/sqlite"
+)
+
+type Store struct {
+	db *sql.DB
+}
+
+type RunConfig struct {
+	ToolVersion string
+	GitFrom     string
+	GitTo       string
+	RootPath    string
+	SourcesDir  string
+	ArgsJSON    string
+}
+
+type RawOutput struct {
+	Source string
+	Path   string
+}
+
+func OpenDB(ctx context.Context, path string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		return nil, errors.Wrap(err, "open sqlite db")
+	}
+	if err := db.PingContext(ctx); err != nil {
+		_ = db.Close()
+		return nil, errors.Wrap(err, "ping sqlite db")
+	}
+	if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err != nil {
+		_ = db.Close()
+		return nil, errors.Wrap(err, "enable foreign keys")
+	}
+	return db, nil
+}
+
+func NewStore(db *sql.DB) *Store {
+	return &Store{db: db}
+}
+
+func (s *Store) InitSchema(ctx context.Context) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return errors.Wrap(err, "begin schema transaction")
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	if _, err := tx.ExecContext(ctx, schemaSQL); err != nil {
+		return errors.Wrap(err, "apply schema")
+	}
+	if err := insertSchemaVersion(ctx, tx); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return errors.Wrap(err, "commit schema")
+	}
+	return nil
+}
+
+func insertSchemaVersion(ctx context.Context, tx *sql.Tx) error {
+	appliedAt := time.Now().UTC().Format(time.RFC3339Nano)
+	_, err := tx.ExecContext(
+		ctx,
+		"INSERT OR IGNORE INTO schema_versions (version, applied_at) VALUES (?, ?)",
+		SchemaVersion,
+		appliedAt,
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert schema version")
+	}
+	return nil
+}
+
+func (s *Store) CreateRun(ctx context.Context, cfg RunConfig) (int64, error) {
+	startedAt := time.Now().UTC().Format(time.RFC3339Nano)
+	res, err := s.db.ExecContext(
+		ctx,
+		`INSERT INTO meta_runs (started_at, tool_version, git_from, git_to, root_path, args_json, sources_dir)
+		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		startedAt,
+		cfg.ToolVersion,
+		cfg.GitFrom,
+		cfg.GitTo,
+		cfg.RootPath,
+		cfg.ArgsJSON,
+		cfg.SourcesDir,
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "insert run")
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "read run id")
+	}
+	return id, nil
+}
+
+func (s *Store) FinishRun(ctx context.Context, runID int64) error {
+	finishedAt := time.Now().UTC().Format(time.RFC3339Nano)
+	_, err := s.db.ExecContext(
+		ctx,
+		"UPDATE meta_runs SET finished_at = ? WHERE id = ?",
+		finishedAt,
+		runID,
+	)
+	if err != nil {
+		return errors.Wrap(err, "update run finished_at")
+	}
+	return nil
+}
+
+func (s *Store) BeginTx(ctx context.Context) (*sql.Tx, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "begin transaction")
+	}
+	return tx, nil
+}
+
+func (s *Store) GetOrCreateFile(ctx context.Context, tx *sql.Tx, path string) (int64, error) {
+	ext := strings.TrimPrefix(filepath.Ext(path), ".")
+	_, err := tx.ExecContext(
+		ctx,
+		"INSERT OR IGNORE INTO files (path, ext) VALUES (?, ?)",
+		path,
+		ext,
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "insert file")
+	}
+	var id int64
+	if err := tx.QueryRowContext(ctx, "SELECT id FROM files WHERE path = ?", path).Scan(&id); err != nil {
+		return 0, errors.Wrap(err, "fetch file id")
+	}
+	return id, nil
+}
+
+func (s *Store) InsertDiffFile(ctx context.Context, tx *sql.Tx, runID int64, fileID int64, status string, oldPath string, newPath string) (int64, error) {
+	res, err := tx.ExecContext(
+		ctx,
+		"INSERT INTO diff_files (run_id, file_id, status, old_path, new_path) VALUES (?, ?, ?, ?, ?)",
+		runID,
+		fileID,
+		status,
+		nullIfEmpty(oldPath),
+		nullIfEmpty(newPath),
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "insert diff file")
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "read diff file id")
+	}
+	return id, nil
+}
+
+func (s *Store) InsertDiffHunk(ctx context.Context, tx *sql.Tx, diffFileID int64, oldStart int, oldLines int, newStart int, newLines int) (int64, error) {
+	res, err := tx.ExecContext(
+		ctx,
+		"INSERT INTO diff_hunks (diff_file_id, old_start, old_lines, new_start, new_lines) VALUES (?, ?, ?, ?, ?)",
+		diffFileID,
+		oldStart,
+		oldLines,
+		newStart,
+		newLines,
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "insert diff hunk")
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "read diff hunk id")
+	}
+	return id, nil
+}
+
+func (s *Store) InsertDiffLine(ctx context.Context, tx *sql.Tx, hunkID int64, kind string, lineNoOld *int, lineNoNew *int, text string) error {
+	_, err := tx.ExecContext(
+		ctx,
+		"INSERT INTO diff_lines (hunk_id, kind, line_no_old, line_no_new, text) VALUES (?, ?, ?, ?, ?)",
+		hunkID,
+		kind,
+		nullableInt(lineNoOld),
+		nullableInt(lineNoNew),
+		text,
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert diff line")
+	}
+	return nil
+}
+
+func (s *Store) InsertRawOutput(ctx context.Context, tx *sql.Tx, runID int64, source string, path string) error {
+	createdAt := time.Now().UTC().Format(time.RFC3339Nano)
+	_, err := tx.ExecContext(
+		ctx,
+		"INSERT INTO raw_outputs (run_id, source, path, created_at) VALUES (?, ?, ?, ?)",
+		runID,
+		source,
+		path,
+		createdAt,
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert raw output")
+	}
+	return nil
+}
+
+func (s *Store) WriteRawOutput(ctx context.Context, tx *sql.Tx, runDir string, runID int64, source string, fileName string, content []byte) (string, error) {
+	if err := os.MkdirAll(runDir, 0o755); err != nil {
+		return "", errors.Wrap(err, "create sources dir")
+	}
+	path := filepath.Join(runDir, fileName)
+	if err := os.WriteFile(path, content, 0o644); err != nil {
+		return "", errors.Wrap(err, "write raw output")
+	}
+	if err := s.InsertRawOutput(ctx, tx, runID, source, path); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+func EncodeArgsJSON(args map[string]string) (string, error) {
+	if len(args) == 0 {
+		return "", nil
+	}
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return "", errors.Wrap(err, "encode args json")
+	}
+	return string(payload), nil
+}
+
+func nullableInt(value *int) sql.NullInt64 {
+	if value == nil {
+		return sql.NullInt64{}
+	}
+	return sql.NullInt64{Int64: int64(*value), Valid: true}
+}
+
+func nullIfEmpty(value string) interface{} {
+	if strings.TrimSpace(value) == "" {
+		return nil
+	}
+	return value
+}
