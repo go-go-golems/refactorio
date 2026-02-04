@@ -20,3 +20,4 @@ go run ./cmd/refactorio js run \
 - `doc_hits.js` — query doc hits with fileset globs
 - `list_files.js` — query files using include/exclude globs
 - `plan_like_output.js` — build a plan-like object from query results
+- `trace_example.js` — emit query traces with `--trace`

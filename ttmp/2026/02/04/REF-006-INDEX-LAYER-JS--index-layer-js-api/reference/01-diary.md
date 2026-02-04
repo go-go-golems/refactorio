@@ -578,3 +578,50 @@ Then yes, write a detailed README.md in fact, covering both the CLI indexing and
 - Test commands:
   - `go test ./pkg/refactor/js/modules/refactorindex`
   - `go test ./cmd/refactorio`
+
+## Step 13: Add Trace Example + Troubleshooting Appendix
+I added a trace example script and expanded the JS guide with a troubleshooting-by-error table. The README now includes a detailed trace example and sample `js_trace.jsonl` output.
+
+### Prompt Context
+**User prompt (verbatim):** "1. 2. yes. Be detailed"
+
+**Assistant interpretation:** Add a trace example script, show sample trace output in the README, and add a troubleshooting appendix to the JS guide.
+
+**Inferred user intent:** Make tracing and common error resolution obvious for new contributors.
+
+**Commit (code):** <pending>
+
+### What I did
+- Added `testdata/js/trace_example.js` and updated the examples list.
+- Expanded `README.md` with a trace example command and sample JSONL output.
+- Added a troubleshooting-by-error-message section to the JS guide.
+
+### Why
+- Tracing is easiest to understand with a concrete example and real output.
+- Error-message-driven troubleshooting helps new users self-diagnose quickly.
+
+### What worked
+- The documentation now includes explicit trace usage and sample output.
+
+### What didn't work
+- N/A
+
+### What I learned
+- A short trace example script is the fastest path to explain the audit log format.
+
+### What was tricky to build
+- Keeping the additional detail concise while staying consistent with the style guide.
+
+### What warrants a second pair of eyes
+- Verify the README trace output matches the current trace entry format.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/README.md` trace example section for accuracy.
+- Review `refactorio/ttmp/2026/02/04/REF-006-INDEX-LAYER-JS--index-layer-js-api/design/01-js-index-api-guide.md` troubleshooting appendix.
+- Review `refactorio/testdata/js/trace_example.js` for script correctness.
+
+### Technical details
+- Trace example: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/testdata/js/trace_example.js`.

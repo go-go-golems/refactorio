@@ -94,6 +94,7 @@ Scripts live in `testdata/js/` and can be used as templates.
 - `doc_hits.js` — query doc hits with globs
 - `list_files.js` — list files using globs
 - `plan_like_output.js` — build plan-like JSON from query results
+- `trace_example.js` — demonstrate query tracing
 
 ---
 
@@ -104,6 +105,24 @@ Example:
 
 ```json
 {"seq":1,"action":"querySymbols","args":{"pkg":"github.com/acme/project/internal/api","name":"Client","kind":"type"},"result_count":1}
+```
+
+### Trace Example Script
+Use the provided example script to produce a trace file.
+
+```bash
+go run ./cmd/refactorio js run \
+  --script testdata/js/trace_example.js \
+  --index-db /path/to/index.sqlite \
+  --run-id 1 \
+  --trace /tmp/js_trace.jsonl
+```
+
+Sample output (`/tmp/js_trace.jsonl`):
+
+```json
+{"seq":1,"action":"querySymbols","args":{"pkg":"github.com/acme/project/internal/api","name":"Client","kind":"type"},"result_count":1}
+{"seq":2,"action":"queryDocHits","args":{"terms":["Client"],"fileset":{"include":["docs/**/*.md"],"exclude":[]}},"result_count":4}
 ```
 
 ---

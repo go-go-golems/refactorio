@@ -26,12 +26,15 @@ RelatedFiles:
       Note: Example script
     - Path: refactorio/testdata/js/plan_like_output.js
       Note: Example script
+    - Path: refactorio/testdata/js/trace_example.js
+      Note: Trace example script
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-02-04T16:12:30-05:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 # JS Index API Guide
@@ -237,6 +240,7 @@ These scripts live under `testdata/js/` and are intended to be runnable.
 - `testdata/js/doc_hits.js` — query doc hits with fileset globs
 - `testdata/js/list_files.js` — list files by fileset
 - `testdata/js/plan_like_output.js` — construct plan-like output
+- `testdata/js/trace_example.js` — demonstrate query tracing
 
 ## Troubleshooting
 
@@ -246,6 +250,18 @@ These scripts live under `testdata/js/` and are intended to be runnable.
 | `queryRefs requires symbol hash` | `queryRefs` called with empty value | Pass a valid `symbol_hash` string |
 | Empty result arrays | Filters too strict or run ID mismatch | Remove filters or set `--run-id 0` |
 | `module file does not exist` | File-based `require()` is disabled | Use only native modules |
+
+## Troubleshooting by Error Message
+These are the most common errors you’ll see while writing scripts, along with direct fixes.
+
+| Error message | Likely cause | Fix |
+| --- | --- | --- |
+| `No such built-in module` | A script called `require()` for a module that isn’t registered. | Only `require("refactor-index")` is allowed. Remove `require("fs")`, `require("exec")`, etc. |
+| `module file does not exist` | File-based `require()` is disabled. | Inline your script or use only native modules. |
+| `queryRefs requires symbol hash` | `queryRefs` called with `null`, `undefined`, or empty string. | Pass a concrete `symbol_hash` from `querySymbols`. |
+| `ambiguous symbol count` (custom) | Your selector matches multiple symbols. | Add filters (`pkg`, `kind`, `path`) or refine with `exported_only`. |
+| Empty array results | Filters are too strict or wrong run ID. | Remove filters or set `--run-id 0` to query all runs. |
+| JSON output is `null` | The script didn’t return a value. | End your script with an expression (e.g., `result;`). |
 
 ## See Also
 - `ttmp/2026/02/04/REF-006-INDEX-LAYER-JS--index-layer-js-api/plan/01-js-index-layer-implementation-plan.md` — Implementation plan for the JS index layer.
