@@ -10,6 +10,8 @@ import (
 	"github.com/go-go-golems/glazed/pkg/middlewares"
 	"github.com/go-go-golems/glazed/pkg/types"
 	"github.com/pkg/errors"
+
+	"github.com/go-go-golems/XXX/pkg/refactorindex"
 )
 
 type InitCommand struct {
@@ -50,7 +52,24 @@ func (c *InitCommand) RunIntoGlazeProcessor(
 		return err
 	}
 
-	return errors.New("init not implemented")
+	db, err := refactorindex.OpenDB(ctx, settings.DBPath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = db.Close()
+	}()
+
+	store := refactorindex.NewStore(db)
+	if err := store.InitSchema(ctx); err != nil {
+		return err
+	}
+
+	if err := gp.AddRow(ctx, initRow(settings.DBPath, refactorindex.SchemaVersion)); err != nil {
+		return errors.Wrap(err, "add init row")
+	}
+
+	return nil
 }
 
 func initRow(dbPath string, schemaVersion int) *types.Row {

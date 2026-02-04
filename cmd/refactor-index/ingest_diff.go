@@ -10,6 +10,8 @@ import (
 	"github.com/go-go-golems/glazed/pkg/middlewares"
 	"github.com/go-go-golems/glazed/pkg/types"
 	"github.com/pkg/errors"
+
+	"github.com/go-go-golems/XXX/pkg/refactorindex"
 )
 
 type IngestDiffCommand struct {
@@ -78,7 +80,22 @@ func (c *IngestDiffCommand) RunIntoGlazeProcessor(
 		return err
 	}
 
-	return errors.New("ingest diff not implemented")
+	result, err := refactorindex.IngestDiff(ctx, refactorindex.IngestDiffConfig{
+		DBPath:     settings.DBPath,
+		RepoPath:   settings.RepoPath,
+		FromRef:    settings.FromRef,
+		ToRef:      settings.ToRef,
+		SourcesDir: settings.SourcesDir,
+	})
+	if err != nil {
+		return err
+	}
+
+	if err := gp.AddRow(ctx, ingestDiffRow(result.RunID, result.Files, result.Hunks, result.Lines)); err != nil {
+		return errors.Wrap(err, "add ingest diff row")
+	}
+
+	return nil
 }
 
 func ingestDiffRow(runID int64, files int, hunks int, lines int) *types.Row {
