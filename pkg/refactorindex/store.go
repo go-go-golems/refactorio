@@ -31,6 +31,15 @@ type RawOutput struct {
 	Path   string
 }
 
+type SymbolDef struct {
+	Pkg       string
+	Name      string
+	Kind      string
+	Recv      string
+	Signature string
+	Hash      string
+}
+
 func OpenDB(ctx context.Context, path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -222,6 +231,49 @@ func (s *Store) InsertRawOutput(ctx context.Context, tx *sql.Tx, runID int64, so
 	return nil
 }
 
+func (s *Store) GetOrCreateSymbolDef(ctx context.Context, tx *sql.Tx, def SymbolDef) (int64, error) {
+	if def.Hash == "" {
+		return 0, errors.New("symbol hash is required")
+	}
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT OR IGNORE INTO symbol_defs (pkg, name, kind, recv, signature, symbol_hash)
+		 VALUES (?, ?, ?, ?, ?, ?)`,
+		def.Pkg,
+		def.Name,
+		def.Kind,
+		nullIfEmpty(def.Recv),
+		nullIfEmpty(def.Signature),
+		def.Hash,
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "insert symbol def")
+	}
+	var id int64
+	if err := tx.QueryRowContext(ctx, "SELECT id FROM symbol_defs WHERE symbol_hash = ?", def.Hash).Scan(&id); err != nil {
+		return 0, errors.Wrap(err, "fetch symbol def id")
+	}
+	return id, nil
+}
+
+func (s *Store) InsertSymbolOccurrence(ctx context.Context, tx *sql.Tx, runID int64, fileID int64, symbolDefID int64, line int, col int, exported bool) error {
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO symbol_occurrences (run_id, file_id, symbol_def_id, line, col, is_exported)
+		 VALUES (?, ?, ?, ?, ?, ?)`,
+		runID,
+		fileID,
+		symbolDefID,
+		line,
+		col,
+		boolToInt(exported),
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert symbol occurrence")
+	}
+	return nil
+}
+
 func (s *Store) WriteRawOutput(ctx context.Context, tx *sql.Tx, runDir string, runID int64, source string, fileName string, content []byte) (string, error) {
 	if err := os.MkdirAll(runDir, 0o755); err != nil {
 		return "", errors.Wrap(err, "create sources dir")
@@ -259,4 +311,11 @@ func nullIfEmpty(value string) interface{} {
 		return nil
 	}
 	return value
+}
+
+func boolToInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
 }

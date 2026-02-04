@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 2
+const SchemaVersion = 3
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS symbol_defs (
     kind TEXT NOT NULL,
     recv TEXT,
     signature TEXT,
-    symbol_hash TEXT NOT NULL
+    symbol_hash TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS symbol_occurrences (
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS code_units (
     pkg TEXT NOT NULL,
     recv TEXT,
     signature TEXT,
-    unit_hash TEXT NOT NULL
+    unit_hash TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS code_unit_snapshots (
