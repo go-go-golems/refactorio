@@ -17,21 +17,24 @@ import (
 
 // IngestCodeUnitsConfig controls code unit snapshot ingestion.
 type IngestCodeUnitsConfig struct {
-	DBPath     string
-	RootDir    string
-	SourcesDir string
-	CommitID   *int64
+	DBPath              string
+	RootDir             string
+	SourcesDir          string
+	CommitID            *int64
+	IgnorePackageErrors bool
 }
 
 // IngestCodeUnitsResult reports counts for code unit ingestion.
 type IngestCodeUnitsResult struct {
-	RunID      int64
-	CodeUnits  int
-	Snapshots  int
-	Packages   int
-	Files      int
-	BodyBytes  int
-	DocEntries int
+	RunID              int64
+	CodeUnits          int
+	Snapshots          int
+	Packages           int
+	PackagesWithErrors int
+	PackagesSkipped    int
+	Files              int
+	BodyBytes          int
+	DocEntries         int
 }
 
 func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (_ *IngestCodeUnitsResult, err error) {
@@ -89,8 +92,21 @@ func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (_ *IngestC
 	if err != nil {
 		return nil, errors.Wrap(err, "load packages")
 	}
-	if packages.PrintErrors(pkgs) > 0 {
-		return nil, errors.New("package load errors")
+	packageErrorCount := packages.PrintErrors(pkgs)
+	packagesWithErrors := 0
+	for _, pkg := range pkgs {
+		if len(pkg.Errors) == 0 {
+			continue
+		}
+		packagesWithErrors++
+	}
+	if packageErrorCount > 0 {
+		if !cfg.IgnorePackageErrors {
+			return nil, errors.New("package load errors")
+		}
+		if err := recordGoPackagesErrors(ctx, store, runID, pkgs); err != nil {
+			return nil, err
+		}
 	}
 
 	tx, err := store.BeginTx(ctx)
@@ -108,9 +124,15 @@ func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (_ *IngestC
 	fileCount := 0
 	docCount := 0
 	bodyBytes := 0
+	packagesSkipped := 0
 
 	for _, pkg := range pkgs {
+		if len(pkg.Errors) > 0 {
+			packagesSkipped++
+			continue
+		}
 		if pkg.Types == nil || pkg.TypesInfo == nil || pkg.Fset == nil {
+			packagesSkipped++
 			continue
 		}
 		qualifier := types.RelativeTo(pkg.Types)
@@ -248,13 +270,15 @@ func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (_ *IngestC
 	}
 
 	return &IngestCodeUnitsResult{
-		RunID:      runID,
-		CodeUnits:  codeUnitCount,
-		Snapshots:  snapshotCount,
-		Packages:   len(pkgs),
-		Files:      fileCount,
-		BodyBytes:  bodyBytes,
-		DocEntries: docCount,
+		RunID:              runID,
+		CodeUnits:          codeUnitCount,
+		Snapshots:          snapshotCount,
+		Packages:           len(pkgs),
+		PackagesWithErrors: packagesWithErrors,
+		PackagesSkipped:    packagesSkipped,
+		Files:              fileCount,
+		BodyBytes:          bodyBytes,
+		DocEntries:         docCount,
 	}, nil
 }
 

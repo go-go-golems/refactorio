@@ -16,12 +16,13 @@ type RangeIngestConfig struct {
 	ToRef      string
 	SourcesDir string
 
-	IncludeDiff       bool
-	IncludeSymbols    bool
-	IncludeCodeUnits  bool
-	IncludeDocHits    bool
-	IncludeTreeSitter bool
-	IncludeGopls      bool
+	IncludeDiff         bool
+	IncludeSymbols      bool
+	IncludeCodeUnits    bool
+	IncludeDocHits      bool
+	IncludeTreeSitter   bool
+	IncludeGopls        bool
+	IgnorePackageErrors bool
 
 	TermsFile          string
 	TreeSitterLanguage string
@@ -124,10 +125,11 @@ func IngestCommitRange(ctx context.Context, cfg RangeIngestConfig) (*RangeIngest
 
 		if cfg.IncludeSymbols {
 			symbolsResult, err := IngestSymbols(ctx, IngestSymbolsConfig{
-				DBPath:     cfg.DBPath,
-				RootDir:    worktreePath,
-				SourcesDir: cfg.SourcesDir,
-				CommitID:   &commitID,
+				DBPath:              cfg.DBPath,
+				RootDir:             worktreePath,
+				SourcesDir:          cfg.SourcesDir,
+				CommitID:            &commitID,
+				IgnorePackageErrors: cfg.IgnorePackageErrors,
 			})
 			if err != nil {
 				_ = removeWorktree(ctx, cfg.RepoPath, worktreePath)
@@ -138,10 +140,11 @@ func IngestCommitRange(ctx context.Context, cfg RangeIngestConfig) (*RangeIngest
 
 		if cfg.IncludeCodeUnits {
 			codeUnitsResult, err := IngestCodeUnits(ctx, IngestCodeUnitsConfig{
-				DBPath:     cfg.DBPath,
-				RootDir:    worktreePath,
-				SourcesDir: cfg.SourcesDir,
-				CommitID:   &commitID,
+				DBPath:              cfg.DBPath,
+				RootDir:             worktreePath,
+				SourcesDir:          cfg.SourcesDir,
+				CommitID:            &commitID,
+				IgnorePackageErrors: cfg.IgnorePackageErrors,
 			})
 			if err != nil {
 				_ = removeWorktree(ctx, cfg.RepoPath, worktreePath)

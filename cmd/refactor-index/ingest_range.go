@@ -26,12 +26,13 @@ type IngestRangeSettings struct {
 	ToRef      string `glazed:"to"`
 	SourcesDir string `glazed:"sources-dir"`
 
-	IncludeDiff       bool `glazed:"include-diff"`
-	IncludeSymbols    bool `glazed:"include-symbols"`
-	IncludeCodeUnits  bool `glazed:"include-code-units"`
-	IncludeDocHits    bool `glazed:"include-doc-hits"`
-	IncludeTreeSitter bool `glazed:"include-tree-sitter"`
-	IncludeGopls      bool `glazed:"include-gopls"`
+	IncludeDiff         bool `glazed:"include-diff"`
+	IncludeSymbols      bool `glazed:"include-symbols"`
+	IncludeCodeUnits    bool `glazed:"include-code-units"`
+	IncludeDocHits      bool `glazed:"include-doc-hits"`
+	IncludeTreeSitter   bool `glazed:"include-tree-sitter"`
+	IncludeGopls        bool `glazed:"include-gopls"`
+	IgnorePackageErrors bool `glazed:"ignore-package-errors"`
 
 	TermsFile          string   `glazed:"terms"`
 	TreeSitterLanguage string   `glazed:"ts-language"`
@@ -117,6 +118,12 @@ func NewIngestRangeCommand() (*IngestRangeCommand, error) {
 				fields.WithDefault(false),
 			),
 			fields.New(
+				"ignore-package-errors",
+				fields.TypeBool,
+				fields.WithHelp("Continue symbols/code-units with partial results if go/packages reports errors"),
+				fields.WithDefault(false),
+			),
+			fields.New(
 				"terms",
 				fields.TypeString,
 				fields.WithHelp("Terms file for doc hits"),
@@ -180,22 +187,23 @@ func (c *IngestRangeCommand) RunIntoGlazeProcessor(
 	}
 
 	result, err := refactorindex.IngestCommitRange(ctx, refactorindex.RangeIngestConfig{
-		DBPath:             settings.DBPath,
-		RepoPath:           settings.RepoPath,
-		FromRef:            settings.FromRef,
-		ToRef:              settings.ToRef,
-		SourcesDir:         settings.SourcesDir,
-		IncludeDiff:        settings.IncludeDiff,
-		IncludeSymbols:     settings.IncludeSymbols,
-		IncludeCodeUnits:   settings.IncludeCodeUnits,
-		IncludeDocHits:     settings.IncludeDocHits,
-		IncludeTreeSitter:  settings.IncludeTreeSitter,
-		IncludeGopls:       settings.IncludeGopls,
-		TermsFile:          settings.TermsFile,
-		TreeSitterLanguage: settings.TreeSitterLanguage,
-		TreeSitterQueries:  settings.TreeSitterQueries,
-		TreeSitterGlob:     settings.TreeSitterGlob,
-		GoplsTargets:       goplsTargets,
+		DBPath:              settings.DBPath,
+		RepoPath:            settings.RepoPath,
+		FromRef:             settings.FromRef,
+		ToRef:               settings.ToRef,
+		SourcesDir:          settings.SourcesDir,
+		IncludeDiff:         settings.IncludeDiff,
+		IncludeSymbols:      settings.IncludeSymbols,
+		IncludeCodeUnits:    settings.IncludeCodeUnits,
+		IncludeDocHits:      settings.IncludeDocHits,
+		IncludeTreeSitter:   settings.IncludeTreeSitter,
+		IncludeGopls:        settings.IncludeGopls,
+		IgnorePackageErrors: settings.IgnorePackageErrors,
+		TermsFile:           settings.TermsFile,
+		TreeSitterLanguage:  settings.TreeSitterLanguage,
+		TreeSitterQueries:   settings.TreeSitterQueries,
+		TreeSitterGlob:      settings.TreeSitterGlob,
+		GoplsTargets:        goplsTargets,
 	})
 	if err != nil {
 		return err

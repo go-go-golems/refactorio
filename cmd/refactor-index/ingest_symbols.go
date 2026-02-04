@@ -19,9 +19,10 @@ type IngestSymbolsCommand struct {
 }
 
 type IngestSymbolsSettings struct {
-	DBPath     string `glazed:"db"`
-	RootDir    string `glazed:"root"`
-	SourcesDir string `glazed:"sources-dir"`
+	DBPath              string `glazed:"db"`
+	RootDir             string `glazed:"root"`
+	SourcesDir          string `glazed:"sources-dir"`
+	IgnorePackageErrors bool   `glazed:"ignore-package-errors"`
 }
 
 var _ cmds.GlazeCommand = &IngestSymbolsCommand{}
@@ -50,6 +51,12 @@ func NewIngestSymbolsCommand() (*IngestSymbolsCommand, error) {
 				fields.WithHelp("Directory to write raw tool outputs"),
 				fields.WithDefault("sources"),
 			),
+			fields.New(
+				"ignore-package-errors",
+				fields.TypeBool,
+				fields.WithHelp("Continue with partial results if go/packages reports errors"),
+				fields.WithDefault(false),
+			),
 		),
 	)
 
@@ -67,9 +74,10 @@ func (c *IngestSymbolsCommand) RunIntoGlazeProcessor(
 	}
 
 	result, err := refactorindex.IngestSymbols(ctx, refactorindex.IngestSymbolsConfig{
-		DBPath:     settings.DBPath,
-		RootDir:    settings.RootDir,
-		SourcesDir: settings.SourcesDir,
+		DBPath:              settings.DBPath,
+		RootDir:             settings.RootDir,
+		SourcesDir:          settings.SourcesDir,
+		IgnorePackageErrors: settings.IgnorePackageErrors,
 	})
 	if err != nil {
 		return err
