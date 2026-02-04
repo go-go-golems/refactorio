@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 15
+const SchemaVersion = 16
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (

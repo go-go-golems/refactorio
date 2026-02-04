@@ -118,6 +118,9 @@ func (s *Store) InitSchema(ctx context.Context) error {
 	if err := ensureFTSColumns(ctx, tx, "commits", "commits_fts", []string{"subject", "body"}); err != nil {
 		return err
 	}
+	if err := ensureFTSColumns(ctx, tx, "files", "files_fts", []string{"path"}); err != nil {
+		return err
+	}
 	if err := ensureColumn(ctx, tx, "meta_runs", "status", "TEXT"); err != nil {
 		return err
 	}
