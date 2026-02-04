@@ -27,7 +27,7 @@
 ## Task 5: Gopls ingestion tolerant of missing symbol_defs (skip-symbol-lookup default true)
 - [x] Default skip-symbol-lookup to true in CLI.
 - [x] Allow targets without symbol_hash; store unresolved refs in a new table.
-- [ ] Add list/query support for unresolved refs (if needed).
+- [x] Add list/query support for unresolved refs (if needed).
 
 ## Task 6: Document required build state and surface clear CLI message
 - [x] Improve package load error messages (include best-effort hint).

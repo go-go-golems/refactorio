@@ -143,3 +143,13 @@ Finish Task 1 tests: add best-effort symbols test (commit 6e43dc4).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_symbols_best_effort_test.go — Best-effort test coverage
 
+
+## 2026-02-04
+
+Finish Task 5: add list support for unresolved gopls refs (commit f2549f7).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactor-index/list_gopls_refs_unresolved.go — New list command
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/query.go — Unresolved refs query
+

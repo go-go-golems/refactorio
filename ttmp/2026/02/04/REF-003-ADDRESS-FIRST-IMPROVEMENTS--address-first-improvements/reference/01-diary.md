@@ -711,3 +711,48 @@ I added a test that creates one valid and one broken package to confirm best-eff
 
 ### Technical details
 - The test asserts run_kv contains `go_packages_error` entries.
+
+## Step 15: Task 5 - Add list support for unresolved gopls refs
+I added a query helper and list command to surface unresolved gopls references, closing the remaining Task 5 subtask. This makes it easy to inspect refs even when symbol hashes are missing.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Provide a way to query unresolved gopls refs after enabling skip-symbol-lookup.
+
+**Inferred user intent:** Keep visibility into gopls results even without symbol defs.
+
+**Commit (code):** f2549f7 — "refactorindex: list unresolved gopls refs"
+
+### What I did
+- Added `ListSymbolRefsUnresolved` query helper.
+- Added `list gopls-refs-unresolved` CLI command.
+- Wired the command into the list command group.
+
+### Why
+- Users need to inspect unresolved refs for debugging and follow-up mapping.
+
+### What worked
+- The list command surfaces unresolved refs with paging support.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Ensure naming aligns with CLI conventions and does not conflict with future commands.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/query.go` and `refactorio/cmd/refactor-index/list_gopls_refs_unresolved.go`.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- The list command supports `--run-id`, `--limit`, and `--offset` filters.
