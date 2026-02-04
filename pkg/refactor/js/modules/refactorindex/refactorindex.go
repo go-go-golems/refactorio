@@ -13,18 +13,20 @@ import (
 )
 
 type Module struct {
-	store *refactorindex.Store
-	runID int64
-	ctx   context.Context
+	store      *refactorindex.Store
+	runID      int64
+	maxResults int
+	ctx        context.Context
 }
 
 var _ modules.NativeModule = (*Module)(nil)
 
 func NewModule(store *refactorindex.Store, runID int64) *Module {
 	return &Module{
-		store: store,
-		runID: runID,
-		ctx:   context.Background(),
+		store:      store,
+		runID:      runID,
+		maxResults: 5000,
+		ctx:        context.Background(),
 	}
 }
 
@@ -108,7 +110,7 @@ func (m *Module) querySymbols(vm *goja.Runtime, call goja.FunctionCall) ([]map[s
 		Name:         filter.Name,
 		Pkg:          filter.Pkg,
 		Path:         filter.Path,
-		Limit:        filter.Limit,
+		Limit:        clampLimit(filter.Limit, m.maxResults),
 		Offset:       filter.Offset,
 	})
 	if err != nil {
@@ -169,6 +171,7 @@ func (m *Module) queryRefs(vm *goja.Runtime, call goja.FunctionCall) ([]map[stri
 	records, err := m.store.ListSymbolRefs(m.ctx, refactorindex.SymbolRefFilter{
 		RunID:      m.runID,
 		SymbolHash: symbolHash,
+		Limit:      m.maxResults,
 	})
 	if err != nil {
 		return nil, err
@@ -219,6 +222,7 @@ func (m *Module) queryDocHits(vm *goja.Runtime, call goja.FunctionCall) ([]map[s
 	records, err := m.store.ListDocHits(m.ctx, refactorindex.DocHitFilter{
 		RunID: m.runID,
 		Terms: terms,
+		Limit: m.maxResults,
 	})
 	if err != nil {
 		return nil, err
@@ -268,7 +272,7 @@ func (m *Module) queryFiles(vm *goja.Runtime, call goja.FunctionCall) ([]map[str
 		}
 	}
 
-	records, err := m.store.ListFiles(m.ctx, refactorindex.FileFilter{})
+	records, err := m.store.ListFiles(m.ctx, refactorindex.FileFilter{Limit: m.maxResults})
 	if err != nil {
 		return nil, err
 	}
@@ -297,6 +301,16 @@ func (m *Module) queryFiles(vm *goja.Runtime, call goja.FunctionCall) ([]map[str
 		})
 	}
 	return results, nil
+}
+
+func clampLimit(value, max int) int {
+	if max <= 0 {
+		return value
+	}
+	if value <= 0 || value > max {
+		return max
+	}
+	return value
 }
 
 func matchFileset(path string, fs fileset) (bool, error) {
