@@ -50,6 +50,22 @@ The code aligns with the “query‑only” mission: JS can read the index but c
 **Recommendation**
 Add a small `RuntimeBuilder` that only takes a registry + options. This removes the `Modules` vs `Registry` ambiguity and centralizes lifecycle hooks.
 
+**Concrete files and symbols to inspect**
+- `pkg/refactor/js/runtime.go`: `NewRuntime`, `RuntimeOptions`, `disabledSourceLoader`, `disableTime`, `disableRandom`
+- `pkg/refactor/js/modules/common.go`: `NativeModule`, `Registry.Enable`, `DefaultRegistry`
+- `cmd/refactorio/js_run.go`: `NewJSRunCommand`
+
+**Example snippet (runtime setup)**
+```go
+vm, _, err := js.NewRuntime(js.RuntimeOptions{
+    Registry:      reg,
+    EnableConsole: true,
+    DisableTime:   true,
+    DisableRandom: true,
+    AllowFileJS:   false,
+})
+```
+
 ## Angle 2: API Ergonomics for Script Authors
 The JS API is minimal and easy to remember: `querySymbols`, `queryRefs`, `queryDocHits`, `queryFiles`. The return shapes are stable and plain objects, which is appropriate for JS.
 
@@ -65,6 +81,19 @@ The JS API is minimal and easy to remember: `querySymbols`, `queryRefs`, `queryD
 **Recommendation**
 Provide helper JS functions (or examples) that bundle “symbol selection + refs” into a common snippet, and clarify in docs that fileset filtering is done after DB queries.
 
+**Concrete files and symbols to inspect**
+- `pkg/refactor/js/modules/refactorindex/refactorindex.go`: `querySymbols`, `queryRefs`, `queryDocHits`, `queryFiles`
+- `testdata/js/list_symbols.js`: example query pattern
+
+**Example JS snippet (symbol → refs)**
+```javascript
+const idx = require("refactor-index");
+const symbols = idx.querySymbols({ pkg: "...", name: "Client", kind: "type" });
+if (symbols.length !== 1) throw new Error(`ambiguous symbol count: ${symbols.length}`);
+const refs = idx.queryRefs(symbols[0].symbol_hash);
+({ symbol: symbols[0], ref_count: refs.length });
+```
+
 ## Angle 3: Determinism Guarantees
 Determinism is essential for reproducible plans. Sorting in the module ensures stable ordering even when DB ordering changes.
 
@@ -78,6 +107,21 @@ Determinism is essential for reproducible plans. Sorting in the module ensures s
 
 **Recommendation**
 Add a “determinism checklist” section to the guide (one paragraph) and optionally a `--strict-determinism` mode that rejects use of non‑deterministic globals.
+
+**Concrete files and symbols to inspect**
+- `pkg/refactor/js/modules/refactorindex/refactorindex.go`: `sort.Slice` blocks in each query
+- `pkg/refactor/js/runtime.go`: `disableTime`, `disableRandom`
+
+**Example snippet (sorting in module)**
+```go
+sort.Slice(records, func(i, j int) bool {
+    if records[i].Pkg != records[j].Pkg {
+        return records[i].Pkg < records[j].Pkg
+    }
+    // ... further stable keys
+    return records[i].Col < records[j].Col
+})
+```
 
 ## Angle 4: Safety and Sandboxing
 The runner blocks filesystem module loading and avoids `fs`/`exec` by default. This is an appropriate baseline.
@@ -93,6 +137,15 @@ The runner blocks filesystem module loading and avoids `fs`/`exec` by default. T
 **Recommendation**
 Add a runtime guard for execution time (e.g., context with deadline or goja interrupt) and document that scripts are trusted inputs for now.
 
+**Concrete files and symbols to inspect**
+- `pkg/refactor/js/runtime.go`: `disabledSourceLoader`, `AllowFileJS`
+- `cmd/refactorio/js_run.go`: script loading via `os.ReadFile` and `vm.RunString`
+
+**Example snippet (file-module blocking)**
+```go
+reg := require.NewRegistry(require.WithLoader(disabledSourceLoader(false)))
+```
+
 ## Angle 5: Data Access and Performance
 The module pulls data via refactor‑index query helpers and then filters/sorts in Go. That’s a good compromise for a small API surface.
 
@@ -106,6 +159,18 @@ The module pulls data via refactor‑index query helpers and then filters/sorts 
 
 **Recommendation**
 Extend query helpers with path‑prefix or glob‑aware SQL filters, or allow paging in JS to avoid large in‑memory slices.
+
+**Concrete files and symbols to inspect**
+- `pkg/refactorindex/query.go`: `ListDocHits`, `ListFiles`, `ListSymbolRefs`
+- `pkg/refactor/js/modules/refactorindex/refactorindex.go`: `matchFileset`, `clampLimit`
+
+**Example pseudo‑query (DB‑side filter)**
+```sql
+SELECT h.term, f.path, h.line, h.col, h.match_text
+FROM doc_hits h
+JOIN files f ON f.id = h.file_id
+WHERE h.run_id = ? AND f.path LIKE 'docs/%'
+```
 
 ## Angle 6: Error Handling and Diagnostics
 Errors are surfaced to JS by panicking with the error string; in Go, the CLI returns errors cleanly.
@@ -121,6 +186,17 @@ Errors are surfaced to JS by panicking with the error string; in Go, the CLI ret
 **Recommendation**
 Expose errors as JS exceptions with structured fields (code/message), or add a `refactor.index.errors` helper to introspect error types.
 
+**Concrete files and symbols to inspect**
+- `pkg/refactor/js/modules/refactorindex/refactorindex.go`: `queryRefs` input validation
+- `cmd/refactorio/js_run.go`: `RunString` error handling
+
+**Example snippet (current error surface)**
+```go
+if len(call.Arguments) == 0 {
+    return nil, errors.New("queryRefs requires symbol hash")
+}
+```
+
 ## Angle 7: Logging and Traceability
 The `js_trace.jsonl` hook is the strongest audit mechanism. It is simple and easy to consume.
 
@@ -133,6 +209,15 @@ The `js_trace.jsonl` hook is the strongest audit mechanism. It is simple and eas
 
 **Recommendation**
 Add a small header record in the trace file with metadata, or emit a `js_trace.meta.json` alongside the JSONL.
+
+**Concrete files and symbols to inspect**
+- `pkg/refactor/js/modules/refactorindex/refactorindex.go`: `EnableTraceFile`, `writeTrace`
+- `cmd/refactorio/js_run.go`: `--trace` flag wiring
+
+**Example trace entry**
+```json
+{"seq":1,"action":"querySymbols","args":{"pkg":"...","name":"Client","kind":"type"},"result_count":1}
+```
 
 ## Angle 8: Testing Strategy
 Tests cover both module‑level behavior and end‑to‑end CLI execution.
@@ -149,6 +234,18 @@ Tests cover both module‑level behavior and end‑to‑end CLI execution.
 **Recommendation**
 Add a fixture DB generated from actual ingest (even a small test repo) to validate real‑world ingestion patterns.
 
+**Concrete files and symbols to inspect**
+- `pkg/refactor/js/modules/refactorindex/refactorindex_test.go`: `setupStore`, `TestQuerySymbols`
+- `cmd/refactorio/js_run_test.go`: `TestJSRunCommand`, `TestJSRunCommandTrace`
+
+**Example test flow (pseudo)**
+```go
+db := setupTempDB()
+seedSymbol(db)
+runJS("idx.querySymbols(...)")
+assertRowCount(1)
+```
+
 ## Angle 9: Documentation Quality
 Docs are comprehensive and aligned with the style guide. They include quick start, API reference, examples, and troubleshooting.
 
@@ -164,6 +261,16 @@ Docs are comprehensive and aligned with the style guide. They include quick star
 **Recommendation**
 If this becomes stable, move the JS guide to a `docs/` folder and link from the root README to reduce duplication.
 
+**Concrete files and symbols to inspect**
+- `pkg/doc/topics/02-js-index-api-guide.md`
+- `pkg/doc/topics/03-js-index-api-reference.md`
+- `README.md` (top-level)
+
+**Example cross-link**
+```
+See Also: pkg/doc/topics/02-js-index-api-guide.md
+```
+
 ## Angle 10: Maintainability and Future Extension
 The current design should scale to more query endpoints and later refactoring APIs.
 
@@ -178,6 +285,18 @@ The current design should scale to more query endpoints and later refactoring AP
 **Recommendation**
 Add a `refactor-index.version()` call and a configurable `ModuleOptions` struct for limits and trace settings.
 
+**Concrete files and symbols to inspect**
+- `pkg/refactor/js/modules/refactorindex/refactorindex.go`: `maxResults`, `EnableTraceFile`
+- `pkg/refactor/js/runtime.go`: `RuntimeOptions`
+
+**Example extension (pseudo)**
+```go
+type ModuleOptions struct {
+    MaxResults int
+    TracePath  string
+}
+```
+
 ## Angle 11: Dependency Management
 The work added goja and doublestar dependencies to refactorio.
 
@@ -190,6 +309,10 @@ The work added goja and doublestar dependencies to refactorio.
 **Recommendation**
 Pin goja/goja_nodejs in a tools or dependency management file and document compatibility.
 
+**Concrete files and symbols to inspect**
+- `go.mod`: goja/goja_nodejs versions
+- `go.sum`: version hashes
+
 ## Angle 12: UX and CLI Consistency
 The CLI uses Cobra but not the glazed command builder. This keeps the JS runner simple but may diverge from other refactorio commands.
 
@@ -201,6 +324,18 @@ The CLI uses Cobra but not the glazed command builder. This keeps the JS runner 
 
 **Recommendation**
 Document that `js run` is currently a minimal cobra command and revisit when the broader CLI is stabilized.
+
+**Concrete files and symbols to inspect**
+- `cmd/refactorio/js_run.go`
+- `cmd/refactorio/root.go`
+
+**Example CLI usage**
+```bash
+go run ./cmd/refactorio js run \
+  --script testdata/js/list_symbols.js \
+  --index-db /path/to/index.sqlite \
+  --run-id 1
+```
 
 ## Overall Assessment
 The implementation is a solid “first slice” of the JS index API: it’s safe, deterministic, test‑backed, and documented. The largest opportunities are in scaling performance (filtering at the DB layer), exposing a small versioned API contract, and improving trace metadata.
