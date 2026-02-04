@@ -3,7 +3,7 @@
 ## TODO
 - [x] Review `go-go-goja` runtime + module registry for reuse in refactorio.
 - [x] Implement `pkg/refactor/js/runtime.go` with `require()` wiring and allow-list modules only.
-- [ ] Implement module registry interface (Name, Doc, Loader) in refactorio JS packages.
+- [x] Implement module registry interface (Name, Doc, Loader) in refactorio JS packages.
 - [ ] Add `refactor-index` JS module with query APIs:
 - [ ] `querySymbols(filter)`
 - [ ] `queryRefs(symbolHash)`

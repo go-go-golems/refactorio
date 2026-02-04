@@ -114,3 +114,47 @@ The implementation mirrors go-go-goja’s runtime approach but keeps module regi
 
 ### Technical details
 - Runtime helper: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/runtime.go`.
+
+## Step 3: Add JS Module Registry Interface
+I added a small module registry package that mirrors the go-go-goja NativeModule pattern. This gives refactorio a consistent way to register JS modules and wire them into `require()` without exposing unsafe defaults.
+
+The registry is intentionally minimal and will be used by the upcoming `refactor-index` module and the runtime allow-list wiring.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement the module registry interface so refactorio can register JS modules consistently.
+
+**Inferred user intent:** Reuse go-go-goja patterns and keep module wiring straightforward.
+
+**Commit (code):** e8b5726 — "refactorio: add js module registry"
+
+### What I did
+- Added `pkg/refactor/js/modules/common.go` with `NativeModule`, `Registry`, and default registry helpers.
+
+### Why
+- The registry is required to let modules self-register cleanly and to keep `require()` wiring centralized.
+
+### What worked
+- Registry mirrors go-go-goja and stays self-contained.
+
+### What didn't work
+- N/A
+
+### What I learned
+- The default registry pattern avoids repetitive wiring in runtime setup.
+
+### What was tricky to build
+- Keeping the registry minimal while still supporting future documentation hooks.
+
+### What warrants a second pair of eyes
+- Confirm that the logging level and registry exposure align with refactorio conventions.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactor/js/modules/common.go` for API clarity and correctness.
+
+### Technical details
+- Registry file: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/common.go`.
