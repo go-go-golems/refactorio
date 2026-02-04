@@ -21,10 +21,11 @@ type GoplsRefTarget struct {
 }
 
 type IngestGoplsRefsConfig struct {
-	DBPath     string
-	RepoPath   string
-	SourcesDir string
-	Targets    []GoplsRefTarget
+	DBPath           string
+	RepoPath         string
+	SourcesDir       string
+	Targets          []GoplsRefTarget
+	SkipSymbolLookup bool
 }
 
 type IngestGoplsRefsResult struct {
@@ -106,16 +107,20 @@ func IngestGoplsReferences(ctx context.Context, cfg IngestGoplsRefsConfig) (_ *I
 	skippedFiles := 0
 
 	for idx, target := range cfg.Targets {
-		if target.SymbolHash == "" {
-			continue
-		}
 		if target.FilePath == "" || target.Line == 0 || target.Col == 0 {
 			skippedFiles++
 			continue
 		}
-		symbolID, err := store.GetSymbolDefIDByHash(ctx, tx, target.SymbolHash)
-		if err != nil {
-			return nil, err
+		var symbolID int64
+		if !cfg.SkipSymbolLookup {
+			if target.SymbolHash == "" {
+				return nil, errors.New("symbol hash is required unless skip-symbol-lookup is enabled")
+			}
+			id, err := store.GetSymbolDefIDByHash(ctx, tx, target.SymbolHash)
+			if err != nil {
+				return nil, err
+			}
+			symbolID = id
 		}
 
 		absPath := target.FilePath
@@ -154,8 +159,14 @@ func IngestGoplsReferences(ctx context.Context, cfg IngestGoplsRefsConfig) (_ *I
 			}
 
 			isDecl := loc.Line == target.Line && loc.Col == target.Col && sameFilePath(loc.FilePath, absPath)
-			if err := store.InsertSymbolRef(ctx, tx, runID, target.CommitID, symbolID, fileID, loc.Line, loc.Col, isDecl, "gopls"); err != nil {
-				return nil, err
+			if cfg.SkipSymbolLookup {
+				if err := store.InsertSymbolRefUnresolved(ctx, tx, runID, target.CommitID, target.SymbolHash, fileID, loc.Line, loc.Col, isDecl, "gopls"); err != nil {
+					return nil, err
+				}
+			} else {
+				if err := store.InsertSymbolRef(ctx, tx, runID, target.CommitID, symbolID, fileID, loc.Line, loc.Col, isDecl, "gopls"); err != nil {
+					return nil, err
+				}
 			}
 			referenceCount++
 		}

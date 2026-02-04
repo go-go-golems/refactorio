@@ -34,13 +34,14 @@ type IngestRangeSettings struct {
 	IncludeGopls        bool `glazed:"include-gopls"`
 	IgnorePackageErrors bool `glazed:"ignore-package-errors"`
 
-	TermsFile          string   `glazed:"terms"`
-	TreeSitterLanguage string   `glazed:"ts-language"`
-	TreeSitterQueries  string   `glazed:"ts-queries"`
-	TreeSitterGlob     string   `glazed:"ts-glob"`
-	GoplsTargets       []string `glazed:"gopls-target"`
-	GoplsTargetsFile   string   `glazed:"gopls-targets-file"`
-	GoplsTargetsJSON   string   `glazed:"gopls-targets-json"`
+	TermsFile             string   `glazed:"terms"`
+	TreeSitterLanguage    string   `glazed:"ts-language"`
+	TreeSitterQueries     string   `glazed:"ts-queries"`
+	TreeSitterGlob        string   `glazed:"ts-glob"`
+	GoplsTargets          []string `glazed:"gopls-target"`
+	GoplsTargetsFile      string   `glazed:"gopls-targets-file"`
+	GoplsTargetsJSON      string   `glazed:"gopls-targets-json"`
+	GoplsSkipSymbolLookup bool     `glazed:"gopls-skip-symbol-lookup"`
 }
 
 var _ cmds.GlazeCommand = &IngestRangeCommand{}
@@ -165,6 +166,12 @@ func NewIngestRangeCommand() (*IngestRangeCommand, error) {
 				fields.WithHelp("JSON file containing gopls target specs"),
 				fields.WithDefault(""),
 			),
+			fields.New(
+				"gopls-skip-symbol-lookup",
+				fields.TypeBool,
+				fields.WithHelp("Skip symbol hash lookup and store unresolved refs"),
+				fields.WithDefault(true),
+			),
 		),
 	)
 
@@ -187,23 +194,24 @@ func (c *IngestRangeCommand) RunIntoGlazeProcessor(
 	}
 
 	result, err := refactorindex.IngestCommitRange(ctx, refactorindex.RangeIngestConfig{
-		DBPath:              settings.DBPath,
-		RepoPath:            settings.RepoPath,
-		FromRef:             settings.FromRef,
-		ToRef:               settings.ToRef,
-		SourcesDir:          settings.SourcesDir,
-		IncludeDiff:         settings.IncludeDiff,
-		IncludeSymbols:      settings.IncludeSymbols,
-		IncludeCodeUnits:    settings.IncludeCodeUnits,
-		IncludeDocHits:      settings.IncludeDocHits,
-		IncludeTreeSitter:   settings.IncludeTreeSitter,
-		IncludeGopls:        settings.IncludeGopls,
-		IgnorePackageErrors: settings.IgnorePackageErrors,
-		TermsFile:           settings.TermsFile,
-		TreeSitterLanguage:  settings.TreeSitterLanguage,
-		TreeSitterQueries:   settings.TreeSitterQueries,
-		TreeSitterGlob:      settings.TreeSitterGlob,
-		GoplsTargets:        goplsTargets,
+		DBPath:                settings.DBPath,
+		RepoPath:              settings.RepoPath,
+		FromRef:               settings.FromRef,
+		ToRef:                 settings.ToRef,
+		SourcesDir:            settings.SourcesDir,
+		IncludeDiff:           settings.IncludeDiff,
+		IncludeSymbols:        settings.IncludeSymbols,
+		IncludeCodeUnits:      settings.IncludeCodeUnits,
+		IncludeDocHits:        settings.IncludeDocHits,
+		IncludeTreeSitter:     settings.IncludeTreeSitter,
+		IncludeGopls:          settings.IncludeGopls,
+		IgnorePackageErrors:   settings.IgnorePackageErrors,
+		TermsFile:             settings.TermsFile,
+		TreeSitterLanguage:    settings.TreeSitterLanguage,
+		TreeSitterQueries:     settings.TreeSitterQueries,
+		TreeSitterGlob:        settings.TreeSitterGlob,
+		GoplsTargets:          goplsTargets,
+		GoplsSkipSymbolLookup: settings.GoplsSkipSymbolLookup,
 	})
 	if err != nil {
 		return err

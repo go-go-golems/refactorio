@@ -52,10 +52,11 @@ func TestIngestGoplsReferences(t *testing.T) {
 	}
 
 	result, err := IngestGoplsReferences(ctx, IngestGoplsRefsConfig{
-		DBPath:     dbPath,
-		RepoPath:   root,
-		SourcesDir: filepath.Join(root, "sources"),
-		Targets:    []GoplsRefTarget{target},
+		DBPath:           dbPath,
+		RepoPath:         root,
+		SourcesDir:       filepath.Join(root, "sources"),
+		Targets:          []GoplsRefTarget{target},
+		SkipSymbolLookup: false,
 	})
 	if err != nil {
 		t.Fatalf("ingest gopls refs: %v", err)

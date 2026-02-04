@@ -23,12 +23,13 @@ type IngestGoplsRefsCommand struct {
 }
 
 type IngestGoplsRefsSettings struct {
-	DBPath      string   `glazed:"db"`
-	RepoPath    string   `glazed:"repo"`
-	SourcesDir  string   `glazed:"sources-dir"`
-	Targets     []string `glazed:"target"`
-	TargetsFile string   `glazed:"targets-file"`
-	TargetsJSON string   `glazed:"targets-json"`
+	DBPath           string   `glazed:"db"`
+	RepoPath         string   `glazed:"repo"`
+	SourcesDir       string   `glazed:"sources-dir"`
+	Targets          []string `glazed:"target"`
+	TargetsFile      string   `glazed:"targets-file"`
+	TargetsJSON      string   `glazed:"targets-json"`
+	SkipSymbolLookup bool     `glazed:"skip-symbol-lookup"`
 }
 
 type goplsTargetJSON struct {
@@ -83,6 +84,12 @@ func NewIngestGoplsRefsCommand() (*IngestGoplsRefsCommand, error) {
 				fields.WithHelp("JSON file with target objects"),
 				fields.WithDefault(""),
 			),
+			fields.New(
+				"skip-symbol-lookup",
+				fields.TypeBool,
+				fields.WithHelp("Skip symbol hash lookup and store unresolved refs"),
+				fields.WithDefault(true),
+			),
 		),
 	)
 
@@ -105,10 +112,11 @@ func (c *IngestGoplsRefsCommand) RunIntoGlazeProcessor(
 	}
 
 	result, err := refactorindex.IngestGoplsReferences(ctx, refactorindex.IngestGoplsRefsConfig{
-		DBPath:     settings.DBPath,
-		RepoPath:   settings.RepoPath,
-		SourcesDir: settings.SourcesDir,
-		Targets:    targets,
+		DBPath:           settings.DBPath,
+		RepoPath:         settings.RepoPath,
+		SourcesDir:       settings.SourcesDir,
+		Targets:          targets,
+		SkipSymbolLookup: settings.SkipSymbolLookup,
 	})
 	if err != nil {
 		return err
@@ -171,9 +179,6 @@ func loadGoplsTargets(specs []string, specsFile string, jsonFile string) ([]refa
 			return nil, errors.Wrap(err, "parse targets json")
 		}
 		for _, item := range items {
-			if strings.TrimSpace(item.SymbolHash) == "" {
-				return nil, errors.New("targets json missing symbol_hash")
-			}
 			if strings.TrimSpace(item.FilePath) == "" {
 				return nil, errors.New("targets json missing file_path")
 			}
@@ -203,7 +208,7 @@ func parseGoplsTargetSpec(spec string) (refactorindex.GoplsRefTarget, error) {
 	filePath := strings.TrimSpace(parts[1])
 	lineStr := strings.TrimSpace(parts[2])
 	colStr := strings.TrimSpace(parts[3])
-	if symbolHash == "" || filePath == "" || lineStr == "" || colStr == "" {
+	if filePath == "" || lineStr == "" || colStr == "" {
 		return refactorindex.GoplsRefTarget{}, errors.Errorf("invalid target spec: %q", spec)
 	}
 

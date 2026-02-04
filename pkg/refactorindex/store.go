@@ -520,6 +520,26 @@ func (s *Store) InsertSymbolRef(ctx context.Context, tx *sql.Tx, runID int64, co
 	return nil
 }
 
+func (s *Store) InsertSymbolRefUnresolved(ctx context.Context, tx *sql.Tx, runID int64, commitID *int64, symbolHash string, fileID int64, line int, col int, isDecl bool, source string) error {
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO symbol_refs_unresolved (run_id, commit_id, symbol_hash, file_id, line, col, is_decl, source)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		runID,
+		nullableInt64(commitID),
+		nullIfEmpty(symbolHash),
+		fileID,
+		line,
+		col,
+		boolToInt(isDecl),
+		source,
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert unresolved symbol ref")
+	}
+	return nil
+}
+
 func (s *Store) InsertTreeSitterCapture(ctx context.Context, tx *sql.Tx, runID int64, commitID *int64, fileID int64, queryName string, captureName string, nodeType string, startLine int, startCol int, endLine int, endCol int, snippet string) error {
 	_, err := tx.ExecContext(
 		ctx,

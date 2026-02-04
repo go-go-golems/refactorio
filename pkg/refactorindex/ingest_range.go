@@ -24,11 +24,12 @@ type RangeIngestConfig struct {
 	IncludeGopls        bool
 	IgnorePackageErrors bool
 
-	TermsFile          string
-	TreeSitterLanguage string
-	TreeSitterQueries  string
-	TreeSitterGlob     string
-	GoplsTargets       []GoplsRefTarget
+	TermsFile             string
+	TreeSitterLanguage    string
+	TreeSitterQueries     string
+	TreeSitterGlob        string
+	GoplsTargets          []GoplsRefTarget
+	GoplsSkipSymbolLookup bool
 }
 
 type CommitRunInfo struct {
@@ -185,10 +186,11 @@ func IngestCommitRange(ctx context.Context, cfg RangeIngestConfig) (*RangeIngest
 
 		if cfg.IncludeGopls && len(cfg.GoplsTargets) > 0 {
 			goplsResult, err := IngestGoplsReferences(ctx, IngestGoplsRefsConfig{
-				DBPath:     cfg.DBPath,
-				RepoPath:   worktreePath,
-				SourcesDir: cfg.SourcesDir,
-				Targets:    cfg.GoplsTargets,
+				DBPath:           cfg.DBPath,
+				RepoPath:         worktreePath,
+				SourcesDir:       cfg.SourcesDir,
+				Targets:          cfg.GoplsTargets,
+				SkipSymbolLookup: cfg.GoplsSkipSymbolLookup,
 			})
 			if err != nil {
 				_ = removeWorktree(ctx, cfg.RepoPath, worktreePath)
