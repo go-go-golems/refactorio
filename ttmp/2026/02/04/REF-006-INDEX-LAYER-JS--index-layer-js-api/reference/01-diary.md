@@ -526,3 +526,55 @@ The guide follows the documentation style rules and includes troubleshooting and
 ### Technical details
 - Guide doc: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ttmp/2026/02/04/REF-006-INDEX-LAYER-JS--index-layer-js-api/design/01-js-index-api-guide.md`.
 - Examples: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/testdata/js/`.
+
+## Step 12: Run Tests and Write Postmortem + README
+I ran the JS module and CLI tests and captured results in a short postmortem. I also updated the top-level README to cover both indexing and JS usage in a concise, onboarding-friendly way.
+
+### Prompt Context
+**User prompt (verbatim):** "run the tests you've written, to make sure they work, and write a post mortem. 
+
+Then yes, write a detailed README.md in fact, covering both the CLI indexing and the JS part."
+
+**Assistant interpretation:** Run the JS-related tests, document outcomes in a postmortem, and expand the README to cover indexing + JS query usage.
+
+**Inferred user intent:** Confirm the work is stable and give newcomers a clear entry point for both the indexer and JS scripts.
+
+**Commit (code):** 3391089 — "docs: add js api postmortem and README"
+
+### What I did
+- Ran `go test ./pkg/refactor/js/modules/refactorindex`.
+- Ran `go test ./cmd/refactorio`.
+- Wrote `analysis/01-js-index-api-postmortem.md`.
+- Updated `README.md` with indexing and JS API usage.
+
+### Why
+- Tests validate the JS query layer and the CLI runner.
+- The README gives a single entry point for new contributors.
+
+### What worked
+- Both test suites passed cleanly.
+- README now explains indexing and JS usage with concrete commands.
+
+### What didn't work
+- N/A
+
+### What I learned
+- The JS query layer is stable enough for onboarding and early experimentation.
+
+### What was tricky to build
+- Keeping the README concise while still covering both toolchains.
+
+### What warrants a second pair of eyes
+- Confirm the indexing command examples match the latest refactor-index CLI flags.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/README.md` for accuracy and clarity.
+- Review `refactorio/ttmp/2026/02/04/REF-006-INDEX-LAYER-JS--index-layer-js-api/analysis/01-js-index-api-postmortem.md` for completeness.
+
+### Technical details
+- Test commands:
+  - `go test ./pkg/refactor/js/modules/refactorindex`
+  - `go test ./cmd/refactorio`
