@@ -205,3 +205,47 @@ To support the module, I also added new query helpers in `refactorindex/query.go
 
 ### Technical details
 - Module file: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go`.
+
+## Step 5: Deterministic Query Ordering
+I added explicit sorting to all query results returned by the `refactor-index` JS module. This guarantees deterministic ordering independent of database behavior or filtering side effects.
+
+The sorting is applied after filtering so that returned arrays are stable and predictable for scripts.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Make JS query results deterministic by sorting them explicitly.
+
+**Inferred user intent:** Ensure reproducible plan generation from JS scripts.
+
+**Commit (code):** 348b940 — "refactorio: sort js query results"
+
+### What I did
+- Added `sort.Slice` ordering for symbols, refs, doc hits, and files in the JS module.
+
+### Why
+- Deterministic ordering is required for reproducible outputs and stable plans.
+
+### What worked
+- Sorting uses stable keys aligned with query semantics (pkg/name/path/line).
+
+### What didn't work
+- N/A
+
+### What I learned
+- Post-filter sorting is simpler than trying to rely on DB ordering alone.
+
+### What was tricky to build
+- Ensuring each query type had a consistent and meaningful sort key.
+
+### What warrants a second pair of eyes
+- Validate that the chosen sort keys align with downstream expectations (plan diffs, audits).
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go` for sorting logic.
+
+### Technical details
+- Sorting added in: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go`.

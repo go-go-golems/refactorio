@@ -9,7 +9,7 @@
 - [x] `queryRefs(symbolHash)`
 - [x] `queryDocHits(terms, fileset)`
 - [x] `queryFiles(fileset)`
-- [ ] Normalize and sort all query results deterministically.
+- [x] Normalize and sort all query results deterministically.
 - [ ] Add runtime safety guards (no time/random, no fs/exec, limits).
 - [ ] Add query tracing artifact `js_trace.jsonl`.
 - [ ] Implement `refactorio js run` CLI command to execute scripts.
