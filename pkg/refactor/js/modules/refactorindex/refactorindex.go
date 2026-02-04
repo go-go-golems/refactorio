@@ -253,9 +253,11 @@ func (m *Module) queryDocHits(vm *goja.Runtime, call goja.FunctionCall) ([]map[s
 	}
 	var fs fileset
 	if len(call.Arguments) > 1 && !goja.IsUndefined(call.Arguments[1]) && !goja.IsNull(call.Arguments[1]) {
-		if err := vm.ExportTo(call.Arguments[1], &fs); err != nil {
-			return nil, errors.Wrap(err, "export fileset")
+		parsed, err := parseFileset(vm, call.Arguments[1])
+		if err != nil {
+			return nil, err
 		}
+		fs = parsed
 	}
 
 	records, err := m.store.ListDocHits(m.ctx, refactorindex.DocHitFilter{
@@ -307,9 +309,11 @@ func (m *Module) queryDocHits(vm *goja.Runtime, call goja.FunctionCall) ([]map[s
 func (m *Module) queryFiles(vm *goja.Runtime, call goja.FunctionCall) ([]map[string]interface{}, error) {
 	var fs fileset
 	if len(call.Arguments) > 0 && !goja.IsUndefined(call.Arguments[0]) && !goja.IsNull(call.Arguments[0]) {
-		if err := vm.ExportTo(call.Arguments[0], &fs); err != nil {
-			return nil, errors.Wrap(err, "export fileset")
+		parsed, err := parseFileset(vm, call.Arguments[0])
+		if err != nil {
+			return nil, err
 		}
+		fs = parsed
 	}
 
 	records, err := m.store.ListFiles(m.ctx, refactorindex.FileFilter{Limit: m.maxResults})
@@ -352,6 +356,33 @@ func clampLimit(value, max int) int {
 		return max
 	}
 	return value
+}
+
+func parseFileset(vm *goja.Runtime, value goja.Value) (fileset, error) {
+	var fs fileset
+	if value == nil || goja.IsUndefined(value) || goja.IsNull(value) {
+		return fs, nil
+	}
+	if err := vm.ExportTo(value, &fs); err == nil && (len(fs.Include) > 0 || len(fs.Exclude) > 0) {
+		return fs, nil
+	}
+	obj := value.ToObject(vm)
+	if obj == nil {
+		return fs, nil
+	}
+	includeValue := obj.Get("include")
+	if includeValue != nil && !goja.IsUndefined(includeValue) && !goja.IsNull(includeValue) {
+		if err := vm.ExportTo(includeValue, &fs.Include); err != nil {
+			return fs, errors.Wrap(err, "export fileset.include")
+		}
+	}
+	excludeValue := obj.Get("exclude")
+	if excludeValue != nil && !goja.IsUndefined(excludeValue) && !goja.IsNull(excludeValue) {
+		if err := vm.ExportTo(excludeValue, &fs.Exclude); err != nil {
+			return fs, errors.Wrap(err, "export fileset.exclude")
+		}
+	}
+	return fs, nil
 }
 
 type traceEntry struct {
