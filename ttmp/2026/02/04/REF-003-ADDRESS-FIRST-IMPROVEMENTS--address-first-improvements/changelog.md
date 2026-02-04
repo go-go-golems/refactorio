@@ -94,3 +94,13 @@ Complete Task 5 core: allow unresolved gopls refs with skip-symbol-lookup defaul
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_gopls_refs.go — Unresolved refs support
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/schema.go — New unresolved refs table
 
+
+## 2026-02-04
+
+Complete Task 6: clarify package load requirements and document ignore flag (commit dca0e7c).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/doc/tutorials/01-refactor-index-how-to-use.md — Documented build requirement
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_symbols.go — Improved error messaging
+

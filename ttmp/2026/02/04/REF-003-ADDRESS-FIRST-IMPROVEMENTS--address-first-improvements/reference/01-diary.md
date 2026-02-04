@@ -488,3 +488,47 @@ This keeps gopls ingestion usable even when symbol definitions are unavailable.
 
 ### Technical details
 - `skip-symbol-lookup` now defaults to true in CLI and range ingestion.
+
+## Step 10: Task 6 - Document build requirements and improve error messages
+I improved the package load error messages to explicitly say the repo must compile and added documentation in the tutorial about using `--ignore-package-errors` for partial results. This makes the failure mode clearer and gives users a direct workaround.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Make build requirements explicit in CLI errors and docs.
+
+**Inferred user intent:** Reduce confusion when symbol/code-unit ingestion fails due to compilation issues.
+
+**Commit (code):** dca0e7c — "refactorindex: clarify package load requirements"
+
+### What I did
+- Updated symbol/code-unit ingestion errors with guidance on compilation requirements.
+- Added a tutorial note about the `--ignore-package-errors` flag.
+
+### Why
+- Users need clear guidance when package loading fails.
+
+### What worked
+- Errors now indicate both the requirement and the available fallback.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Ensure error wording is appropriate and not misleading in edge cases.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/ingest_symbols.go` and `ingest_code_units.go` for updated messages.
+- Review `refactorio/pkg/doc/tutorials/01-refactor-index-how-to-use.md` for the new note.
+
+### Technical details
+- Error messages now mention `--ignore-package-errors` as a fallback.

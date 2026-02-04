@@ -30,8 +30,8 @@
 - [ ] Add list/query support for unresolved refs (if needed).
 
 ## Task 6: Document required build state and surface clear CLI message
-- [ ] Improve package load error messages (include best-effort hint).
-- [ ] Update tutorial documentation to describe compile requirements and ignore flag.
+- [x] Improve package load error messages (include best-effort hint).
+- [x] Update tutorial documentation to describe compile requirements and ignore flag.
 
 ## Task 7: Handle root commit explicitly (Option B default)
 - [ ] Detect root commit and include it automatically.
