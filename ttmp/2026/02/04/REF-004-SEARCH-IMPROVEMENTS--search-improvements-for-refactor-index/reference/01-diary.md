@@ -337,3 +337,47 @@ I updated commit ingestion to use `--date=iso-strict`, ensuring stored dates are
 
 ### Technical details
 - Git date format now uses `iso-strict` for `%ad` and `%cd`.
+
+## Step 8: Task 7 - Add v_last_commit_per_file view
+I added the `v_last_commit_per_file` view using a window function to select the most recent commit per file per run. This simplifies common history lookups for search workflows.
+
+### Prompt Context
+**User prompt (verbatim):** "once you are done, work on REF-004"
+
+**Assistant interpretation:** Add the view that exposes last-commit-per-file for search.
+
+**Inferred user intent:** Make it easy to query “latest commit touching this file.”
+
+**Commit (code):** 45e4934 — "refactorindex: add last commit per file view"
+
+### What I did
+- Added `v_last_commit_per_file` to the schema SQL.
+- Bumped schema version.
+
+### Why
+- This view reduces boilerplate for common history queries.
+
+### What worked
+- View is created on schema init and uses window functions for correctness.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Validate the ordering semantics (commit id corresponds to ingestion order).
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/schema.go` for the view definition.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- View partitions by `run_id` and `file_id`, ordered by `commits.id DESC`.

@@ -68,3 +68,12 @@ Complete Task 6: store ISO8601 commit dates (commit 5a88229).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_commits.go — Use --date=iso-strict
 
+
+## 2026-02-04
+
+Complete Task 7: add v_last_commit_per_file view (commit 45e4934).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/schema.go — v_last_commit_per_file view
+

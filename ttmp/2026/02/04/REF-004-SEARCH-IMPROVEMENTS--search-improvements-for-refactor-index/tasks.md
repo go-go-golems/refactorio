@@ -22,7 +22,7 @@
 - [x] Update `ingest_commits` to store ISO8601 dates.
 
 ## Task 7: v_last_commit_per_file view
-- [ ] Add `v_last_commit_per_file` view with run_id, file path, commit hash, date, status.
+- [x] Add `v_last_commit_per_file` view with run_id, file path, commit hash, date, status.
 
 ## Task 8: Update search SQL examples
 - [ ] Refactor existing search SQL examples to use new FTS tables and view.
