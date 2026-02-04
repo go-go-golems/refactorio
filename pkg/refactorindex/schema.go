@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 6
+const SchemaVersion = 7
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -189,6 +189,20 @@ CREATE TABLE IF NOT EXISTS ts_captures (
     FOREIGN KEY(file_id) REFERENCES files(id)
 );
 
+CREATE TABLE IF NOT EXISTS doc_hits (
+    id INTEGER PRIMARY KEY,
+    run_id INTEGER NOT NULL,
+    commit_id INTEGER,
+    file_id INTEGER NOT NULL,
+    line INTEGER NOT NULL,
+    col INTEGER NOT NULL,
+    term TEXT NOT NULL,
+    match_text TEXT NOT NULL,
+    FOREIGN KEY(run_id) REFERENCES meta_runs(id),
+    FOREIGN KEY(commit_id) REFERENCES commits(id),
+    FOREIGN KEY(file_id) REFERENCES files(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_diff_files_run_id ON diff_files(run_id);
 CREATE INDEX IF NOT EXISTS idx_diff_hunks_diff_file_id ON diff_hunks(diff_file_id);
 CREATE INDEX IF NOT EXISTS idx_diff_lines_hunk_id ON diff_lines(hunk_id);
@@ -206,4 +220,6 @@ CREATE INDEX IF NOT EXISTS idx_symbol_refs_symbol_id ON symbol_refs(symbol_def_i
 CREATE INDEX IF NOT EXISTS idx_symbol_refs_commit_id ON symbol_refs(commit_id);
 CREATE INDEX IF NOT EXISTS idx_ts_captures_run_id ON ts_captures(run_id);
 CREATE INDEX IF NOT EXISTS idx_ts_captures_commit_id ON ts_captures(commit_id);
+CREATE INDEX IF NOT EXISTS idx_doc_hits_run_id ON doc_hits(run_id);
+CREATE INDEX IF NOT EXISTS idx_doc_hits_term ON doc_hits(term);
 `

@@ -460,6 +460,25 @@ func (s *Store) InsertTreeSitterCapture(ctx context.Context, tx *sql.Tx, runID i
 	return nil
 }
 
+func (s *Store) InsertDocHit(ctx context.Context, tx *sql.Tx, runID int64, commitID *int64, fileID int64, line int, col int, term string, matchText string) error {
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO doc_hits (run_id, commit_id, file_id, line, col, term, match_text)
+		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		runID,
+		nullableInt64(commitID),
+		fileID,
+		line,
+		col,
+		term,
+		matchText,
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert doc hit")
+	}
+	return nil
+}
+
 func (s *Store) WriteRawOutput(ctx context.Context, tx *sql.Tx, runDir string, runID int64, source string, fileName string, content []byte) (string, error) {
 	if err := os.MkdirAll(runDir, 0o755); err != nil {
 		return "", errors.Wrap(err, "create sources dir")
