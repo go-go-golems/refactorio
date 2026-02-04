@@ -296,3 +296,48 @@ These changes align the runtime with the safety requirements for deterministic, 
 
 ### Technical details
 - Runtime guards: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/runtime.go`.
+
+## Step 7: Add JS Query Tracing Hooks
+I added a JSONL trace facility to the refactor-index JS module so query calls can emit structured audit entries. The module now supports enabling tracing with either an `io.Writer` or a file path.
+
+This is the foundation for writing `js_trace.jsonl` artifacts once the runner wires in a trace path.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement query tracing to capture JS query activity in a JSONL artifact.
+
+**Inferred user intent:** Ensure JS-driven queries are auditable and reproducible.
+
+**Commit (code):** 0bd4c4d — "refactorio: add js query tracing hooks"
+
+### What I did
+- Added trace encoder support and `EnableTraceFile`/`CloseTrace` in the refactor-index module.
+- Emitted trace entries for each query call.
+
+### Why
+- Query traces are needed to debug and audit JS execution.
+
+### What worked
+- Trace entries are emitted in a consistent JSONL format.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Tracing hooks are easiest to add at the module boundary so every query is covered.
+
+### What was tricky to build
+- Avoiding non-deterministic fields (timestamps) in trace entries.
+
+### What warrants a second pair of eyes
+- Confirm that trace file lifecycle (open/close) is managed correctly by callers.
+
+### What should be done in the future
+- Wire trace file paths in the JS runner to produce `js_trace.jsonl` automatically.
+
+### Code review instructions
+- Review `refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go` for trace entry structure.
+
+### Technical details
+- Trace support added in: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go`.
