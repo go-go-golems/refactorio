@@ -578,3 +578,49 @@ I updated commit ingestion to include the root commit when the `from` ref is the
 
 ### Technical details
 - Root commits are detected via `git rev-list --max-parents=0 --all` and compared against `from` hashes.
+
+## Step 12: Task 8 - Remove tree-sitter functionality and oak dependency
+I removed tree-sitter ingestion from the CLI and range orchestration, deleted the ingestion implementation and tests, and dropped the Oak dependency from refactorio. This de-scopes tree-sitter entirely while keeping the rest of the indexing pipeline intact.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Remove tree-sitter ingestion and ensure oak is no longer a dependency.
+
+**Inferred user intent:** Simplify the tool by removing a fragile feature and its external dependency.
+
+**Commit (code):** 8a422d4 — "refactorindex: remove tree-sitter ingestion"
+
+### What I did
+- Removed tree-sitter CLI command and range wiring.
+- Deleted tree-sitter ingestion implementation and smoke test.
+- Removed the Oak dependency from `refactorio/go.mod`.
+
+### Why
+- Tree-sitter was a known footgun and is being de-scoped for now.
+
+### What worked
+- Tree-sitter code is fully removed from refactorio; the package still builds.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Verify no other packages in refactorio still rely on Oak or tree-sitter flags.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/cmd/refactor-index/root.go` and `ingest_range.go` for tree-sitter removal.
+- Review `refactorio/go.mod` for oak removal.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- Tree-sitter ingestion files were deleted; schema tables were left intact.

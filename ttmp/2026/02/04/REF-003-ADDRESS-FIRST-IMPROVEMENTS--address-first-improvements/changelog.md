@@ -114,3 +114,13 @@ Complete Task 7: include root commit and root diffs by default (commit 919ecdb).
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_commits.go — Root commit inclusion
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_diff.go — Root diff support
 
+
+## 2026-02-04
+
+Complete Task 8: remove tree-sitter functionality and oak dependency (commit 8a422d4).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactor-index/root.go — Tree-sitter command removed
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/go.mod — Oak dependency removed
+

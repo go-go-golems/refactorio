@@ -7,7 +7,6 @@ Topics:
     - indexing
     - sqlite
     - gopls
-    - tree-sitter
     - documentation
 Commands:
     - refactor-index
@@ -23,9 +22,6 @@ Flags:
     - --to
     - --terms
     - --sources-dir
-    - --queries
-    - --language
-    - --file-glob
     - --target
     - --targets-file
     - --targets-json
@@ -58,7 +54,6 @@ TMP=$(mktemp -d)
 DB=$TMP/index.sqlite
 SOURCES=$TMP/sources
 TERMS=$TMP/terms.txt
-QUERY=$TMP/queries.yaml
 
 cd "$ROOT"
 ```
@@ -119,26 +114,7 @@ If `rg` is not installed, this command will fail. Skip it and continue with othe
 Implementation link:
 - Doc hits ingestion: `refactorio/pkg/refactorindex/ingest_doc_hits.go`
 
-## Step 6 - Ingest Tree-Sitter Captures
-Tree-sitter captures let you index structural patterns using query files. This pass is a powerful way to track refactor targets beyond simple text matching.
-
-```bash
-cat > "$QUERY" <<'QEOF'
-language: go
-queries:
-  funcs: |
-    (function_declaration name: (identifier) @name)
-QEOF
-
-GOWORK=off go run ./cmd/refactor-index ingest tree-sitter --db "$DB" --root . --language go --queries "$QUERY" --file-glob "$ROOT/cmd/refactor-index/*.go"
-```
-
-If the query is valid, you should see non-zero captures.
-
-Implementation link:
-- Tree-sitter ingestion: `refactorio/pkg/refactorindex/ingest_tree_sitter.go`
-
-## Step 7 - Ingest gopls References (Optional)
+## Step 6 - Ingest gopls References (Optional)
 Gopls references provide semantic rename safety, but they require a target spec. The list command can generate one for you.
 
 ```bash
@@ -161,7 +137,7 @@ GOWORK=off go run ./cmd/refactor-index ingest gopls-refs --db "$DB" --repo . --s
 Implementation link:
 - gopls reference ingestion: `refactorio/pkg/refactorindex/ingest_gopls_refs.go`
 
-## Step 8 - Query the Index
+## Step 7 - Query the Index
 Listing commands are the fastest way to verify that your index is populated.
 
 ```bash
@@ -175,7 +151,7 @@ Implementation links:
 - List symbols wiring: `refactorio/cmd/refactor-index/list_symbols.go`
 - SQL query helpers: `refactorio/pkg/refactorindex/query.go`
 
-## Step 9 - Generate a Report
+## Step 8 - Generate a Report
 Reports turn the indexed data into structured summaries that can be shared or archived.
 
 ```bash
@@ -203,17 +179,10 @@ TMP=$(mktemp -d)
 DB=$TMP/index.sqlite
 SOURCES=$TMP/sources
 TERMS=$TMP/terms.txt
-QUERY=$TMP/queries.yaml
 
 cd "$ROOT"
 
 echo "refactor" > "$TERMS"
-cat > "$QUERY" <<'QEOF'
-language: go
-queries:
-  funcs: |
-    (function_declaration name: (identifier) @name)
-QEOF
 
 GOWORK=off go run ./cmd/refactor-index init --db "$DB"
 GOWORK=off go run ./cmd/refactor-index ingest commits --db "$DB" --repo . --from HEAD~1 --to HEAD
@@ -221,7 +190,6 @@ GOWORK=off go run ./cmd/refactor-index ingest diff --db "$DB" --repo . --from HE
 GOWORK=off go run ./cmd/refactor-index ingest symbols --db "$DB" --root .
 GOWORK=off go run ./cmd/refactor-index ingest code-units --db "$DB" --root .
 GOWORK=off go run ./cmd/refactor-index ingest doc-hits --db "$DB" --root . --terms "$TERMS" --sources-dir "$SOURCES"
-GOWORK=off go run ./cmd/refactor-index ingest tree-sitter --db "$DB" --root . --language go --queries "$QUERY" --file-glob "$ROOT/cmd/refactor-index/*.go"
 GOWORK=off go run ./cmd/refactor-index list diff-files --db "$DB"
 GOWORK=off go run ./cmd/refactor-index list symbols --db "$DB" --limit 5
 ```
@@ -230,11 +198,9 @@ GOWORK=off go run ./cmd/refactor-index list symbols --db "$DB" --limit 5
 
 | Problem | Cause | Solution |
 | --- | --- | --- |
-| `open ../oak/go.mod: no such file or directory` | The module has a local replace for `github.com/go-go-golems/oak` that is missing. | Add the `oak` repo at `../oak` or update the replace in `refactorio/go.mod`. |
 | `gopls` errors or empty refs | `gopls` not installed or target spec invalid. | Install `gopls` and ensure `target_spec` uses `symbol_hash|path|line|col`. |
 | `rg` not found | Ripgrep missing. | Install `rg`, or skip `ingest doc-hits`. |
 | Empty list results | Indexing passes didn't run or range too small. | Re-run ingest commands or use a larger `--from`/`--to` window. |
-| No tree-sitter captures | Query file doesn't match the file glob. | Verify `--queries` and `--file-glob` match the files being scanned. |
 
 ## See Also
 - `../../../ttmp/2026/02/04/REF-001-TEST-INDEXING--refactorio-indexing-playbook/reference/02-refactorio-getting-started-playbook.md` - Extended onboarding playbook and context.

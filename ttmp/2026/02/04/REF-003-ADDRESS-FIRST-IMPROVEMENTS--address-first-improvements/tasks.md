@@ -39,10 +39,10 @@
 - [x] Add tests for root commit ingestion.
 
 ## Task 8: Remove tree-sitter functionality and oak dependency
-- [ ] Remove tree-sitter CLI commands and range ingestion wiring.
-- [ ] Remove tree-sitter ingestion implementation.
-- [ ] Remove oak dependency from refactorio (go.mod/go.sum/go.work if applicable).
-- [ ] Update docs to remove tree-sitter steps.
+- [x] Remove tree-sitter CLI commands and range ingestion wiring.
+- [x] Remove tree-sitter ingestion implementation.
+- [x] Remove oak dependency from refactorio (go.mod/go.sum/go.work if applicable).
+- [x] Update docs to remove tree-sitter steps.
 
 ## Task 9: Remove report generation functionality
 - [ ] Remove report CLI command and wiring.
