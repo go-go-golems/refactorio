@@ -13,7 +13,6 @@ Commands:
     - init
     - ingest
     - list
-    - report
 Flags:
     - --db
     - --root
@@ -35,7 +34,7 @@ SectionType: Tutorial
 # How to Use refactor-index
 
 ## What You'll Build
-You will create a local SQLite index for a Git repository, run the main ingestion passes, and confirm the results with list/report commands. By the end, you'll be able to connect the CLI output to the implementation files so you can extend or debug the pipeline with confidence.
+You will create a local SQLite index for a Git repository, run the main ingestion passes, and confirm the results with list commands. By the end, you'll be able to connect the CLI output to the implementation files so you can extend or debug the pipeline with confidence.
 
 ## Prerequisites
 This tutorial assumes you are in the refactorio workspace and can run Go commands. Some ingestion passes require optional tools; the tutorial calls those out when needed.
@@ -150,16 +149,6 @@ If these are empty, revisit earlier steps or use a larger commit range.
 Implementation links:
 - List symbols wiring: `refactorio/cmd/refactor-index/list_symbols.go`
 - SQL query helpers: `refactorio/pkg/refactorindex/query.go`
-
-## Step 8 - Generate a Report
-Reports turn the indexed data into structured summaries that can be shared or archived.
-
-```bash
-GOWORK=off go run ./cmd/refactor-index report --db "$DB" --run-id 1 --out "$TMP/reports"
-```
-
-Implementation link:
-- Report rendering: `refactorio/pkg/refactorindex/report.go`
 
 ## Discovering Help Topics
 The help system exposes documentation sections via the CLI. Use it to explore topics, examples, and tutorials without leaving the terminal.

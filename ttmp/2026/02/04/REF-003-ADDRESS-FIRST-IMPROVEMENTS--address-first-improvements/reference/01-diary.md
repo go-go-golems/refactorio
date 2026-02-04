@@ -624,3 +624,47 @@ I removed tree-sitter ingestion from the CLI and range orchestration, deleted th
 
 ### Technical details
 - Tree-sitter ingestion files were deleted; schema tables were left intact.
+
+## Step 13: Task 9 - Remove report generation functionality
+I removed the report command and its implementation, and updated the tutorial to drop the report step. This de-scopes reporting until core ingestion improvements stabilize.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Remove report generation and related CLI wiring/documentation.
+
+**Inferred user intent:** Simplify the tool surface area by removing non-essential output formatting.
+
+**Commit (code):** 5c98fd0 — "refactorindex: remove report command"
+
+### What I did
+- Removed report command wiring and implementation.
+- Updated tutorial documentation to remove the report step and references.
+
+### Why
+- Reporting is being de-scoped to reduce maintenance burden.
+
+### What worked
+- Report command is gone and the tool still builds.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Confirm no other docs or scripts still reference the report command.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/cmd/refactor-index/root.go` for command removal.
+- Review `refactorio/pkg/doc/tutorials/01-refactor-index-how-to-use.md` for the doc update.
+
+### Technical details
+- Report code paths were deleted; schema untouched.

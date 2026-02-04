@@ -45,6 +45,6 @@
 - [x] Update docs to remove tree-sitter steps.
 
 ## Task 9: Remove report generation functionality
-- [ ] Remove report CLI command and wiring.
-- [ ] Remove report implementation.
-- [ ] Update docs to remove report steps.
+- [x] Remove report CLI command and wiring.
+- [x] Remove report implementation.
+- [x] Update docs to remove report steps.
