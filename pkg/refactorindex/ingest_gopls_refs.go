@@ -206,6 +206,21 @@ func parseGoplsLocation(line string) (goplsLocation, error) {
 		return goplsLocation{}, errors.New("invalid reference line")
 	}
 
+	// Handle path:line:col-line:col (no extra colon separators)
+	if len(parts) == 4 && strings.Contains(parts[len(parts)-2], "-") {
+		file := strings.Join(parts[:len(parts)-3], ":")
+		lineNum, err := strconv.Atoi(parts[len(parts)-3])
+		if err != nil {
+			return goplsLocation{}, errors.Wrap(err, "parse line")
+		}
+		colPart := strings.Split(parts[len(parts)-2], "-")[0]
+		colNum, err := strconv.Atoi(colPart)
+		if err != nil {
+			return goplsLocation{}, errors.Wrap(err, "parse col")
+		}
+		return goplsLocation{FilePath: file, Line: lineNum, Col: colNum}, nil
+	}
+
 	// Handle lines with start/end positions: path:line:col:line:col
 	if len(parts) >= 5 {
 		startLine, err1 := strconv.Atoi(parts[len(parts)-4])

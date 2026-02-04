@@ -88,12 +88,11 @@ func IngestTreeSitter(ctx context.Context, cfg IngestTreeSitterConfig) (*IngestT
 		api.FromYAML(cfg.QueriesYML),
 	)
 
-	options := []api.RunOption{
-		api.WithDirectory(rootDir),
-		api.WithRecursive(true),
-	}
+	options := []api.RunOption{}
 	if strings.TrimSpace(cfg.FileGlob) != "" {
 		options = append(options, api.WithGlob(cfg.FileGlob))
+	} else {
+		options = append(options, api.WithDirectory(rootDir), api.WithRecursive(true))
 	}
 
 	results, err := qb.Run(ctx, options...)
