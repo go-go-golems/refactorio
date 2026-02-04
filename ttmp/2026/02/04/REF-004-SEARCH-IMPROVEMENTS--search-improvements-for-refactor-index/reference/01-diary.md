@@ -250,3 +250,47 @@ I added an FTS table for `commits` covering `subject` and `body`. This enables f
 
 ### Technical details
 - FTS table name: `commits_fts` with columns `subject`, `body`.
+
+## Step 6: Task 5 - Add FTS for files
+I added an FTS table for `files.path` to enable fast path searches.
+
+### Prompt Context
+**User prompt (verbatim):** "once you are done, work on REF-004"
+
+**Assistant interpretation:** Continue extending FTS coverage.
+
+**Inferred user intent:** Allow fast searching of file paths.
+
+**Commit (code):** 1b0b6d8 — "refactorindex: add FTS for files"
+
+### What I did
+- Added `files_fts` via `ensureFTSColumns`.
+- Bumped schema version.
+
+### Why
+- File path search is a common search workflow.
+
+### What worked
+- The FTS table is created during schema init.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Verify file path tokenization meets search needs.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/store.go` and `schema.go`.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- FTS table name: `files_fts` with column `path`.

@@ -16,7 +16,7 @@
 - [x] Add FTS table for `commits` (`subject`, `body`).
 
 ## Task 5: FTS for files
-- [ ] Add FTS table for `files` (`path`).
+- [x] Add FTS table for `files` (`path`).
 
 ## Task 6: ISO8601 commit dates
 - [ ] Update `ingest_commits` to store ISO8601 dates.

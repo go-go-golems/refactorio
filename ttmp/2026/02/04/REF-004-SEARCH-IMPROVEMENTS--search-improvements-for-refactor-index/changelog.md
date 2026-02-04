@@ -50,3 +50,12 @@ Complete Task 4: add commits FTS table (commit 3f6ff24).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/store.go — commits_fts
 
+
+## 2026-02-04
+
+Complete Task 5: add files FTS table (commit 1b0b6d8).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/store.go — files_fts
+
