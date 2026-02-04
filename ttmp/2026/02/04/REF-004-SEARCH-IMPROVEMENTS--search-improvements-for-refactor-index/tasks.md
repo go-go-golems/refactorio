@@ -19,7 +19,7 @@
 - [x] Add FTS table for `files` (`path`).
 
 ## Task 6: ISO8601 commit dates
-- [ ] Update `ingest_commits` to store ISO8601 dates.
+- [x] Update `ingest_commits` to store ISO8601 dates.
 
 ## Task 7: v_last_commit_per_file view
 - [ ] Add `v_last_commit_per_file` view with run_id, file path, commit hash, date, status.

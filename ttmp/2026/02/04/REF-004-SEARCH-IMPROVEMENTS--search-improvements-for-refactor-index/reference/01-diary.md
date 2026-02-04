@@ -294,3 +294,46 @@ I added an FTS table for `files.path` to enable fast path searches.
 
 ### Technical details
 - FTS table name: `files_fts` with column `path`.
+
+## Step 7: Task 6 - Store ISO8601 commit dates
+I updated commit ingestion to use `--date=iso-strict`, ensuring stored dates are ISO8601 for consistent ordering and filtering.
+
+### Prompt Context
+**User prompt (verbatim):** "once you are done, work on REF-004"
+
+**Assistant interpretation:** Normalize commit date formatting during ingestion.
+
+**Inferred user intent:** Make commit dates sortable and consistent across runs.
+
+**Commit (code):** 5a88229 — "refactorindex: store ISO commit dates"
+
+### What I did
+- Added `--date=iso-strict` to the git show call in `loadCommitInfo`.
+
+### Why
+- ISO8601 dates are easier to sort, filter, and compare.
+
+### What worked
+- Commit ingestion now stores normalized dates.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Ensure downstream tooling doesn’t rely on the previous human-readable format.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/ingest_commits.go`.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- Git date format now uses `iso-strict` for `%ad` and `%cd`.

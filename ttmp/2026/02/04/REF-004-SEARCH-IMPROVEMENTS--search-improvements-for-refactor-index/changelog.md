@@ -59,3 +59,12 @@ Complete Task 5: add files FTS table (commit 1b0b6d8).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/store.go — files_fts
 
+
+## 2026-02-04
+
+Complete Task 6: store ISO8601 commit dates (commit 5a88229).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_commits.go — Use --date=iso-strict
+
