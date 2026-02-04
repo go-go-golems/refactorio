@@ -196,7 +196,7 @@ func IngestCommits(ctx context.Context, cfg IngestCommitsConfig) (_ *IngestCommi
 
 func loadCommitInfo(ctx context.Context, repoPath string, hash string) (CommitInfo, error) {
 	format := "%H%x1f%an%x1f%ae%x1f%ad%x1f%cd%x1f%s%x1f%b"
-	out, err := runGit(ctx, repoPath, "show", "-s", "--format="+format, hash)
+	out, err := runGit(ctx, repoPath, "show", "-s", "--date=iso-strict", "--format="+format, hash)
 	if err != nil {
 		return CommitInfo{}, err
 	}
