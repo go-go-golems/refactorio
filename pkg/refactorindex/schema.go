@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 8
+const SchemaVersion = 9
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS code_units (
 CREATE TABLE IF NOT EXISTS code_unit_snapshots (
     id INTEGER PRIMARY KEY,
     run_id INTEGER NOT NULL,
+    commit_id INTEGER,
     file_id INTEGER NOT NULL,
     code_unit_id INTEGER NOT NULL,
     start_line INTEGER NOT NULL,
@@ -116,6 +117,7 @@ CREATE TABLE IF NOT EXISTS code_unit_snapshots (
     body_text TEXT NOT NULL,
     doc_text TEXT,
     FOREIGN KEY(run_id) REFERENCES meta_runs(id),
+    FOREIGN KEY(commit_id) REFERENCES commits(id),
     FOREIGN KEY(file_id) REFERENCES files(id),
     FOREIGN KEY(code_unit_id) REFERENCES code_units(id)
 );

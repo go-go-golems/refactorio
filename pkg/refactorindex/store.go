@@ -97,6 +97,12 @@ func (s *Store) InitSchema(ctx context.Context) error {
 	if _, err := tx.ExecContext(ctx, "CREATE INDEX IF NOT EXISTS idx_symbol_occurrences_commit_id ON symbol_occurrences(commit_id)"); err != nil {
 		return errors.Wrap(err, "create symbol_occurrences commit_id index")
 	}
+	if err := ensureColumn(ctx, tx, "code_unit_snapshots", "commit_id", "INTEGER"); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, "CREATE INDEX IF NOT EXISTS idx_code_unit_snapshots_commit_id ON code_unit_snapshots(commit_id)"); err != nil {
+		return errors.Wrap(err, "create code_unit_snapshots commit_id index")
+	}
 	if err := insertSchemaVersion(ctx, tx); err != nil {
 		return err
 	}
@@ -325,12 +331,13 @@ func (s *Store) GetOrCreateCodeUnit(ctx context.Context, tx *sql.Tx, def CodeUni
 	return id, nil
 }
 
-func (s *Store) InsertCodeUnitSnapshot(ctx context.Context, tx *sql.Tx, runID int64, fileID int64, codeUnitID int64, startLine int, startCol int, endLine int, endCol int, bodyHash string, bodyText string, docText string) error {
+func (s *Store) InsertCodeUnitSnapshot(ctx context.Context, tx *sql.Tx, runID int64, commitID *int64, fileID int64, codeUnitID int64, startLine int, startCol int, endLine int, endCol int, bodyHash string, bodyText string, docText string) error {
 	_, err := tx.ExecContext(
 		ctx,
-		`INSERT INTO code_unit_snapshots (run_id, file_id, code_unit_id, start_line, start_col, end_line, end_col, body_hash, body_text, doc_text)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO code_unit_snapshots (run_id, commit_id, file_id, code_unit_id, start_line, start_col, end_line, end_col, body_hash, body_text, doc_text)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		runID,
+		nullableInt64(commitID),
 		fileID,
 		codeUnitID,
 		startLine,

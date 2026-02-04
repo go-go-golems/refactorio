@@ -20,6 +20,7 @@ type IngestCodeUnitsConfig struct {
 	DBPath     string
 	RootDir    string
 	SourcesDir string
+	CommitID   *int64
 }
 
 // IngestCodeUnitsResult reports counts for code unit ingestion.
@@ -173,7 +174,7 @@ func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (*IngestCod
 					if err != nil {
 						return nil, err
 					}
-					if err := store.InsertCodeUnitSnapshot(ctx, tx, runID, fileID, codeUnitID, startLine, startCol, endLine, endCol, bodyHash, bodyText, docText); err != nil {
+					if err := store.InsertCodeUnitSnapshot(ctx, tx, runID, cfg.CommitID, fileID, codeUnitID, startLine, startCol, endLine, endCol, bodyHash, bodyText, docText); err != nil {
 						return nil, err
 					}
 					snapshotCount++
@@ -224,7 +225,7 @@ func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (*IngestCod
 						if err != nil {
 							return nil, err
 						}
-						if err := store.InsertCodeUnitSnapshot(ctx, tx, runID, fileID, codeUnitID, startLine, startCol, endLine, endCol, bodyHash, bodyText, docText); err != nil {
+						if err := store.InsertCodeUnitSnapshot(ctx, tx, runID, cfg.CommitID, fileID, codeUnitID, startLine, startCol, endLine, endCol, bodyHash, bodyText, docText); err != nil {
 							return nil, err
 						}
 						snapshotCount++

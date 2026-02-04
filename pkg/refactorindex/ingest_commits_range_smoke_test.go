@@ -139,6 +139,7 @@ func TestIngestCommitRangeDiffAndSymbols(t *testing.T) {
 	assertCommitCounts(t, db, result.CommitLineageRunID, 1, 1, 1)
 	assertSymbol(t, db, "Sub", "func")
 	assertSymbolOccurrenceCommitID(t, db, commit.CommitHash)
+	assertCodeUnitSnapshotCommitID(t, db, commit.CommitHash)
 }
 
 func assertCommitCounts(t *testing.T, db *sql.DB, runID int64, commits int, commitFiles int, blobs int) {
@@ -180,5 +181,21 @@ func assertSymbolOccurrenceCommitID(t *testing.T, db *sql.DB, commitHash string)
 	}
 	if count == 0 {
 		t.Fatalf("expected symbol_occurrences with commit_id for %s", commitHash)
+	}
+}
+
+func assertCodeUnitSnapshotCommitID(t *testing.T, db *sql.DB, commitHash string) {
+	var count int
+	if err := db.QueryRow(
+		`SELECT COUNT(*)
+		 FROM code_unit_snapshots s
+		 JOIN commits c ON c.id = s.commit_id
+		 WHERE c.hash = ?`,
+		commitHash,
+	).Scan(&count); err != nil {
+		t.Fatalf("count code_unit_snapshots by commit: %v", err)
+	}
+	if count == 0 {
+		t.Fatalf("expected code_unit_snapshots with commit_id for %s", commitHash)
 	}
 }

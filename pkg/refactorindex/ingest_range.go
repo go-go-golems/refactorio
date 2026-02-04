@@ -141,6 +141,7 @@ func IngestCommitRange(ctx context.Context, cfg RangeIngestConfig) (*RangeIngest
 				DBPath:     cfg.DBPath,
 				RootDir:    worktreePath,
 				SourcesDir: cfg.SourcesDir,
+				CommitID:   &commitID,
 			})
 			if err != nil {
 				_ = removeWorktree(ctx, cfg.RepoPath, worktreePath)
