@@ -91,6 +91,12 @@ func (s *Store) InitSchema(ctx context.Context) error {
 	if _, err := tx.ExecContext(ctx, schemaSQL); err != nil {
 		return errors.Wrap(err, "apply schema")
 	}
+	if err := ensureColumn(ctx, tx, "symbol_occurrences", "commit_id", "INTEGER"); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, "CREATE INDEX IF NOT EXISTS idx_symbol_occurrences_commit_id ON symbol_occurrences(commit_id)"); err != nil {
+		return errors.Wrap(err, "create symbol_occurrences commit_id index")
+	}
 	if err := insertSchemaVersion(ctx, tx); err != nil {
 		return err
 	}
@@ -275,12 +281,13 @@ func (s *Store) GetOrCreateSymbolDef(ctx context.Context, tx *sql.Tx, def Symbol
 	return id, nil
 }
 
-func (s *Store) InsertSymbolOccurrence(ctx context.Context, tx *sql.Tx, runID int64, fileID int64, symbolDefID int64, line int, col int, exported bool) error {
+func (s *Store) InsertSymbolOccurrence(ctx context.Context, tx *sql.Tx, runID int64, commitID *int64, fileID int64, symbolDefID int64, line int, col int, exported bool) error {
 	_, err := tx.ExecContext(
 		ctx,
-		`INSERT INTO symbol_occurrences (run_id, file_id, symbol_def_id, line, col, is_exported)
-		 VALUES (?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO symbol_occurrences (run_id, commit_id, file_id, symbol_def_id, line, col, is_exported)
+		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		runID,
+		nullableInt64(commitID),
 		fileID,
 		symbolDefID,
 		line,
@@ -516,6 +523,38 @@ func nullableInt64(value *int64) sql.NullInt64 {
 		return sql.NullInt64{}
 	}
 	return sql.NullInt64{Int64: *value, Valid: true}
+}
+
+func ensureColumn(ctx context.Context, tx *sql.Tx, table string, column string, columnDef string) error {
+	rows, err := tx.QueryContext(ctx, "PRAGMA table_info("+table+")")
+	if err != nil {
+		return errors.Wrap(err, "inspect table columns")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cid int
+		var name string
+		var ctype string
+		var notnull int
+		var dfltValue sql.NullString
+		var pk int
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dfltValue, &pk); err != nil {
+			return errors.Wrap(err, "scan table info")
+		}
+		if name == column {
+			return nil
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return errors.Wrap(err, "iterate table info")
+	}
+
+	_, err = tx.ExecContext(ctx, "ALTER TABLE "+table+" ADD COLUMN "+column+" "+columnDef)
+	if err != nil {
+		return errors.Wrap(err, "add column")
+	}
+	return nil
 }
 
 func nullIfEmpty(value string) interface{} {

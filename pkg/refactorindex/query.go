@@ -39,6 +39,14 @@ type SymbolInventoryRecord struct {
 	IsExported bool
 }
 
+func (s *Store) GetCommitIDByHash(ctx context.Context, runID int64, hash string) (int64, error) {
+	var id int64
+	if err := s.db.QueryRowContext(ctx, "SELECT id FROM commits WHERE run_id = ? AND hash = ?", runID, hash).Scan(&id); err != nil {
+		return 0, errors.Wrap(err, "fetch commit id")
+	}
+	return id, nil
+}
+
 func (s *Store) ListDiffFiles(ctx context.Context, runID int64) ([]DiffFileRecord, error) {
 	rows, err := s.db.QueryContext(
 		ctx,

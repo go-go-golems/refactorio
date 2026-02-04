@@ -19,6 +19,7 @@ type IngestSymbolsConfig struct {
 	DBPath     string
 	RootDir    string
 	SourcesDir string
+	CommitID   *int64
 }
 
 // IngestSymbolsResult reports counts for symbol ingestion.
@@ -140,7 +141,7 @@ func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (*IngestSymbols
 						return nil, err
 					}
 					symbolCount++
-					if err := store.InsertSymbolOccurrence(ctx, tx, runID, fileID, symbolID, occ.Line, occ.Col, occ.Exported); err != nil {
+					if err := store.InsertSymbolOccurrence(ctx, tx, runID, cfg.CommitID, fileID, symbolID, occ.Line, occ.Col, occ.Exported); err != nil {
 						return nil, err
 					}
 					occurrenceCount++
@@ -161,7 +162,7 @@ func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (*IngestSymbols
 								return nil, err
 							}
 							symbolCount++
-							if err := store.InsertSymbolOccurrence(ctx, tx, runID, fileID, symbolID, occ.Line, occ.Col, occ.Exported); err != nil {
+							if err := store.InsertSymbolOccurrence(ctx, tx, runID, cfg.CommitID, fileID, symbolID, occ.Line, occ.Col, occ.Exported); err != nil {
 								return nil, err
 							}
 							occurrenceCount++
@@ -180,7 +181,7 @@ func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (*IngestSymbols
 									return nil, err
 								}
 								symbolCount++
-								if err := store.InsertSymbolOccurrence(ctx, tx, runID, fileID, symbolID, occ.Line, occ.Col, occ.Exported); err != nil {
+								if err := store.InsertSymbolOccurrence(ctx, tx, runID, cfg.CommitID, fileID, symbolID, occ.Line, occ.Col, occ.Exported); err != nil {
 									return nil, err
 								}
 								occurrenceCount++

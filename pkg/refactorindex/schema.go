@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 7
+const SchemaVersion = 8
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -81,12 +81,14 @@ CREATE TABLE IF NOT EXISTS symbol_defs (
 CREATE TABLE IF NOT EXISTS symbol_occurrences (
     id INTEGER PRIMARY KEY,
     run_id INTEGER NOT NULL,
+    commit_id INTEGER,
     file_id INTEGER NOT NULL,
     symbol_def_id INTEGER NOT NULL,
     line INTEGER NOT NULL,
     col INTEGER NOT NULL,
     is_exported INTEGER NOT NULL,
     FOREIGN KEY(run_id) REFERENCES meta_runs(id),
+    FOREIGN KEY(commit_id) REFERENCES commits(id),
     FOREIGN KEY(file_id) REFERENCES files(id),
     FOREIGN KEY(symbol_def_id) REFERENCES symbol_defs(id)
 );
