@@ -13,7 +13,7 @@
 - [x] Add FTS table for `symbol_defs` (`name`, `signature`, `pkg`).
 
 ## Task 4: FTS for commits
-- [ ] Add FTS table for `commits` (`subject`, `body`).
+- [x] Add FTS table for `commits` (`subject`, `body`).
 
 ## Task 5: FTS for files
 - [ ] Add FTS table for `files` (`path`).

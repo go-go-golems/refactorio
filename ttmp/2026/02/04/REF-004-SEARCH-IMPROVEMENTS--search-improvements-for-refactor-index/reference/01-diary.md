@@ -206,3 +206,47 @@ I added an FTS table for `symbol_defs` covering `name`, `signature`, and `pkg`. 
 
 ### Technical details
 - FTS table name: `symbol_defs_fts` with columns `name`, `signature`, `pkg`.
+
+## Step 5: Task 4 - Add FTS for commits
+I added an FTS table for `commits` covering `subject` and `body`. This enables fast search over commit messages.
+
+### Prompt Context
+**User prompt (verbatim):** "once you are done, work on REF-004"
+
+**Assistant interpretation:** Continue implementing remaining FTS tables.
+
+**Inferred user intent:** Improve search coverage for commit messages.
+
+**Commit (code):** 3f6ff24 — "refactorindex: add FTS for commits"
+
+### What I did
+- Added `commits_fts` via `ensureFTSColumns`.
+- Bumped schema version.
+
+### Why
+- Commit message search is a common investigative workflow.
+
+### What worked
+- FTS table creation integrated into schema init.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Check tokenization behavior for large commit bodies.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/store.go` and `schema.go`.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- FTS table name: `commits_fts` with columns `subject`, `body`.

@@ -41,3 +41,12 @@ Complete Task 3: add symbol defs FTS table (commit b9a30d6).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/store.go — symbol_defs_fts
 
+
+## 2026-02-04
+
+Complete Task 4: add commits FTS table (commit 3f6ff24).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/store.go — commits_fts
+
