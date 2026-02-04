@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 3
+const SchemaVersion = 4
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -118,6 +118,43 @@ CREATE TABLE IF NOT EXISTS code_unit_snapshots (
     FOREIGN KEY(code_unit_id) REFERENCES code_units(id)
 );
 
+CREATE TABLE IF NOT EXISTS commits (
+    id INTEGER PRIMARY KEY,
+    run_id INTEGER NOT NULL,
+    hash TEXT NOT NULL,
+    author_name TEXT,
+    author_email TEXT,
+    author_date TEXT,
+    committer_date TEXT,
+    subject TEXT,
+    body TEXT,
+    FOREIGN KEY(run_id) REFERENCES meta_runs(id)
+);
+
+CREATE TABLE IF NOT EXISTS commit_files (
+    id INTEGER PRIMARY KEY,
+    commit_id INTEGER NOT NULL,
+    file_id INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    old_path TEXT,
+    new_path TEXT,
+    blob_old TEXT,
+    blob_new TEXT,
+    FOREIGN KEY(commit_id) REFERENCES commits(id),
+    FOREIGN KEY(file_id) REFERENCES files(id)
+);
+
+CREATE TABLE IF NOT EXISTS file_blobs (
+    id INTEGER PRIMARY KEY,
+    commit_id INTEGER NOT NULL,
+    file_id INTEGER NOT NULL,
+    blob_sha TEXT NOT NULL,
+    size_bytes INTEGER,
+    line_count INTEGER,
+    FOREIGN KEY(commit_id) REFERENCES commits(id),
+    FOREIGN KEY(file_id) REFERENCES files(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_diff_files_run_id ON diff_files(run_id);
 CREATE INDEX IF NOT EXISTS idx_diff_hunks_diff_file_id ON diff_hunks(diff_file_id);
 CREATE INDEX IF NOT EXISTS idx_diff_lines_hunk_id ON diff_lines(hunk_id);
@@ -126,4 +163,8 @@ CREATE INDEX IF NOT EXISTS idx_symbol_occurrences_run_id ON symbol_occurrences(r
 CREATE INDEX IF NOT EXISTS idx_symbol_occurrences_symbol_id ON symbol_occurrences(symbol_def_id);
 CREATE INDEX IF NOT EXISTS idx_code_units_hash ON code_units(unit_hash);
 CREATE INDEX IF NOT EXISTS idx_code_unit_snapshots_run_id ON code_unit_snapshots(run_id);
+CREATE INDEX IF NOT EXISTS idx_commits_run_id ON commits(run_id);
+CREATE INDEX IF NOT EXISTS idx_commits_hash ON commits(hash);
+CREATE INDEX IF NOT EXISTS idx_commit_files_commit_id ON commit_files(commit_id);
+CREATE INDEX IF NOT EXISTS idx_file_blobs_commit_id ON file_blobs(commit_id);
 `

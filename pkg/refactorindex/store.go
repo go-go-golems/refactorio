@@ -49,6 +49,16 @@ type CodeUnitDef struct {
 	Hash      string
 }
 
+type CommitInfo struct {
+	Hash          string
+	AuthorName    string
+	AuthorEmail   string
+	AuthorDate    string
+	CommitterDate string
+	Subject       string
+	Body          string
+}
+
 func OpenDB(ctx context.Context, path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -330,6 +340,72 @@ func (s *Store) InsertCodeUnitSnapshot(ctx context.Context, tx *sql.Tx, runID in
 	return nil
 }
 
+func (s *Store) InsertCommit(ctx context.Context, tx *sql.Tx, runID int64, info CommitInfo) (int64, error) {
+	if info.Hash == "" {
+		return 0, errors.New("commit hash is required")
+	}
+	res, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO commits (run_id, hash, author_name, author_email, author_date, committer_date, subject, body)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		runID,
+		info.Hash,
+		nullIfEmpty(info.AuthorName),
+		nullIfEmpty(info.AuthorEmail),
+		nullIfEmpty(info.AuthorDate),
+		nullIfEmpty(info.CommitterDate),
+		nullIfEmpty(info.Subject),
+		nullIfEmpty(info.Body),
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "insert commit")
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "read commit id")
+	}
+	return id, nil
+}
+
+func (s *Store) InsertCommitFile(ctx context.Context, tx *sql.Tx, commitID int64, fileID int64, status string, oldPath string, newPath string, blobOld string, blobNew string) error {
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO commit_files (commit_id, file_id, status, old_path, new_path, blob_old, blob_new)
+		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		commitID,
+		fileID,
+		status,
+		nullIfEmpty(oldPath),
+		nullIfEmpty(newPath),
+		nullIfEmpty(blobOld),
+		nullIfEmpty(blobNew),
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert commit file")
+	}
+	return nil
+}
+
+func (s *Store) InsertFileBlob(ctx context.Context, tx *sql.Tx, commitID int64, fileID int64, blobSHA string, sizeBytes *int64, lineCount *int) error {
+	if blobSHA == "" {
+		return errors.New("blob sha is required")
+	}
+	_, err := tx.ExecContext(
+		ctx,
+		`INSERT OR IGNORE INTO file_blobs (commit_id, file_id, blob_sha, size_bytes, line_count)
+		 VALUES (?, ?, ?, ?, ?)`,
+		commitID,
+		fileID,
+		blobSHA,
+		nullableInt64(sizeBytes),
+		nullableInt(lineCount),
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert file blob")
+	}
+	return nil
+}
+
 func (s *Store) WriteRawOutput(ctx context.Context, tx *sql.Tx, runDir string, runID int64, source string, fileName string, content []byte) (string, error) {
 	if err := os.MkdirAll(runDir, 0o755); err != nil {
 		return "", errors.Wrap(err, "create sources dir")
@@ -360,6 +436,13 @@ func nullableInt(value *int) sql.NullInt64 {
 		return sql.NullInt64{}
 	}
 	return sql.NullInt64{Int64: int64(*value), Valid: true}
+}
+
+func nullableInt64(value *int64) sql.NullInt64 {
+	if value == nil {
+		return sql.NullInt64{}
+	}
+	return sql.NullInt64{Int64: *value, Valid: true}
 }
 
 func nullIfEmpty(value string) interface{} {
