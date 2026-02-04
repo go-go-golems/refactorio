@@ -109,6 +109,12 @@ func (s *Store) InitSchema(ctx context.Context) error {
 	if err := ensureFTS(ctx, tx, "diff_lines", "diff_lines_fts", "text"); err != nil {
 		return err
 	}
+	if err := ensureColumn(ctx, tx, "meta_runs", "status", "TEXT"); err != nil {
+		return err
+	}
+	if err := ensureColumn(ctx, tx, "meta_runs", "error_json", "TEXT"); err != nil {
+		return err
+	}
 	if err := insertSchemaVersion(ctx, tx); err != nil {
 		return err
 	}
@@ -136,9 +142,10 @@ func (s *Store) CreateRun(ctx context.Context, cfg RunConfig) (int64, error) {
 	startedAt := time.Now().UTC().Format(time.RFC3339Nano)
 	res, err := s.db.ExecContext(
 		ctx,
-		`INSERT INTO meta_runs (started_at, tool_version, git_from, git_to, root_path, args_json, sources_dir)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO meta_runs (started_at, status, tool_version, git_from, git_to, root_path, args_json, sources_dir)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		startedAt,
+		"running",
 		cfg.ToolVersion,
 		cfg.GitFrom,
 		cfg.GitTo,
@@ -160,14 +167,70 @@ func (s *Store) FinishRun(ctx context.Context, runID int64) error {
 	finishedAt := time.Now().UTC().Format(time.RFC3339Nano)
 	_, err := s.db.ExecContext(
 		ctx,
-		"UPDATE meta_runs SET finished_at = ? WHERE id = ?",
+		"UPDATE meta_runs SET finished_at = ?, status = ?, error_json = NULL WHERE id = ?",
 		finishedAt,
+		"success",
 		runID,
 	)
 	if err != nil {
 		return errors.Wrap(err, "update run finished_at")
 	}
 	return nil
+}
+
+func (s *Store) MarkRunFailed(ctx context.Context, runID int64, err error) error {
+	if runID == 0 || err == nil {
+		return nil
+	}
+	finishedAt := time.Now().UTC().Format(time.RFC3339Nano)
+	payload, marshalErr := json.Marshal(map[string]string{
+		"message": err.Error(),
+	})
+	if marshalErr != nil {
+		payload = []byte(`{"message":"failed to encode error"}`)
+	}
+	_, execErr := s.db.ExecContext(
+		ctx,
+		"UPDATE meta_runs SET finished_at = ?, status = ?, error_json = ? WHERE id = ?",
+		finishedAt,
+		"failed",
+		string(payload),
+		runID,
+	)
+	if execErr != nil {
+		return errors.Wrap(execErr, "mark run failed")
+	}
+	return nil
+}
+
+func (s *Store) InsertRunMetadata(ctx context.Context, runID int64, key string, value string) error {
+	if runID == 0 || strings.TrimSpace(key) == "" {
+		return nil
+	}
+	createdAt := time.Now().UTC().Format(time.RFC3339Nano)
+	_, err := s.db.ExecContext(
+		ctx,
+		"INSERT INTO run_kv (run_id, key, value, created_at) VALUES (?, ?, ?, ?)",
+		runID,
+		key,
+		value,
+		createdAt,
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert run metadata")
+	}
+	return nil
+}
+
+func (s *Store) InsertRunMetadataJSON(ctx context.Context, runID int64, key string, payload interface{}) error {
+	if payload == nil {
+		return nil
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return errors.Wrap(err, "encode run metadata")
+	}
+	return s.InsertRunMetadata(ctx, runID, key, string(data))
 }
 
 func (s *Store) BeginTx(ctx context.Context) (*sql.Tx, error) {

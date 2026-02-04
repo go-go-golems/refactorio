@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 10
+const SchemaVersion = 11
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS meta_runs (
     id INTEGER PRIMARY KEY,
     started_at TEXT NOT NULL,
     finished_at TEXT,
+    status TEXT,
+    error_json TEXT,
     tool_version TEXT,
     git_from TEXT,
     git_to TEXT,
@@ -25,6 +27,15 @@ CREATE TABLE IF NOT EXISTS raw_outputs (
     run_id INTEGER NOT NULL,
     source TEXT NOT NULL,
     path TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(run_id) REFERENCES meta_runs(id)
+);
+
+CREATE TABLE IF NOT EXISTS run_kv (
+    id INTEGER PRIMARY KEY,
+    run_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
     created_at TEXT NOT NULL,
     FOREIGN KEY(run_id) REFERENCES meta_runs(id)
 );
@@ -226,4 +237,6 @@ CREATE INDEX IF NOT EXISTS idx_ts_captures_run_id ON ts_captures(run_id);
 CREATE INDEX IF NOT EXISTS idx_ts_captures_commit_id ON ts_captures(commit_id);
 CREATE INDEX IF NOT EXISTS idx_doc_hits_run_id ON doc_hits(run_id);
 CREATE INDEX IF NOT EXISTS idx_doc_hits_term ON doc_hits(term);
+CREATE INDEX IF NOT EXISTS idx_run_kv_run_id ON run_kv(run_id);
+CREATE INDEX IF NOT EXISTS idx_run_kv_key ON run_kv(key);
 `

@@ -34,7 +34,7 @@ type IngestCodeUnitsResult struct {
 	DocEntries int
 }
 
-func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (*IngestCodeUnitsResult, error) {
+func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (_ *IngestCodeUnitsResult, err error) {
 	if strings.TrimSpace(cfg.DBPath) == "" {
 		return nil, errors.New("db path is required")
 	}
@@ -75,6 +75,11 @@ func IngestCodeUnits(ctx context.Context, cfg IngestCodeUnitsConfig) (*IngestCod
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err != nil {
+			_ = store.MarkRunFailed(ctx, runID, err)
+		}
+	}()
 
 	pkgConfig := &packages.Config{
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedFiles | packages.NeedCompiledGoFiles,

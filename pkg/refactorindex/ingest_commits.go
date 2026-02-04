@@ -27,7 +27,7 @@ type IngestCommitsResult struct {
 	CommitHashes []string
 }
 
-func IngestCommits(ctx context.Context, cfg IngestCommitsConfig) (*IngestCommitsResult, error) {
+func IngestCommits(ctx context.Context, cfg IngestCommitsConfig) (_ *IngestCommitsResult, err error) {
 	if strings.TrimSpace(cfg.DBPath) == "" {
 		return nil, errors.New("db path is required")
 	}
@@ -70,6 +70,11 @@ func IngestCommits(ctx context.Context, cfg IngestCommitsConfig) (*IngestCommits
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err != nil {
+			_ = store.MarkRunFailed(ctx, runID, err)
+		}
+	}()
 
 	tx, err := store.BeginTx(ctx)
 	if err != nil {

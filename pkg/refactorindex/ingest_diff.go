@@ -29,7 +29,7 @@ type IngestDiffResult struct {
 	RunDir string
 }
 
-func IngestDiff(ctx context.Context, cfg IngestDiffConfig) (*IngestDiffResult, error) {
+func IngestDiff(ctx context.Context, cfg IngestDiffConfig) (_ *IngestDiffResult, err error) {
 	if strings.TrimSpace(cfg.DBPath) == "" {
 		return nil, errors.New("db path is required")
 	}
@@ -83,6 +83,11 @@ func IngestDiff(ctx context.Context, cfg IngestDiffConfig) (*IngestDiffResult, e
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err != nil {
+			_ = store.MarkRunFailed(ctx, runID, err)
+		}
+	}()
 
 	tx, err := store.BeginTx(ctx)
 	if err != nil {

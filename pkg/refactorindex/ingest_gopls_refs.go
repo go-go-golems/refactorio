@@ -35,7 +35,7 @@ type IngestGoplsRefsResult struct {
 	SkippedFiles int
 }
 
-func IngestGoplsReferences(ctx context.Context, cfg IngestGoplsRefsConfig) (*IngestGoplsRefsResult, error) {
+func IngestGoplsReferences(ctx context.Context, cfg IngestGoplsRefsConfig) (_ *IngestGoplsRefsResult, err error) {
 	if strings.TrimSpace(cfg.DBPath) == "" {
 		return nil, errors.New("db path is required")
 	}
@@ -72,6 +72,11 @@ func IngestGoplsReferences(ctx context.Context, cfg IngestGoplsRefsConfig) (*Ing
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err != nil {
+			_ = store.MarkRunFailed(ctx, runID, err)
+		}
+	}()
 
 	tx, err := store.BeginTx(ctx)
 	if err != nil {

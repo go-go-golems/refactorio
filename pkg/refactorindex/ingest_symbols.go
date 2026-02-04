@@ -31,7 +31,7 @@ type IngestSymbolsResult struct {
 	Files       int
 }
 
-func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (*IngestSymbolsResult, error) {
+func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (_ *IngestSymbolsResult, err error) {
 	if strings.TrimSpace(cfg.DBPath) == "" {
 		return nil, errors.New("db path is required")
 	}
@@ -72,6 +72,11 @@ func IngestSymbols(ctx context.Context, cfg IngestSymbolsConfig) (*IngestSymbols
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err != nil {
+			_ = store.MarkRunFailed(ctx, runID, err)
+		}
+	}()
 
 	pkgConfig := &packages.Config{
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedFiles | packages.NeedCompiledGoFiles,

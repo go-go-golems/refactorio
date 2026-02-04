@@ -31,7 +31,7 @@ type IngestDocHitsResult struct {
 	TermsFile string
 }
 
-func IngestDocHits(ctx context.Context, cfg IngestDocHitsConfig) (*IngestDocHitsResult, error) {
+func IngestDocHits(ctx context.Context, cfg IngestDocHitsConfig) (_ *IngestDocHitsResult, err error) {
 	if strings.TrimSpace(cfg.DBPath) == "" {
 		return nil, errors.New("db path is required")
 	}
@@ -86,6 +86,11 @@ func IngestDocHits(ctx context.Context, cfg IngestDocHitsConfig) (*IngestDocHits
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err != nil {
+			_ = store.MarkRunFailed(ctx, runID, err)
+		}
+	}()
 
 	tx, err := store.BeginTx(ctx)
 	if err != nil {

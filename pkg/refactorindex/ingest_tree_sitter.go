@@ -31,7 +31,7 @@ type IngestTreeSitterResult struct {
 	FileGlob  string
 }
 
-func IngestTreeSitter(ctx context.Context, cfg IngestTreeSitterConfig) (*IngestTreeSitterResult, error) {
+func IngestTreeSitter(ctx context.Context, cfg IngestTreeSitterConfig) (_ *IngestTreeSitterResult, err error) {
 	if strings.TrimSpace(cfg.DBPath) == "" {
 		return nil, errors.New("db path is required")
 	}
@@ -82,6 +82,11 @@ func IngestTreeSitter(ctx context.Context, cfg IngestTreeSitterConfig) (*IngestT
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err != nil {
+			_ = store.MarkRunFailed(ctx, runID, err)
+		}
+	}()
 
 	qb := api.NewQueryBuilder(
 		api.WithLanguage(cfg.Language),
