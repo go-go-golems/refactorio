@@ -64,3 +64,13 @@ Implement best-effort symbol ingestion with warning metadata (commit b62029e).
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactor-index/ingest_symbols.go — Expose new counts
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_symbols.go — Best-effort handling + run metadata
 
+
+## 2026-02-04
+
+Complete Task 2: add ignore-package-errors flags and code-units best-effort handling (commit 93e087b).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactor-index/ingest_symbols.go — Flag wiring
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_code_units.go — Best-effort handling
+

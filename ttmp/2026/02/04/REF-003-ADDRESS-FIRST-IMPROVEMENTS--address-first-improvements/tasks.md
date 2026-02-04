@@ -9,9 +9,9 @@
 - [ ] Add/update tests for partial ingestion.
 
 ## Task 2: Expose --ignore-package-errors for symbol/code-unit ingestion
-- [ ] Add CLI flags for symbols and code-units.
-- [ ] Thread flags through ingest range.
-- [ ] Apply best-effort behavior for code-units.
+- [x] Add CLI flags for symbols and code-units.
+- [x] Thread flags through ingest range.
+- [x] Apply best-effort behavior for code-units.
 
 ## Task 3: Add --limit/--offset flags for list commands
 - [ ] Add limit/offset to list diff-files.

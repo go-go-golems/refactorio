@@ -345,3 +345,51 @@ This enables symbol ingestion on imperfect repos while still capturing error con
 
 ### Technical details
 - go/packages errors are stored as `run_kv` entries with key `go_packages_error`.
+
+## Step 7: Task 2 - Expose ignore-package-errors for symbols/code-units
+I added `--ignore-package-errors` flags for symbols, code-units, and range ingestion, and implemented best-effort handling for code-units. Both symbol and code-unit ingestion now store go/packages errors as warning metadata when the flag is enabled.
+
+This makes the best-effort behavior available from the CLI and keeps range ingestion consistent.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Expose ignore-package-errors in the CLI and apply it consistently across symbols/code-units and range ingestion.
+
+**Inferred user intent:** Make best-effort ingestion usable in real workflows and across range orchestration.
+
+**Commit (code):** 93e087b — "refactorindex: add ignore-package-errors flags"
+
+### What I did
+- Added `ignore-package-errors` flags to symbols, code-units, and range commands.
+- Extended code-unit ingestion with best-effort handling and warning metadata.
+- Added a shared helper for recording go/packages errors.
+
+### Why
+- Users need a CLI-level switch to enable partial ingestion and preserve error context.
+
+### What worked
+- Flags now flow through range ingestion and both ingestion paths.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Review whether code-units should also skip error packages (current behavior) vs. attempt partial extraction.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/cmd/refactor-index/ingest_symbols.go`, `ingest_code_units.go`, and `ingest_range.go` for flag wiring.
+- Review `refactorio/pkg/refactorindex/ingest_code_units.go` and `ingest_range.go` for config propagation.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- Shared warning metadata helper in `refactorio/pkg/refactorindex/package_errors.go`.
