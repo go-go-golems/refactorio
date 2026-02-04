@@ -10,7 +10,7 @@
 - [x] `queryDocHits(terms, fileset)`
 - [x] `queryFiles(fileset)`
 - [x] Normalize and sort all query results deterministically.
-- [ ] Add runtime safety guards (no time/random, no fs/exec, limits).
+- [x] Add runtime safety guards (no time/random, no fs/exec, limits).
 - [ ] Add query tracing artifact `js_trace.jsonl`.
 - [ ] Implement `refactorio js run` CLI command to execute scripts.
 - [ ] Add fixtures and tests for each query API.

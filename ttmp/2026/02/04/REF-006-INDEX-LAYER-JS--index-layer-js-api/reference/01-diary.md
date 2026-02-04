@@ -249,3 +249,50 @@ The sorting is applied after filtering so that returned arrays are stable and pr
 
 ### Technical details
 - Sorting added in: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go`.
+
+## Step 6: Add Runtime Safety Guards
+I added safety guards to the goja runtime setup and introduced default query result limits. The runtime now blocks filesystem module loading, disables time/random access when configured, and the query module enforces a maximum result limit.
+
+These changes align the runtime with the safety requirements for deterministic, read-only JS execution.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Add deterministic and safety guards to the runtime (no time/random, no filesystem module loading, enforce limits).
+
+**Inferred user intent:** Keep the JS runtime predictable and constrained while the query API matures.
+
+**Commit (code):** 0b6e9c0 — "refactorio: add js runtime guards"
+
+### What I did
+- Added runtime options for registry usage, time/random disabling, and file-module blocking.
+- Disabled file-based module loading by default using a deny-list loader.
+- Added default max-results limit in the refactor-index JS module.
+
+### Why
+- Preventing non-determinism and untrusted access is necessary for safe JS execution.
+
+### What worked
+- Runtime now uses a strict allow-list and deterministic primitives.
+
+### What didn't work
+- N/A
+
+### What I learned
+- goja_nodejs allows file module loading by default, so explicit blocking is required.
+
+### What was tricky to build
+- Balancing configurability with safe defaults in the runtime options.
+
+### What warrants a second pair of eyes
+- Confirm the default `AllowFileJS` behavior is correct for all callers.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactor/js/runtime.go` for guardrail logic and loader configuration.
+- Review `refactorio/pkg/refactor/js/modules/refactorindex/refactorindex.go` for limit enforcement.
+
+### Technical details
+- Runtime guards: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/runtime.go`.
