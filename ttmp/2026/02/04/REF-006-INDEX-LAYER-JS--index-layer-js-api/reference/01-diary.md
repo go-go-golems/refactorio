@@ -387,3 +387,49 @@ This provides the first end-to-end execution path for JS queries without any app
 - Review `refactorio/cmd/refactorio/root.go` and `refactorio/cmd/refactorio/main.go` for command wiring.
 ### Technical details
 - JS runner: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/cmd/refactorio/js_run.go`.
+
+## Step 9: Add Query API Tests
+I added Go tests that exercise the JS query APIs end-to-end via goja. The tests create a temporary SQLite DB, populate it using refactor-index helpers, and validate each query endpoint.
+
+This ensures the query layer behaves correctly before adding more advanced scripting features.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Add fixtures and tests for the JS query APIs.
+
+**Inferred user intent:** Establish a baseline of correctness for the index-layer JS API.
+
+**Commit (code):** 3297d70 — "refactorio: add js query tests"
+
+### What I did
+- Added `refactorindex_test.go` in the JS module package with tests for symbols, refs, doc hits, and files.
+- Built a temporary SQLite DB fixture using refactor-index store helpers.
+- Ran `go test ./pkg/refactor/js/modules/refactorindex -run TestQuery`.
+
+### Why
+- Testing the JS API early reduces regression risk as more features are added.
+
+### What worked
+- Tests run cleanly and validate all query endpoints.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Exported JS arrays arrive as `[]map[string]interface{}` when using goja, so test helpers must accept both forms.
+
+### What was tricky to build
+- Ensuring file metadata columns were non-null to avoid scan errors.
+
+### What warrants a second pair of eyes
+- Confirm the fixture setup mirrors real ingestion patterns closely enough.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactor/js/modules/refactorindex/refactorindex_test.go` for test coverage and data setup.
+
+### Technical details
+- Tests: `/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactor/js/modules/refactorindex/refactorindex_test.go`.

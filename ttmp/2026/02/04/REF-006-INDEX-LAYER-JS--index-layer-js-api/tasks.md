@@ -13,7 +13,7 @@
 - [x] Add runtime safety guards (no time/random, no fs/exec, limits).
 - [x] Add query tracing artifact `js_trace.jsonl`.
 - [x] Implement `refactorio js run` CLI command to execute scripts.
-- [ ] Add fixtures and tests for each query API.
+- [x] Add fixtures and tests for each query API.
 - [ ] Add integration test for `refactorio js run`.
 
 ## Done
