@@ -10,7 +10,7 @@
 - [x] Add FTS table for `code_unit_snapshots` (`body_text`, `doc_text`).
 
 ## Task 3: FTS for symbol defs
-- [ ] Add FTS table for `symbol_defs` (`name`, `signature`, `pkg`).
+- [x] Add FTS table for `symbol_defs` (`name`, `signature`, `pkg`).
 
 ## Task 4: FTS for commits
 - [ ] Add FTS table for `commits` (`subject`, `body`).

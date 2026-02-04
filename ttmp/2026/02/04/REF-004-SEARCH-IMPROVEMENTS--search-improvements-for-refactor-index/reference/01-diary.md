@@ -162,3 +162,47 @@ I added an FTS table for `code_unit_snapshots` covering `body_text` and `doc_tex
 
 ### Technical details
 - FTS table name: `code_unit_snapshots_fts` with columns `body_text`, `doc_text`.
+
+## Step 4: Task 3 - Add FTS for symbol defs
+I added an FTS table for `symbol_defs` covering `name`, `signature`, and `pkg`. This enables faster symbol search across core fields.
+
+### Prompt Context
+**User prompt (verbatim):** "once you are done, work on REF-004"
+
+**Assistant interpretation:** Continue implementing the search improvements sequentially.
+
+**Inferred user intent:** Expand FTS coverage to symbol definitions.
+
+**Commit (code):** b9a30d6 — "refactorindex: add FTS for symbol defs"
+
+### What I did
+- Added `symbol_defs_fts` via `ensureFTSColumns`.
+- Bumped schema version.
+
+### Why
+- Symbol search is a primary use case for refactor-index search.
+
+### What worked
+- FTS table creation is integrated into schema init.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Confirm `signature` fields are suitable for FTS tokenization.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/store.go` and `schema.go`.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- FTS table name: `symbol_defs_fts` with columns `name`, `signature`, `pkg`.

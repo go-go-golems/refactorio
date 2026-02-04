@@ -32,3 +32,12 @@ Complete Task 2: add code unit FTS table (commit d6e4ce2).
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/store.go — code_unit_snapshots_fts
 
+
+## 2026-02-04
+
+Complete Task 3: add symbol defs FTS table (commit b9a30d6).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/store.go — symbol_defs_fts
+
