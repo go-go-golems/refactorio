@@ -1,6 +1,6 @@
 package refactorindex
 
-const SchemaVersion = 16
+const SchemaVersion = 17
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS schema_versions (
@@ -232,6 +232,24 @@ CREATE TABLE IF NOT EXISTS doc_hits (
     FOREIGN KEY(commit_id) REFERENCES commits(id),
     FOREIGN KEY(file_id) REFERENCES files(id)
 );
+
+CREATE VIEW IF NOT EXISTS v_last_commit_per_file AS
+SELECT * FROM (
+    SELECT
+        c.run_id,
+        f.path AS file_path,
+        cf.file_id,
+        c.id AS commit_id,
+        c.hash,
+        c.committer_date,
+        cf.status,
+        cf.old_path,
+        cf.new_path,
+        ROW_NUMBER() OVER (PARTITION BY c.run_id, cf.file_id ORDER BY c.id DESC) AS rn
+    FROM commit_files cf
+    JOIN commits c ON c.id = cf.commit_id
+    JOIN files f ON f.id = cf.file_id
+) WHERE rn = 1;
 
 CREATE INDEX IF NOT EXISTS idx_diff_files_run_id ON diff_files(run_id);
 CREATE INDEX IF NOT EXISTS idx_diff_hunks_diff_file_id ON diff_hunks(diff_file_id);
