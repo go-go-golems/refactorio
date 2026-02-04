@@ -180,6 +180,18 @@ Example trace entry:
 {"seq":1,"action":"querySymbols","args":{"pkg":"github.com/acme/project/internal/api","name":"Client","kind":"type"},"result_count":1}
 ```
 
+## Trace Output Reference
+Each line in `js_trace.jsonl` is a JSON object. These fields are stable and meant to be parsed by tooling.
+
+| Field | Type | Meaning | Notes |
+| --- | --- | --- | --- |
+| `seq` | number | Monotonic sequence number | Starts at 1 for each script run |
+| `action` | string | The query name | One of `querySymbols`, `queryRefs`, `queryDocHits`, `queryFiles` |
+| `args` | object | The exact arguments passed to the query | Mirrors the JS inputs |
+| `result_count` | number | Number of records returned | After fileset filtering and sorting |
+
+**Why this matters:** The trace lets you answer “what did the script actually ask the index?” without reading JS code. It also makes debugging deterministic issues (unexpected counts, empty results) much faster.
+
 ## Writing Scripts
 Scripts should return a value explicitly or implicitly by ending with an expression. This is what the CLI prints.
 
