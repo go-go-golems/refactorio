@@ -35,6 +35,26 @@ func NewRootCommand() (*cobra.Command, error) {
 		return nil, errors.Wrap(err, "wire ingest diff command")
 	}
 	ingestCmd.AddCommand(cobraIngestDiffCmd)
+
+	ingestSymbolsCmd, err := NewIngestSymbolsCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build ingest symbols command")
+	}
+	cobraIngestSymbolsCmd, err := cli.BuildCobraCommand(ingestSymbolsCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire ingest symbols command")
+	}
+	ingestCmd.AddCommand(cobraIngestSymbolsCmd)
+
+	ingestCodeUnitsCmd, err := NewIngestCodeUnitsCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build ingest code-units command")
+	}
+	cobraIngestCodeUnitsCmd, err := cli.BuildCobraCommand(ingestCodeUnitsCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire ingest code-units command")
+	}
+	ingestCmd.AddCommand(cobraIngestCodeUnitsCmd)
 	rootCmd.AddCommand(ingestCmd)
 
 	listCmd := &cobra.Command{
