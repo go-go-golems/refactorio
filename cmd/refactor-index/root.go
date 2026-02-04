@@ -36,6 +36,16 @@ func NewRootCommand() (*cobra.Command, error) {
 	}
 	ingestCmd.AddCommand(cobraIngestDiffCmd)
 
+	ingestCommitsCmd, err := NewIngestCommitsCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build ingest commits command")
+	}
+	cobraIngestCommitsCmd, err := cli.BuildCobraCommand(ingestCommitsCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire ingest commits command")
+	}
+	ingestCmd.AddCommand(cobraIngestCommitsCmd)
+
 	ingestSymbolsCmd, err := NewIngestSymbolsCommand()
 	if err != nil {
 		return nil, errors.Wrap(err, "build ingest symbols command")
@@ -55,6 +65,46 @@ func NewRootCommand() (*cobra.Command, error) {
 		return nil, errors.Wrap(err, "wire ingest code-units command")
 	}
 	ingestCmd.AddCommand(cobraIngestCodeUnitsCmd)
+
+	ingestDocHitsCmd, err := NewIngestDocHitsCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build ingest doc-hits command")
+	}
+	cobraIngestDocHitsCmd, err := cli.BuildCobraCommand(ingestDocHitsCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire ingest doc-hits command")
+	}
+	ingestCmd.AddCommand(cobraIngestDocHitsCmd)
+
+	ingestTreeSitterCmd, err := NewIngestTreeSitterCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build ingest tree-sitter command")
+	}
+	cobraIngestTreeSitterCmd, err := cli.BuildCobraCommand(ingestTreeSitterCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire ingest tree-sitter command")
+	}
+	ingestCmd.AddCommand(cobraIngestTreeSitterCmd)
+
+	ingestGoplsRefsCmd, err := NewIngestGoplsRefsCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build ingest gopls-refs command")
+	}
+	cobraIngestGoplsRefsCmd, err := cli.BuildCobraCommand(ingestGoplsRefsCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire ingest gopls-refs command")
+	}
+	ingestCmd.AddCommand(cobraIngestGoplsRefsCmd)
+
+	ingestRangeCmd, err := NewIngestRangeCommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build ingest range command")
+	}
+	cobraIngestRangeCmd, err := cli.BuildCobraCommand(ingestRangeCmd)
+	if err != nil {
+		return nil, errors.Wrap(err, "wire ingest range command")
+	}
+	ingestCmd.AddCommand(cobraIngestRangeCmd)
 	rootCmd.AddCommand(ingestCmd)
 
 	listCmd := &cobra.Command{
