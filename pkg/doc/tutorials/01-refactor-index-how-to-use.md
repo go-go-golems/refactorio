@@ -150,6 +150,19 @@ Implementation links:
 - List symbols wiring: `refactorio/cmd/refactor-index/list_symbols.go`
 - SQL query helpers: `refactorio/pkg/refactorindex/query.go`
 
+## Step 8 - Search with FTS and Views
+The index includes FTS tables for diffs, doc hits, code unit snapshots, symbol definitions, commits, and file paths. It also includes a `v_last_commit_per_file` view to simplify “latest commit touching this file” lookups.
+
+Run a few quick queries with `sqlite3`:
+
+```bash
+sqlite3 "$DB" "SELECT c.hash, c.subject FROM commits_fts JOIN commits c ON c.id = commits_fts.rowid WHERE commits_fts MATCH 'refactor' LIMIT 5;"
+sqlite3 "$DB" "SELECT cu.name, f.path FROM code_unit_snapshots_fts JOIN code_unit_snapshots s ON s.id = code_unit_snapshots_fts.rowid JOIN code_units cu ON cu.id = s.code_unit_id JOIN files f ON f.id = s.file_id WHERE code_unit_snapshots_fts MATCH 'errgroup' LIMIT 5;"
+sqlite3 "$DB" "SELECT file_path, hash, committer_date FROM v_last_commit_per_file WHERE run_id = 1 AND file_path LIKE '%help.go%' LIMIT 5;"
+```
+
+If the queries return empty results, use a larger commit range or confirm the corresponding ingest steps ran successfully.
+
 ## Discovering Help Topics
 The help system exposes documentation sections via the CLI. Use it to explore topics, examples, and tutorials without leaving the terminal.
 
