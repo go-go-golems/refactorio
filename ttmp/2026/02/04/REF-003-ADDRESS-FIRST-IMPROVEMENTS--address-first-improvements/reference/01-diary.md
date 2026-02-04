@@ -532,3 +532,49 @@ I improved the package load error messages to explicitly say the repo must compi
 
 ### Technical details
 - Error messages now mention `--ignore-package-errors` as a fallback.
+
+## Step 11: Task 7 - Handle root commits by default (Option B)
+I updated commit ingestion to include the root commit when the `from` ref is the repository root, and adjusted range diff ingestion to use root diffs against the empty tree. Tests were updated to reflect the additional root commit in results.
+
+### Prompt Context
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Include root commits automatically and make diff ingestion work for them.
+
+**Inferred user intent:** Ensure ranges that start at the root behave predictably and capture initial changes.
+
+**Commit (code):** 919ecdb — "refactorindex: include root commit in ranges"
+
+### What I did
+- Resolved `from`/`to` hashes and included the root commit when applicable.
+- Added root diff support in range ingestion using `git diff --root`.
+- Updated commit range smoke tests for the new behavior.
+
+### Why
+- Root commits were previously excluded and root diffs failed when using `hash^`.
+
+### What worked
+- Root commit ingestion and diffing now complete without errors.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- N/A
+
+### What warrants a second pair of eyes
+- Ensure root commit detection logic is correct for repos with multiple roots.
+
+### What should be done in the future
+- N/A
+
+### Code review instructions
+- Review `refactorio/pkg/refactorindex/ingest_commits.go` and `ingest_range.go` for root handling.
+- Review `refactorio/pkg/refactorindex/ingest_diff.go` for root diff logic.
+- Validate with `go test ./refactorio/pkg/refactorindex`.
+
+### Technical details
+- Root commits are detected via `git rev-list --max-parents=0 --all` and compared against `from` hashes.

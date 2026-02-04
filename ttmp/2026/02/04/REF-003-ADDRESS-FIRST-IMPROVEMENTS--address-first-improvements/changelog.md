@@ -104,3 +104,13 @@ Complete Task 6: clarify package load requirements and document ignore flag (com
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/doc/tutorials/01-refactor-index-how-to-use.md — Documented build requirement
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_symbols.go — Improved error messaging
 
+
+## 2026-02-04
+
+Complete Task 7: include root commit and root diffs by default (commit 919ecdb).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_commits.go — Root commit inclusion
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/refactorindex/ingest_diff.go — Root diff support
+

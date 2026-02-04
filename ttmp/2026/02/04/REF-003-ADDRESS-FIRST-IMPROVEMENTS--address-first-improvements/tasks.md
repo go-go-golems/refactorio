@@ -34,9 +34,9 @@
 - [x] Update tutorial documentation to describe compile requirements and ignore flag.
 
 ## Task 7: Handle root commit explicitly (Option B default)
-- [ ] Detect root commit and include it automatically.
-- [ ] Diff root commit against empty tree in range ingestion.
-- [ ] Add tests for root commit ingestion.
+- [x] Detect root commit and include it automatically.
+- [x] Diff root commit against empty tree in range ingestion.
+- [x] Add tests for root commit ingestion.
 
 ## Task 8: Remove tree-sitter functionality and oak dependency
 - [ ] Remove tree-sitter CLI commands and range ingestion wiring.
