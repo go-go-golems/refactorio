@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/go-go-golems/refactorio/pkg/refactorindex"
@@ -17,17 +18,46 @@ type listResponse struct {
 	Items []map[string]interface{} `json:"items"`
 }
 
+type fileListResponse struct {
+	Items []FileTreeItem `json:"items"`
+}
+
+type fileHistoryResponse struct {
+	Items []FileHistoryRecord `json:"items"`
+}
+
+type codeUnitListResponse struct {
+	Items []CodeUnitListRecord `json:"items"`
+}
+
+type diffRunsResponse struct {
+	Items []RunRecord `json:"items"`
+}
+
+type diffFileResponse struct {
+	Path  string           `json:"path"`
+	RunID int64            `json:"run_id"`
+	Hunks []DiffHunkRecord `json:"hunks"`
+}
+
 type dbInfoResponse struct {
 	SchemaVersion int             `json:"schema_version"`
 	Tables        map[string]bool `json:"tables"`
 }
 
+type seedResult struct {
+	DBPath   string
+	RunID    int64
+	UnitHash string
+	FilePath string
+}
+
 func TestDBInfoEndpoint(t *testing.T) {
 	ctx := context.Background()
-	dbPath := seedTestDB(t, ctx)
+	seed := seedTestDB(t, ctx)
 
 	srv := NewServer(Config{BasePath: "/api"})
-	req := httptest.NewRequest(http.MethodGet, "/api/db/info?db_path="+dbPath, nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/db/info?db_path="+seed.DBPath, nil)
 	rec := httptest.NewRecorder()
 	srv.rootMux.ServeHTTP(rec, req)
 
@@ -49,10 +79,10 @@ func TestDBInfoEndpoint(t *testing.T) {
 
 func TestRunsListEndpoint(t *testing.T) {
 	ctx := context.Background()
-	dbPath := seedTestDB(t, ctx)
+	seed := seedTestDB(t, ctx)
 
 	srv := NewServer(Config{BasePath: "/api"})
-	req := httptest.NewRequest(http.MethodGet, "/api/runs?db_path="+dbPath, nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/runs?db_path="+seed.DBPath, nil)
 	rec := httptest.NewRecorder()
 	srv.rootMux.ServeHTTP(rec, req)
 
@@ -71,10 +101,10 @@ func TestRunsListEndpoint(t *testing.T) {
 
 func TestSearchSymbolsEndpoint(t *testing.T) {
 	ctx := context.Background()
-	dbPath := seedTestDB(t, ctx)
+	seed := seedTestDB(t, ctx)
 
 	srv := NewServer(Config{BasePath: "/api"})
-	req := httptest.NewRequest(http.MethodGet, "/api/search/symbols?q=Client&db_path="+dbPath, nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/search/symbols?q=Client&db_path="+seed.DBPath, nil)
 	rec := httptest.NewRecorder()
 	srv.rootMux.ServeHTTP(rec, req)
 
@@ -91,7 +121,121 @@ func TestSearchSymbolsEndpoint(t *testing.T) {
 	}
 }
 
-func seedTestDB(t *testing.T, ctx context.Context) string {
+func TestCodeUnitEndpoints(t *testing.T) {
+	ctx := context.Background()
+	seed := seedTestDB(t, ctx)
+
+	srv := NewServer(Config{BasePath: "/api"})
+	req := httptest.NewRequest(http.MethodGet, "/api/code-units?db_path="+seed.DBPath, nil)
+	rec := httptest.NewRecorder()
+	srv.rootMux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var listPayload codeUnitListResponse
+	if err := json.NewDecoder(rec.Body).Decode(&listPayload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(listPayload.Items) == 0 {
+		t.Fatalf("expected code unit list results")
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/api/code-units/"+seed.UnitHash+"?db_path="+seed.DBPath, nil)
+	rec = httptest.NewRecorder()
+	srv.rootMux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var detail CodeUnitRecord
+	if err := json.NewDecoder(rec.Body).Decode(&detail); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if detail.UnitHash != seed.UnitHash {
+		t.Fatalf("expected unit hash %s, got %s", seed.UnitHash, detail.UnitHash)
+	}
+}
+
+func TestFileEndpoints(t *testing.T) {
+	ctx := context.Background()
+	seed := seedTestDB(t, ctx)
+
+	srv := NewServer(Config{BasePath: "/api"})
+	req := httptest.NewRequest(http.MethodGet, "/api/files?db_path="+seed.DBPath, nil)
+	rec := httptest.NewRecorder()
+	srv.rootMux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var treePayload fileListResponse
+	if err := json.NewDecoder(rec.Body).Decode(&treePayload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(treePayload.Items) == 0 {
+		t.Fatalf("expected file tree results")
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/api/files/history?path="+seed.FilePath+"&db_path="+seed.DBPath, nil)
+	rec = httptest.NewRecorder()
+	srv.rootMux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var historyPayload fileHistoryResponse
+	if err := json.NewDecoder(rec.Body).Decode(&historyPayload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(historyPayload.Items) == 0 {
+		t.Fatalf("expected file history results")
+	}
+}
+
+func TestDiffEndpoints(t *testing.T) {
+	ctx := context.Background()
+	seed := seedTestDB(t, ctx)
+
+	srv := NewServer(Config{BasePath: "/api"})
+	req := httptest.NewRequest(http.MethodGet, "/api/diff-runs?db_path="+seed.DBPath, nil)
+	rec := httptest.NewRecorder()
+	srv.rootMux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var runsPayload diffRunsResponse
+	if err := json.NewDecoder(rec.Body).Decode(&runsPayload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(runsPayload.Items) == 0 {
+		t.Fatalf("expected diff runs results")
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/api/diff/"+strconv.FormatInt(seed.RunID, 10)+"/file?path="+seed.FilePath+"&db_path="+seed.DBPath, nil)
+	rec = httptest.NewRecorder()
+	srv.rootMux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var diffPayload diffFileResponse
+	if err := json.NewDecoder(rec.Body).Decode(&diffPayload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(diffPayload.Hunks) == 0 {
+		t.Fatalf("expected diff hunks")
+	}
+}
+
+func seedTestDB(t *testing.T, ctx context.Context) seedResult {
 	t.Helper()
 
 	tempDir := t.TempDir()
@@ -126,9 +270,13 @@ func seedTestDB(t *testing.T, ctx context.Context) string {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	fileID, err := store.GetOrCreateFile(ctx, tx, "internal/api/client.go")
+	filePath := "internal/api/client.go"
+	fileID, err := store.GetOrCreateFile(ctx, tx, filePath)
 	if err != nil {
 		t.Fatalf("create file: %v", err)
+	}
+	if _, err := tx.ExecContext(ctx, "UPDATE files SET file_exists = 1, is_binary = 0 WHERE id = ?", fileID); err != nil {
+		t.Fatalf("update file metadata: %v", err)
 	}
 
 	symbolID, err := store.GetOrCreateSymbolDef(ctx, tx, refactorindex.SymbolDef{
@@ -144,11 +292,12 @@ func seedTestDB(t *testing.T, ctx context.Context) string {
 		t.Fatalf("insert symbol occurrence: %v", err)
 	}
 
+	codeUnitHash := "unit-hash"
 	codeUnitID, err := store.GetOrCreateCodeUnit(ctx, tx, refactorindex.CodeUnitDef{
 		Pkg:  "github.com/acme/project/internal/api",
 		Name: "Client",
 		Kind: "type",
-		Hash: "unit-hash",
+		Hash: codeUnitHash,
 	})
 	if err != nil {
 		t.Fatalf("create code unit: %v", err)
@@ -199,13 +348,18 @@ func seedTestDB(t *testing.T, ctx context.Context) string {
 	}
 
 	// ensure file exists for file endpoint tests if needed
-	filePath := filepath.Join(tempDir, "internal", "api", "client.go")
-	if err := os.MkdirAll(filepath.Dir(filePath), 0o755); err != nil {
+	fileOnDisk := filepath.Join(tempDir, "internal", "api", "client.go")
+	if err := os.MkdirAll(filepath.Dir(fileOnDisk), 0o755); err != nil {
 		t.Fatalf("mkdir for test file: %v", err)
 	}
-	if err := os.WriteFile(filePath, []byte("type Client struct{}"), 0o644); err != nil {
+	if err := os.WriteFile(fileOnDisk, []byte("type Client struct{}"), 0o644); err != nil {
 		t.Fatalf("write test file: %v", err)
 	}
 
-	return dbPath
+	return seedResult{
+		DBPath:   dbPath,
+		RunID:    runID,
+		UnitHash: codeUnitHash,
+		FilePath: filePath,
+	}
 }
