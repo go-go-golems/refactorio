@@ -17,5 +17,11 @@ func NewRootCommand() (*cobra.Command, error) {
 	}
 	rootCmd.AddCommand(jsCmd)
 
+	apiCmd, err := NewAPICommand()
+	if err != nil {
+		return nil, errors.Wrap(err, "build api command")
+	}
+	rootCmd.AddCommand(apiCmd)
+
 	return rootCmd, nil
 }
