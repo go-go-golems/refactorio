@@ -63,7 +63,9 @@ type CodeUnitSearchRecord struct {
 	Signature string `json:"signature,omitempty"`
 	File      string `json:"file"`
 	StartLine int    `json:"start_line"`
+	StartCol  int    `json:"start_col"`
 	EndLine   int    `json:"end_line"`
+	EndCol    int    `json:"end_col"`
 	BodyText  string `json:"body_text"`
 }
 
@@ -549,7 +551,7 @@ func queryCodeUnitSearch(db *sql.DB, query string, filters SearchFilters, runID 
 	}
 	base := `
 SELECT s.run_id, cu.unit_hash, cu.name, cu.kind, cu.pkg, cu.recv, cu.signature,
-       f.path, s.start_line, s.end_line, s.body_text
+       f.path, s.start_line, s.start_col, s.end_line, s.end_col, s.body_text
 FROM code_unit_snapshots_fts fts
 JOIN code_unit_snapshots s ON s.id = fts.rowid
 JOIN code_units cu ON cu.id = s.code_unit_id
@@ -596,7 +598,9 @@ WHERE code_unit_snapshots_fts MATCH ?`
 			&signature,
 			&record.File,
 			&record.StartLine,
+			&record.StartCol,
 			&record.EndLine,
+			&record.EndCol,
 			&record.BodyText,
 		); err != nil {
 			return nil, err
