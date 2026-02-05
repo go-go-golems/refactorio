@@ -18,6 +18,7 @@ func (s *Server) registerRoutes() {
 	s.registerCommitRoutes()
 	s.registerDocRoutes()
 	s.registerFileRoutes()
+	s.registerTreeSitterRoutes()
 }
 
 func (s *Server) registerBaseRoutes() {
