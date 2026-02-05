@@ -8,7 +8,7 @@
 - [x] Implement workspace registry (config file) + CRUD endpoints
 - [x] Add DB open helper + /api/db/info endpoint with schema/FTS detection
 - [x] Implement runs endpoints (/api/runs, /api/runs/:id, /api/runs/:id/summary, /api/runs/:id/raw-outputs, /api/raw-outputs)
-- [ ] Implement session resolver + /api/sessions endpoints
+- [x] Implement session resolver + /api/sessions endpoints
 - [ ] Implement search endpoints (FTS per type + unified /api/search)
 - [ ] Implement symbol endpoints (/api/symbols, /api/symbols/:hash, /api/symbols/:hash/refs)
 - [ ] Implement code unit endpoints (/api/code-units, /api/code-units/:hash, /api/code-units/:hash/history, /api/code-units/:hash/diff)
