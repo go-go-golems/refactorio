@@ -29,18 +29,23 @@ RelatedFiles:
       Note: Schema reviewed while mapping UI requirements
     - Path: refactorio/pkg/refactorindex/store.go
       Note: DB initialization and FTS setup reviewed
+    - Path: refactorio/pkg/workbenchapi/decode.go
+      Note: Strict JSON decoding helper
     - Path: refactorio/pkg/workbenchapi/json.go
       Note: Shared JSON and error response helpers
     - Path: refactorio/pkg/workbenchapi/routes.go
       Note: Base route registration
     - Path: refactorio/pkg/workbenchapi/server.go
       Note: Server config
+    - Path: refactorio/pkg/workbenchapi/workspace.go
+      Note: Workspace config model and CRUD handlers
 ExternalSources: []
 Summary: Diary for backend API documentation and analysis.
 LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -175,4 +180,60 @@ Commands run:
 gofmt -w refactorio/cmd/refactorio/api.go refactorio/cmd/refactorio/root.go refactorio/pkg/workbenchapi/server.go refactorio/pkg/workbenchapi/routes.go refactorio/pkg/workbenchapi/json.go
 git -C refactorio add cmd/refactorio/api.go cmd/refactorio/root.go pkg/workbenchapi/server.go pkg/workbenchapi/routes.go pkg/workbenchapi/json.go
 git -C refactorio commit -m "Add workbench API server scaffold"
+```
+
+## Step 3: Implement Workspace Registry + CRUD Endpoints
+I implemented the workspace registry backed by a JSON config file and exposed CRUD routes under `/api/workspaces`. This lets the UI persist workspace metadata (db path + repo root) and aligns with the UI spec’s “Workspace selection” requirements.
+
+I also added decoding helpers and a configurable config path, so the API can run with a default location but still be overridden for tests or alternative setups.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Complete the next task by building workspace persistence and CRUD endpoints, then commit and update the diary.
+
+**Inferred user intent:** Incrementally deliver core API functionality with traceable commits and documentation.
+
+**Commit (code):** e6b2cd6 — "Add workspace registry endpoints"
+
+### What I did
+- Added workspace config load/save utilities and JSON schema in `pkg/workbenchapi/workspace.go`.
+- Added `/api/workspaces` and `/api/workspaces/:id` handlers with GET/POST/PATCH/DELETE.
+- Introduced a JSON decode helper with strict decoding.
+- Added `--workspace-config` flag and config path plumbing in the server.
+
+### Why
+- The Workbench UI needs to store and retrieve workspace definitions to connect to index DBs reliably.
+- A strict JSON decoder prevents silent input errors and enforces a clean API contract.
+
+### What worked
+- CRUD operations persist cleanly to a stable config file under the user config dir.
+- The base server can now be configured for different environments and tests.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Workspace IDs are the natural stable key; normalizing paths early reduces later ambiguity.
+
+### What was tricky to build
+Updating the `ServeMux` routing to support both collection and item routes required a clean path parsing strategy, since the standard mux does not provide path parameters.
+
+### What warrants a second pair of eyes
+- Confirm the workspace path parsing and `StripPrefix` behavior in combination with `/api`.
+- Confirm update semantics (especially clearing `repo_root`) are acceptable.
+
+### What should be done in the future
+- Add validation endpoints to check that `db_path` points to a valid index DB.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/workspace.go` and `refactorio/pkg/workbenchapi/routes.go`.
+- Verify CLI changes in `refactorio/cmd/refactorio/api.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/server.go refactorio/pkg/workbenchapi/routes.go refactorio/pkg/workbenchapi/workspace.go refactorio/pkg/workbenchapi/decode.go refactorio/cmd/refactorio/api.go
+git -C refactorio add cmd/refactorio/api.go pkg/workbenchapi/server.go pkg/workbenchapi/routes.go pkg/workbenchapi/workspace.go pkg/workbenchapi/decode.go
+git -C refactorio commit -m "Add workspace registry endpoints"
 ```
