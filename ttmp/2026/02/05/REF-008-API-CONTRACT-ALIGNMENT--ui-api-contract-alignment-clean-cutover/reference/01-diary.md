@@ -14,7 +14,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: "Implementation diary for the UI/API contract alignment work."
-LastUpdated: 2026-02-05T17:33:12-05:00
+LastUpdated: 2026-02-05T17:39:50-05:00
 WhatFor: "Track step-by-step alignment changes and review guidance."
 WhenToUse: "Use when resuming alignment work or reviewing what changed and why."
 ---
@@ -176,4 +176,45 @@ I added global MSW handlers to Storybook so session-scoped pages always have `/a
 Commands run:
 ```bash
 docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 20,21,22
+```
+
+## Step 4: Start Live Backend + UI (tmux) for Real API Validation
+I started the backend API server and the Vite dev server in a tmux session, then registered a workspace pointing at the existing `foobar.db` index so you can validate the UI against real data.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, let's run it (in tmux) and run the real ui and then i can test. Do you have an already indexed codebase?"
+
+**Assistant interpretation:** Start backend + UI in tmux and connect the UI to a real indexed DB so the user can validate pages.
+
+**Inferred user intent:** Get a live, end-to-end setup that mirrors production usage so remaining mismatches can be discovered quickly.
+
+**Commit (code):** N/A
+
+### What I did
+- Found an existing indexed DB: `refactorio/foobar.db`.
+- Started backend (`refactorio api serve`) and UI (`npm run dev`) in tmux session `refactorio-ui`.
+- Registered a workspace with ID `refactorio-foobar` pointing at the DB and repo root.
+
+### Why
+- This enables real API validation without re-indexing a new codebase.
+
+### What worked
+- The database contains expected refactorio paths, so the repo root is valid.
+
+### What didn't work
+- N/A (pending user validation of UI pages).
+
+### What should be done in the future
+- Validate each page in the UI and capture any remaining contract mismatches.
+
+### Technical details
+Commands run:
+```bash
+tmux new-session -d -s refactorio-ui -c /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio
+tmux split-window -h -t refactorio-ui -c /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui
+tmux send-keys -t refactorio-ui:0.0 "GOWORK=off go run ./cmd/refactorio api serve" C-m
+tmux send-keys -t refactorio-ui:0.1 "npm run dev" C-m
+curl -s -X POST http://localhost:8080/api/workspaces \
+  -H 'Content-Type: application/json' \
+  -d '{"id":"refactorio-foobar","name":"refactorio","db_path":"/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/foobar.db","repo_root":"/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio"}'
 ```
