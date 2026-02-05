@@ -11,55 +11,57 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
-    - Path: refactorio/cmd/refactorio/api.go
+    - Path: cmd/refactorio/api.go
       Note: New API serve command
-    - Path: refactorio/cmd/refactorio/root.go
+    - Path: cmd/refactorio/root.go
       Note: Wired API command into CLI
-    - Path: refactorio/pkg/refactorindex/ingest_code_units.go
+    - Path: pkg/refactorindex/ingest_code_units.go
       Note: Code unit snapshot details reviewed
-    - Path: refactorio/pkg/refactorindex/ingest_commits.go
+    - Path: pkg/refactorindex/ingest_commits.go
       Note: Commit ingestion details reviewed
-    - Path: refactorio/pkg/refactorindex/ingest_diff.go
+    - Path: pkg/refactorindex/ingest_diff.go
       Note: Diff ingestion details reviewed
-    - Path: refactorio/pkg/refactorindex/ingest_symbols.go
+    - Path: pkg/refactorindex/ingest_symbols.go
       Note: Symbol ingestion details reviewed
-    - Path: refactorio/pkg/refactorindex/query.go
+    - Path: pkg/refactorindex/query.go
       Note: Query helpers referenced for API mapping
-    - Path: refactorio/pkg/refactorindex/schema.go
+    - Path: pkg/refactorindex/schema.go
       Note: Schema reviewed while mapping UI requirements
-    - Path: refactorio/pkg/refactorindex/store.go
+    - Path: pkg/refactorindex/store.go
       Note: DB initialization and FTS setup reviewed
-    - Path: refactorio/pkg/workbenchapi/code_units.go
+    - Path: pkg/workbenchapi/api_test.go
+      Note: Added endpoint smoke tests for db info
+    - Path: pkg/workbenchapi/code_units.go
       Note: Code unit list/detail/history/diff endpoints
-    - Path: refactorio/pkg/workbenchapi/commits.go
+    - Path: pkg/workbenchapi/commits.go
       Note: Commit list/detail/files/diff endpoints
-    - Path: refactorio/pkg/workbenchapi/db.go
+    - Path: pkg/workbenchapi/db.go
       Note: Workspace-aware DB open helper
-    - Path: refactorio/pkg/workbenchapi/db_info.go
+    - Path: pkg/workbenchapi/db_info.go
       Note: DB info endpoint and schema/FTS detection
-    - Path: refactorio/pkg/workbenchapi/decode.go
+    - Path: pkg/workbenchapi/decode.go
       Note: Strict JSON decoding helper
-    - Path: refactorio/pkg/workbenchapi/diffs.go
+    - Path: pkg/workbenchapi/diffs.go
       Note: Diff run/file endpoints and hunk/line loading
-    - Path: refactorio/pkg/workbenchapi/docs.go
+    - Path: pkg/workbenchapi/docs.go
       Note: Doc term and hit endpoints
-    - Path: refactorio/pkg/workbenchapi/files.go
+    - Path: pkg/workbenchapi/files.go
       Note: File tree
-    - Path: refactorio/pkg/workbenchapi/json.go
+    - Path: pkg/workbenchapi/json.go
       Note: Shared JSON and error response helpers
-    - Path: refactorio/pkg/workbenchapi/routes.go
+    - Path: pkg/workbenchapi/routes.go
       Note: Base route registration
-    - Path: refactorio/pkg/workbenchapi/runs.go
+    - Path: pkg/workbenchapi/runs.go
       Note: Run list/detail/summary and raw outputs endpoints
-    - Path: refactorio/pkg/workbenchapi/search.go
+    - Path: pkg/workbenchapi/search.go
       Note: FTS-backed search endpoints and unified search
-    - Path: refactorio/pkg/workbenchapi/server.go
+    - Path: pkg/workbenchapi/server.go
       Note: Server config
-    - Path: refactorio/pkg/workbenchapi/symbols.go
+    - Path: pkg/workbenchapi/symbols.go
       Note: Symbol list/detail/ref endpoints
-    - Path: refactorio/pkg/workbenchapi/tree_sitter.go
+    - Path: pkg/workbenchapi/tree_sitter.go
       Note: Tree-sitter capture listing endpoint
-    - Path: refactorio/pkg/workbenchapi/workspace.go
+    - Path: pkg/workbenchapi/workspace.go
       Note: Workspace config model and CRUD handlers
 ExternalSources: []
 Summary: Diary for backend API documentation and analysis.
@@ -67,6 +69,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -950,4 +953,57 @@ gofmt -w refactorio/pkg/workbenchapi/tree_sitter.go refactorio/pkg/workbenchapi/
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/tree_sitter.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add tree-sitter capture endpoint"
+```
+
+## Step 17: Add Workbench API Smoke Tests
+I added a small suite of endpoint smoke tests to ensure the server wiring and store-backed reads work end-to-end for the core browse UI. The tests seed a minimal SQLite database using the refactorindex store and exercise the handler routing through `httptest`.
+
+This gives us a regression net for DB info, runs listing, and symbol search, while keeping the setup lightweight enough to run in the package test suite.
+
+### Prompt Context
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Finish the remaining task by adding and validating API tests, then record the work and update ticket bookkeeping.
+
+**Inferred user intent:** Ensure the new API surface has basic tests and leave a paper trail of what was implemented.
+
+**Commit (code):** 61a2d0c — "Add workbench API endpoint tests"
+
+### What I did
+- Added `pkg/workbenchapi/api_test.go` with DB seeding helpers and three smoke tests.
+- Wired the tests to call `NewServer` and `srv.rootMux` with `httptest` requests.
+- Ensured a representative file exists on disk for file-based lookups by creating a temp file tree.
+
+### Why
+- Core browse flows need a minimal regression net to catch broken handlers or store reads.
+
+### What worked
+- `go test ./pkg/workbenchapi` passed with the new tests.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Seeding via the refactorindex store keeps tests aligned with the actual ingest contract.
+
+### What was tricky to build
+Making the test data comprehensive enough for multiple endpoints while keeping setup time low required a careful selection of minimal rows and a single transaction for insertions.
+
+### What warrants a second pair of eyes
+- Confirm the seeded data covers the most common symbol search and run listing paths without overfitting to current implementation details.
+
+### What should be done in the future
+- Expand tests to cover `/api/code-units/:hash` and `/api/files` if UI relies heavily on those endpoints.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/api_test.go`.
+- Validate with `go test ./pkg/workbenchapi`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/api_test.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/api_test.go
+git -C refactorio commit -m "Add workbench API endpoint tests"
 ```

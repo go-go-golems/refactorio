@@ -17,4 +17,4 @@
 - [x] Implement docs endpoints (/api/docs/terms, /api/docs/hits)
 - [x] Implement files endpoints (/api/files tree, /api/file content, /api/files/history)
 - [x] Implement optional tree-sitter capture endpoint (/api/tree-sitter/captures)
-- [ ] Add API tests (db info, runs list, search smoke)
+- [x] Add API tests (db info, runs list, search smoke)
