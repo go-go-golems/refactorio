@@ -18,7 +18,7 @@ const meta: Meta<typeof SearchPage> = {
           const filtered = query
             ? mockSearchResults.filter(
                 (r) =>
-                  r.label.toLowerCase().includes(query.toLowerCase()) ||
+                  r.primary.toLowerCase().includes(query.toLowerCase()) ||
                   r.snippet?.toLowerCase().includes(query.toLowerCase()),
               )
             : mockSearchResults

@@ -17,7 +17,7 @@ const meta: Meta<typeof SymbolsPage> = {
           const url = new URL(request.url)
           const limit = parseInt(url.searchParams.get('limit') || '50')
           const offset = parseInt(url.searchParams.get('offset') || '0')
-          const query = url.searchParams.get('q')
+          const query = url.searchParams.get('name')
           const kind = url.searchParams.get('kind')
 
           let items = mockSymbols
@@ -25,7 +25,7 @@ const meta: Meta<typeof SymbolsPage> = {
             items = items.filter(
               (s) =>
                 s.name.toLowerCase().includes(query.toLowerCase()) ||
-                s.package_path.toLowerCase().includes(query.toLowerCase()),
+                s.pkg.toLowerCase().includes(query.toLowerCase()),
             )
           }
           if (kind) {

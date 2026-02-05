@@ -18,7 +18,7 @@ const meta: Meta<typeof CodeUnitsPage> = {
           const limit = parseInt(url.searchParams.get('limit') || '50')
           const offset = parseInt(url.searchParams.get('offset') || '0')
           const kind = url.searchParams.get('kind')
-          const query = url.searchParams.get('q')
+          const query = url.searchParams.get('name')
 
           let items = mockCodeUnits
           if (kind) {
@@ -32,13 +32,13 @@ const meta: Meta<typeof CodeUnitsPage> = {
         }),
         http.get('/api/code-units/:hash', async ({ params }) => {
           await delay(150)
-          const unit = mockCodeUnits.find((u) => u.code_unit_hash === params.hash)
+          const unit = mockCodeUnits.find((u) => u.unit_hash === params.hash)
           if (!unit) {
             return HttpResponse.json({ error: 'Code unit not found' }, { status: 404 })
           }
           return HttpResponse.json({
             ...unit,
-            body: `func NewCommandProcessor(opts ...Option) CommandProcessor {
+            body_text: `func NewCommandProcessor(opts ...Option) CommandProcessor {
   impl := &commandProcessorImpl{
     middleware: make([]Middleware, 0),
     validators: make([]Validator, 0),
@@ -48,7 +48,7 @@ const meta: Meta<typeof CodeUnitsPage> = {
   }
   return impl
 }`,
-            doc_comment: '// NewCommandProcessor creates a new CommandProcessor with the given options.',
+            doc_text: '// NewCommandProcessor creates a new CommandProcessor with the given options.',
           })
         }),
       ],

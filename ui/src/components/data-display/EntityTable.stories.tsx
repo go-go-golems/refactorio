@@ -37,24 +37,24 @@ const symbolColumns: Column<Symbol>[] = [
     render: (s) => <span className="badge bg-secondary-subtle text-secondary">{s.kind}</span>,
   },
   {
-    key: 'package_path',
+    key: 'pkg',
     header: 'Package',
-    render: (s) => <code className="small text-muted">{s.package_path.split('/').pop()}</code>,
+    render: (s) => <code className="small text-muted">{s.pkg.split('/').pop()}</code>,
   },
   {
-    key: 'file_path',
+    key: 'file',
     header: 'Location',
     render: (s) => (
       <span className="text-muted small">
-        {s.file_path}:{s.start_line}
+        {s.file}:{s.line}
       </span>
     ),
   },
   {
-    key: 'exported',
+    key: 'is_exported',
     header: 'Exp',
     width: '50px',
-    render: (s) => (s.exported ? '✓' : ''),
+    render: (s) => (s.is_exported ? '✓' : ''),
   },
 ]
 
@@ -93,10 +93,10 @@ export const SymbolsWithPagination: StoryObj<typeof EntityTable<Symbol>> = {
 // Run table configuration
 const runColumns: Column<Run>[] = [
   {
-    key: 'run_id',
+    key: 'id',
     header: 'ID',
     width: '60px',
-    render: (r) => <span className="font-monospace">#{r.run_id}</span>,
+    render: (r) => <span className="font-monospace">#{r.id}</span>,
   },
   {
     key: 'status',
@@ -124,20 +124,20 @@ export const Runs: StoryObj<typeof EntityTable<Run>> = {
   args: {
     columns: runColumns,
     data: mockRuns,
-    getItemId: (r) => String(r.run_id),
+    getItemId: (r) => String(r.id),
   },
 }
 
 // Commit table configuration
 const commitColumns: Column<Commit>[] = [
   {
-    key: 'commit_hash',
+    key: 'hash',
     header: 'Hash',
     width: '90px',
     render: (c) => (
       <div className="d-flex align-items-center gap-1">
-        <code className="small">{c.commit_hash.slice(0, 7)}</code>
-        <CopyButton text={c.commit_hash} size="sm" />
+        <code className="small">{c.hash.slice(0, 7)}</code>
+        <CopyButton text={c.hash} size="sm" />
       </div>
     ),
   },
@@ -154,11 +154,11 @@ const commitColumns: Column<Commit>[] = [
     sortable: true,
   },
   {
-    key: 'commit_date',
+    key: 'committer_date',
     header: 'Date',
     width: '150px',
     sortable: true,
-    render: (c) => <span className="text-muted small">{new Date(c.commit_date).toLocaleDateString()}</span>,
+    render: (c) => <span className="text-muted small">{new Date(c.committer_date ?? c.author_date ?? '').toLocaleDateString()}</span>,
   },
 ]
 
@@ -166,7 +166,7 @@ export const Commits: StoryObj<typeof EntityTable<Commit>> = {
   args: {
     columns: commitColumns,
     data: mockCommits,
-    getItemId: (c) => c.commit_hash,
+    getItemId: (c) => c.hash,
   },
 }
 

@@ -1,18 +1,31 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useAppSelector, selectActiveWorkspaceId } from '../store'
 import { useSearchUnifiedQuery } from '../api/client'
+import { useSessionContext } from '../hooks/useSessionContext'
 import { GlobalSearchBar } from '../components/search/GlobalSearchBar'
 import { SearchResults } from '../components/data-display/SearchResults'
 
 export function SearchPage() {
-  const workspaceId = useAppSelector(selectActiveWorkspaceId)
+  const { workspaceId, sessionId, searchRunIds } = useSessionContext()
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') || '')
 
+  const searchTypes = useMemo(() => {
+    const types = Object.keys(searchRunIds)
+    if (types.length === 0) return ['files']
+    return [...types, 'files']
+  }, [searchRunIds])
+
+  const request = useMemo(() => ({
+    query,
+    session_id: sessionId ?? undefined,
+    run_ids: searchRunIds,
+    types: searchTypes,
+  }), [query, sessionId, searchRunIds, searchTypes])
+
   const { data: results, isLoading, isFetching } = useSearchUnifiedQuery(
-    { workspace_id: workspaceId!, request: { query } },
-    { skip: !workspaceId || !query },
+    { workspace_id: workspaceId!, request },
+    { skip: !workspaceId || !query || !sessionId },
   )
 
   useEffect(() => {
@@ -27,6 +40,7 @@ export function SearchPage() {
   }
 
   if (!workspaceId) return <div className="p-4 text-muted">Select a workspace first.</div>
+  if (!sessionId) return <div className="p-4 text-muted">Select a session first.</div>
 
   return (
     <div className="p-4 d-flex flex-column h-100">

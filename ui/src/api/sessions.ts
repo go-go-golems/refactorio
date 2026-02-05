@@ -5,7 +5,7 @@ const sessionsApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getSessions: builder.query<Session[], string>({
       query: (workspaceId) => `/sessions${qs({ workspace_id: workspaceId })}`,
-      transformResponse: (response: { sessions: Session[] }) => response.sessions,
+      transformResponse: (response: { items: Session[] }) => response.items,
       providesTags: ['Session'],
     }),
     getSession: builder.query<Session, { id: string; workspace_id: string }>({

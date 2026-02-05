@@ -14,11 +14,11 @@ export default meta
 type Story = StoryObj<typeof SymbolDetail>
 
 const mockRefs: SymbolRef[] = [
-  { file_path: 'pkg/handlers/command.go', start_line: 45, start_col: 6, end_line: 45, end_col: 22, is_declaration: true },
-  { file_path: 'pkg/handlers/command.go', start_line: 67, start_col: 34, end_line: 67, end_col: 50, is_declaration: false },
-  { file_path: 'pkg/handlers/middleware.go', start_line: 23, start_col: 12, end_line: 23, end_col: 28, is_declaration: false },
-  { file_path: 'cmd/refactorio/api.go', start_line: 89, start_col: 8, end_line: 89, end_col: 24, is_declaration: false },
-  { file_path: 'pkg/handlers/types.go', start_line: 12, start_col: 4, end_line: 12, end_col: 20, is_declaration: false },
+  { run_id: 44, commit_hash: 'abc1234', symbol_hash: 'a7b3c9f2', path: 'pkg/handlers/command.go', line: 45, col: 6, is_decl: true, source: 'gopls' },
+  { run_id: 44, commit_hash: 'abc1234', symbol_hash: 'a7b3c9f2', path: 'pkg/handlers/command.go', line: 67, col: 34, is_decl: false, source: 'gopls' },
+  { run_id: 44, commit_hash: 'abc1234', symbol_hash: 'a7b3c9f2', path: 'pkg/handlers/middleware.go', line: 23, col: 12, is_decl: false, source: 'gopls' },
+  { run_id: 44, commit_hash: 'abc1234', symbol_hash: 'a7b3c9f2', path: 'cmd/refactorio/api.go', line: 89, col: 8, is_decl: false, source: 'gopls' },
+  { run_id: 44, commit_hash: 'abc1234', symbol_hash: 'a7b3c9f2', path: 'pkg/handlers/types.go', line: 12, col: 4, is_decl: false, source: 'gopls' },
 ]
 
 export const Default: Story = {

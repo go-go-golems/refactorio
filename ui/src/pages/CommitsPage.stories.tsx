@@ -21,10 +21,11 @@ const meta: Meta<typeof CommitsPage> = {
 
           let items = mockCommits
           if (query) {
+            const q = query.toLowerCase()
             items = items.filter(
               (c) =>
-                c.subject.toLowerCase().includes(query.toLowerCase()) ||
-                c.author_name.toLowerCase().includes(query.toLowerCase()),
+                (c.subject ?? '').toLowerCase().includes(q) ||
+                (c.author_name ?? '').toLowerCase().includes(q),
             )
           }
           const paginated = items.slice(offset, offset + limit)

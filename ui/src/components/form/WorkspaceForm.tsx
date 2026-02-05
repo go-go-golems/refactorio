@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import type { Workspace } from '../../types/api'
 
 export interface WorkspaceFormData {
+  id: string
   name: string
   db_path: string
   repo_root: string
@@ -22,6 +23,7 @@ export interface WorkspaceFormProps {
 
 function validate(data: WorkspaceFormData): Record<string, string> {
   const errors: Record<string, string> = {}
+  if (!data.id.trim()) errors.id = 'ID is required'
   if (!data.name.trim()) errors.name = 'Name is required'
   if (!data.db_path.trim()) errors.db_path = 'Database path is required'
   if (data.db_path && !data.db_path.endsWith('.db') && !data.db_path.endsWith('.sqlite')) {
@@ -38,6 +40,7 @@ export function WorkspaceForm({
   error,
 }: WorkspaceFormProps) {
   const [data, setData] = useState<WorkspaceFormData>({
+    id: workspace?.id ?? '',
     name: workspace?.name ?? '',
     db_path: workspace?.db_path ?? '',
     repo_root: workspace?.repo_root ?? '',
@@ -55,7 +58,7 @@ export function WorkspaceForm({
       e.preventDefault()
       const validationErrors = validate(data)
       setErrors(validationErrors)
-      setTouched(new Set(['name', 'db_path', 'repo_root']))
+      setTouched(new Set(['id', 'name', 'db_path', 'repo_root']))
       if (Object.keys(validationErrors).length === 0) {
         onSubmit(data)
       }
@@ -74,6 +77,25 @@ export function WorkspaceForm({
           {error}
         </div>
       )}
+
+      <div className="mb-3">
+        <label htmlFor="ws-id" className="form-label small">
+          ID <span className="text-danger">*</span>
+        </label>
+        <input
+          type="text"
+          className={`form-control form-control-sm font-monospace ${touched.has('id') && errors.id ? 'is-invalid' : ''}`}
+          id="ws-id"
+          value={data.id}
+          onChange={(e) => handleChange('id', e.target.value)}
+          placeholder="e.g. glazed"
+          disabled={loading || isEdit}
+        />
+        {touched.has('id') && errors.id && (
+          <div className="invalid-feedback">{errors.id}</div>
+        )}
+        <div className="form-text">Stable workspace identifier (cannot be changed later).</div>
+      </div>
 
       <div className="mb-3">
         <label htmlFor="ws-name" className="form-label small">

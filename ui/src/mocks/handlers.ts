@@ -30,7 +30,7 @@ export const handlers = [
   // Workspaces
   http.get(`${API_BASE}/workspaces`, async () => {
     await delay(150)
-    return HttpResponse.json({ workspaces: mockWorkspaces })
+    return HttpResponse.json({ items: mockWorkspaces })
   }),
 
   http.get(`${API_BASE}/workspaces/:id`, async ({ params }) => {
@@ -45,9 +45,10 @@ export const handlers = [
   http.post(`${API_BASE}/workspaces`, async ({ request }) => {
     await delay(200)
     const body = (await request.json()) as Record<string, unknown>
+    const id = typeof body.id === 'string' && body.id.trim() ? body.id : `ws-${Date.now()}`
     return HttpResponse.json({
-      id: `ws-${Date.now()}`,
-      name: body.name || 'New Workspace',
+      id,
+      name: body.name || id || 'New Workspace',
       db_path: body.db_path || '/tmp/new.db',
       repo_root: body.repo_root || '',
       created_at: new Date().toISOString(),
@@ -83,7 +84,7 @@ export const handlers = [
 
   http.get(`${API_BASE}/runs/:id`, async ({ params }) => {
     await delay(100)
-    const run = mockRuns.find((r) => r.run_id === parseInt(params.id as string))
+    const run = mockRuns.find((r) => r.id === parseInt(params.id as string))
     if (!run) {
       return HttpResponse.json({ error: 'Run not found' }, { status: 404 })
     }
@@ -98,7 +99,7 @@ export const handlers = [
   // Sessions
   http.get(`${API_BASE}/sessions`, async () => {
     await delay(150)
-    return HttpResponse.json({ sessions: mockSessions })
+    return HttpResponse.json({ items: mockSessions })
   }),
 
   http.get(`${API_BASE}/sessions/:id`, async ({ params }) => {
@@ -116,7 +117,7 @@ export const handlers = [
     const url = new URL(request.url)
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const offset = parseInt(url.searchParams.get('offset') || '0')
-    const query = url.searchParams.get('q')
+    const query = url.searchParams.get('name')
     const kind = url.searchParams.get('kind')
 
     let items = mockSymbols
@@ -124,7 +125,7 @@ export const handlers = [
       items = items.filter(
         (s) =>
           s.name.toLowerCase().includes(query.toLowerCase()) ||
-          s.package_path.toLowerCase().includes(query.toLowerCase())
+          s.pkg.toLowerCase().includes(query.toLowerCase())
       )
     }
     if (kind) {
@@ -170,13 +171,13 @@ export const handlers = [
 
   http.get(`${API_BASE}/code-units/:hash`, async ({ params }) => {
     await delay(100)
-    const unit = mockCodeUnits.find((u) => u.code_unit_hash === params.hash)
+    const unit = mockCodeUnits.find((u) => u.unit_hash === params.hash)
     if (!unit) {
       return HttpResponse.json({ error: 'Code unit not found' }, { status: 404 })
     }
     return HttpResponse.json({
       ...unit,
-      body: `func NewCommandProcessor(opts ...Option) CommandProcessor {
+      body_text: `func NewCommandProcessor(opts ...Option) CommandProcessor {
   impl := &commandProcessorImpl{
     middleware: make([]Middleware, 0),
     validators: make([]Validator, 0),
@@ -186,7 +187,7 @@ export const handlers = [
   }
   return impl
 }`,
-      doc_comment: '// NewCommandProcessor creates a new CommandProcessor with the given options.',
+      doc_text: '// NewCommandProcessor creates a new CommandProcessor with the given options.',
     })
   }),
 
@@ -200,10 +201,11 @@ export const handlers = [
 
     let items = mockCommits
     if (query) {
+      const q = query.toLowerCase()
       items = items.filter(
         (c) =>
-          c.subject.toLowerCase().includes(query.toLowerCase()) ||
-          c.author_name.toLowerCase().includes(query.toLowerCase())
+          (c.subject ?? '').toLowerCase().includes(q) ||
+          (c.author_name ?? '').toLowerCase().includes(q)
       )
     }
     const paginated = items.slice(offset, offset + limit)
@@ -212,7 +214,7 @@ export const handlers = [
 
   http.get(`${API_BASE}/commits/:hash`, async ({ params }) => {
     await delay(100)
-    const commit = mockCommits.find((c) => c.commit_hash === params.hash)
+    const commit = mockCommits.find((c) => c.hash === params.hash)
     if (!commit) {
       return HttpResponse.json({ error: 'Commit not found' }, { status: 404 })
     }
@@ -230,11 +232,10 @@ export const handlers = [
     return HttpResponse.json({
       items: [
         {
-          run_id: 43,
+          id: 43,
           root_path: '/Users/dev/src/glazed',
           git_from: 'HEAD~20',
           git_to: 'HEAD',
-          files_count: mockDiffFiles.length,
         },
       ],
     })
@@ -315,7 +316,7 @@ func NewCommandProcessor(opts ...Option) CommandProcessor {
     if (body.query) {
       const q = body.query.toLowerCase()
       results = results.filter(
-        (r) => r.label.toLowerCase().includes(q) || r.snippet?.toLowerCase().includes(q)
+        (r) => r.primary.toLowerCase().includes(q) || r.snippet?.toLowerCase().includes(q)
       )
     }
 

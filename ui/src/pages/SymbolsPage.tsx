@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useAppSelector, selectActiveWorkspaceId } from '../store'
+import { useEffect, useState } from 'react'
 import { useGetSymbolsQuery, useGetSymbolRefsQuery } from '../api/client'
+import { useSessionContext } from '../hooks/useSessionContext'
 import { EntityTable, type Column } from '../components/data-display/EntityTable'
 import { InspectorPanel } from '../components/detail/InspectorPanel'
 import { SymbolDetail } from '../components/detail/SymbolDetail'
@@ -11,33 +11,42 @@ const columns: Column<Symbol>[] = [
   { key: 'kind', header: '', width: '32px', render: (s) => <EntityIcon type="symbol" kind={s.kind} size="sm" /> },
   { key: 'name', header: 'Name', render: (s) => <span className="font-monospace fw-medium">{s.name}</span>, sortable: true },
   { key: 'kind_label', header: 'Kind', width: '80px', render: (s) => <span className="small text-muted">{s.kind}</span> },
-  { key: 'package_path', header: 'Package', render: (s) => <span className="font-monospace small text-truncate d-block" style={{ maxWidth: 200 }}>{s.package_path}</span> },
-  { key: 'file_path', header: 'File', render: (s) => <span className="font-monospace small">{s.file_path}:{s.start_line}</span> },
+  { key: 'pkg', header: 'Package', render: (s) => <span className="font-monospace small text-truncate d-block" style={{ maxWidth: 200 }}>{s.pkg}</span> },
+  { key: 'file', header: 'File', render: (s) => <span className="font-monospace small">{s.file}:{s.line}</span> },
 ]
 
 export function SymbolsPage() {
-  const workspaceId = useAppSelector(selectActiveWorkspaceId)
+  const { workspaceId, sessionId, activeSession } = useSessionContext()
   const [offset, setOffset] = useState(0)
   const [selectedSymbol, setSelectedSymbol] = useState<Symbol | null>(null)
   const [kindFilter, setKindFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 50
+  const symbolsRunId = activeSession?.runs.symbols
+  const refsRunId = activeSession?.runs.gopls_refs ?? activeSession?.runs.symbols
+  const symbolsAvailable = Boolean(symbolsRunId)
 
   const { data: symbols, isLoading } = useGetSymbolsQuery(
     {
       workspace_id: workspaceId!,
+      run_id: symbolsRunId,
       limit,
       offset,
       kind: kindFilter || undefined,
-      q: searchQuery || undefined,
+      name: searchQuery || undefined,
     },
-    { skip: !workspaceId },
+    { skip: !workspaceId || !symbolsRunId },
   )
 
   const { data: refs, isFetching: refsLoading } = useGetSymbolRefsQuery(
-    { hash: selectedSymbol?.symbol_hash ?? '', workspace_id: workspaceId! },
-    { skip: !selectedSymbol || !workspaceId },
+    { hash: selectedSymbol?.symbol_hash ?? '', workspace_id: workspaceId!, run_id: refsRunId },
+    { skip: !selectedSymbol || !workspaceId || !refsRunId },
   )
+
+  useEffect(() => {
+    setSelectedSymbol(null)
+    setOffset(0)
+  }, [sessionId])
 
   if (!workspaceId) {
     return <div className="p-4 text-muted">Select a workspace first.</div>
@@ -70,12 +79,12 @@ export function SymbolsPage() {
         <EntityTable
           columns={columns}
           data={symbols ?? []}
-          loading={isLoading}
+          loading={isLoading && symbolsAvailable}
           selectedId={selectedSymbol?.symbol_hash}
           onSelect={(s) => setSelectedSymbol(s)}
           getItemId={(s) => s.symbol_hash}
           pagination={{ limit, offset, onChange: setOffset }}
-          emptyMessage="No symbols found"
+          emptyMessage={symbolsAvailable ? 'No symbols found' : 'No symbol data for this session'}
         />
       </div>
       {selectedSymbol && (
@@ -89,7 +98,7 @@ export function SymbolsPage() {
               symbol={selectedSymbol}
               refs={refs}
               refsLoading={refsLoading}
-              refsAvailable={true}
+              refsAvailable={Boolean(refsRunId)}
             />
           </InspectorPanel>
         </div>

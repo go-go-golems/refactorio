@@ -13,11 +13,11 @@ export function WorkspacePage() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Workspace | undefined>(undefined)
 
-  const { data: wsConfig, isLoading } = useGetWorkspacesQuery()
+  const { data: workspacesData, isLoading } = useGetWorkspacesQuery()
   const [createWorkspace, { isLoading: creating }] = useCreateWorkspaceMutation()
   const [updateWorkspace, { isLoading: updating }] = useUpdateWorkspaceMutation()
 
-  const workspaces = wsConfig?.workspaces ?? []
+  const workspaces = workspacesData ?? []
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId)
 
   const handleSelect = (ws: Workspace) => {
@@ -28,7 +28,8 @@ export function WorkspacePage() {
   const handleSubmit = async (data: WorkspaceFormData) => {
     try {
       if (editing) {
-        await updateWorkspace({ id: editing.id, data }).unwrap()
+        const { id: _id, ...patch } = data
+        await updateWorkspace({ id: editing.id, data: patch }).unwrap()
       } else {
         const result = await createWorkspace(data).unwrap()
         dispatch(setActiveWorkspace(result.id))

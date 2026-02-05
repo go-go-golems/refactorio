@@ -14,11 +14,11 @@ export default meta
 type Story = StoryObj<typeof CommitDetail>
 
 const commitFiles: CommitFile[] = [
-  { file_path: 'pkg/handlers/command.go', status: 'M', additions: 45, deletions: 23 },
-  { file_path: 'pkg/handlers/middleware.go', status: 'M', additions: 12, deletions: 5 },
-  { file_path: 'pkg/handlers/types.go', status: 'A', additions: 89, deletions: 0 },
-  { file_path: 'pkg/handlers/old_types.go', status: 'D', additions: 0, deletions: 34 },
-  { file_path: 'pkg/handlers/command_test.go', status: 'M', additions: 22, deletions: 8 },
+  { path: 'pkg/handlers/command.go', status: 'M' },
+  { path: 'pkg/handlers/middleware.go', status: 'M' },
+  { path: 'pkg/handlers/types.go', status: 'A' },
+  { path: 'pkg/handlers/old_types.go', status: 'D' },
+  { path: 'pkg/handlers/command_test.go', status: 'M' },
 ]
 
 export const Default: Story = {
@@ -32,7 +32,7 @@ export const WithFiles: Story = {
   args: {
     commit: mockCommits[0],
     files: commitFiles,
-    onFileClick: (f) => alert(`Click: ${f.file_path}`),
+    onFileClick: (f) => alert(`Click: ${f.path}`),
     onViewDiff: () => {},
   },
 }

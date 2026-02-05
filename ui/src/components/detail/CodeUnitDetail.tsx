@@ -31,8 +31,8 @@ export function CodeUnitDetail({
   onAddToPlan,
   onOpenInEditor,
 }: CodeUnitDetailProps) {
-  const displayName = codeUnit.receiver
-    ? `(${codeUnit.receiver}).${codeUnit.name}`
+  const displayName = codeUnit.recv
+    ? `(${codeUnit.recv}).${codeUnit.name}`
     : codeUnit.name
 
   return (
@@ -50,27 +50,29 @@ export function CodeUnitDetail({
       {/* Fields */}
       <div className="mb-3">
         <FieldRow label="Package">
-          <span className="font-monospace">{codeUnit.package_path}</span>
+          <span className="font-monospace">{codeUnit.pkg}</span>
         </FieldRow>
         <FieldRow label="File">
-          <span className="font-monospace">{codeUnit.file_path}:{codeUnit.start_line}</span>
-          <CopyButton text={`${codeUnit.file_path}:${codeUnit.start_line}`} size="sm" variant="icon" />
+          <span className="font-monospace">{codeUnit.file}:{codeUnit.start_line}</span>
+          <CopyButton text={`${codeUnit.file}:${codeUnit.start_line}`} size="sm" variant="icon" />
         </FieldRow>
         <FieldRow label="Range">
           L{codeUnit.start_line}:{codeUnit.start_col} &ndash; L{codeUnit.end_line}:{codeUnit.end_col}
         </FieldRow>
-        <FieldRow label="Body Hash">
-          <span className="font-monospace">{codeUnit.body_hash.slice(0, 12)}</span>
-          <CopyButton text={codeUnit.body_hash} size="sm" variant="icon" />
-        </FieldRow>
+        {codeUnit.body_hash && (
+          <FieldRow label="Body Hash">
+            <span className="font-monospace">{codeUnit.body_hash.slice(0, 12)}</span>
+            <CopyButton text={codeUnit.body_hash} size="sm" variant="icon" />
+          </FieldRow>
+        )}
       </div>
 
       {/* Doc comment */}
-      {codeUnit.doc_comment && (
+      {codeUnit.doc_text && (
         <div className="mb-3">
           <label className="text-muted small text-uppercase mb-1 d-block">Doc Comment</label>
           <div className="bg-body-tertiary p-2 rounded small" style={{ whiteSpace: 'pre-wrap' }}>
-            {codeUnit.doc_comment}
+            {codeUnit.doc_text}
           </div>
         </div>
       )}
@@ -79,7 +81,7 @@ export function CodeUnitDetail({
       <div className="mb-3">
         <label className="text-muted small text-uppercase mb-1 d-block">Body</label>
         <CodeViewer
-          content={codeUnit.body}
+          content={codeUnit.body_text}
           language="go"
           startLine={codeUnit.start_line}
           maxHeight="300px"
@@ -109,18 +111,22 @@ export function CodeUnitDetail({
           <div style={{ maxHeight: 200, overflowY: 'auto' }}>
             {history.map((ver, i) => (
               <div
-                key={`${ver.code_unit_hash}-${ver.run_id}`}
+                key={`${ver.unit_hash}-${ver.run_id}`}
                 className="d-flex align-items-center justify-content-between py-1 border-bottom"
               >
                 <div className="small">
-                  <span className="font-monospace">{ver.body_hash.slice(0, 8)}</span>
+                  {ver.body_hash ? (
+                    <span className="font-monospace">{ver.body_hash.slice(0, 8)}</span>
+                  ) : (
+                    <span className="font-monospace">unknown</span>
+                  )}
                   <span className="text-muted ms-2">run #{ver.run_id}</span>
                 </div>
                 {onDiff && i < history.length - 1 && (
                   <button
                     type="button"
                     className="btn btn-link btn-sm p-0"
-                    onClick={() => onDiff(history[i + 1].code_unit_hash, ver.code_unit_hash)}
+                    onClick={() => onDiff(history[i + 1].unit_hash, ver.unit_hash)}
                   >
                     Diff
                   </button>

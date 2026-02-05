@@ -63,16 +63,16 @@ function DiffLineRow({
       {showLineNumbers && (
         <>
           <span className="line-number old">
-            {line.old_line ?? ''}
+            {line.line_no_old ?? ''}
           </span>
           <span className="line-number new">
-            {line.new_line ?? ''}
+            {line.line_no_new ?? ''}
           </span>
         </>
       )}
       <span className="diff-symbol">{kindSymbol}</span>
       <span className="line-content">
-        {highlightQuery ? highlightMatch(line.content, highlightQuery) : line.content}
+        {highlightQuery ? highlightMatch(line.text, highlightQuery) : line.text}
       </span>
     </div>
   )
@@ -81,7 +81,7 @@ function DiffLineRow({
 function HunkHeader({ hunk }: { hunk: DiffHunk }) {
   return (
     <div className="hunk-header">
-      @@ -{hunk.old_start},{hunk.old_count} +{hunk.new_start},{hunk.new_count} @@
+      @@ -{hunk.old_start},{hunk.old_lines} +{hunk.new_start},{hunk.new_lines} @@
     </div>
   )
 }

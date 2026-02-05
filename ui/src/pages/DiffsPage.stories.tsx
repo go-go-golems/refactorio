@@ -16,11 +16,10 @@ const meta: Meta<typeof DiffsPage> = {
           return HttpResponse.json({
             items: [
               {
-                run_id: 43,
+                id: 43,
                 root_path: '/Users/dev/src/glazed',
                 git_from: 'HEAD~20',
                 git_to: 'HEAD',
-                files_count: 3,
               },
             ],
           })

@@ -12,7 +12,7 @@ const diffsApi = api.injectEndpoints({
       query: ({ run_id, ...params }) => `/diff/${run_id}/files${qs(params)}`,
       transformResponse: (response: { items: DiffFile[] }) => response.items,
     }),
-    getDiffFile: builder.query<DiffHunk[], { run_id: number; workspace_id: string; file_path: string }>({
+    getDiffFile: builder.query<DiffHunk[], { run_id: number; workspace_id: string; path: string }>({
       query: ({ run_id, ...params }) => `/diff/${run_id}/file${qs(params)}`,
       transformResponse: (response: { hunks: DiffHunk[] }) => response.hunks,
     }),

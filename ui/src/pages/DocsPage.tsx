@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useAppSelector, selectActiveWorkspaceId } from '../store'
+import { useEffect, useState } from 'react'
 import { useGetDocTermsQuery, useGetDocHitsQuery } from '../api/client'
+import { useSessionContext } from '../hooks/useSessionContext'
 import { EntityTable, type Column } from '../components/data-display/EntityTable'
 import { InspectorPanel, InspectorSection } from '../components/detail/InspectorPanel'
 import type { DocTerm } from '../types/api'
@@ -11,20 +11,27 @@ const columns: Column<DocTerm>[] = [
 ]
 
 export function DocsPage() {
-  const workspaceId = useAppSelector(selectActiveWorkspaceId)
+  const { workspaceId, sessionId, activeSession } = useSessionContext()
   const [offset, setOffset] = useState(0)
   const [selected, setSelected] = useState<DocTerm | null>(null)
   const limit = 50
+  const docsRunId = activeSession?.runs.doc_hits
+  const docsAvailable = Boolean(docsRunId)
 
   const { data: terms, isLoading } = useGetDocTermsQuery(
-    { workspace_id: workspaceId!, limit, offset },
-    { skip: !workspaceId },
+    { workspace_id: workspaceId!, run_id: docsRunId, limit, offset },
+    { skip: !workspaceId || !docsRunId },
   )
 
   const { data: hits, isFetching: hitsLoading } = useGetDocHitsQuery(
-    { workspace_id: workspaceId!, term: selected?.term },
-    { skip: !selected || !workspaceId },
+    { workspace_id: workspaceId!, run_id: docsRunId, term: selected?.term },
+    { skip: !selected || !workspaceId || !docsRunId },
   )
+
+  useEffect(() => {
+    setSelected(null)
+    setOffset(0)
+  }, [sessionId])
 
   if (!workspaceId) return <div className="p-4 text-muted">Select a workspace first.</div>
 
@@ -40,7 +47,7 @@ export function DocsPage() {
           onSelect={setSelected}
           getItemId={(t) => t.term}
           pagination={{ limit, offset, onChange: setOffset }}
-          emptyMessage="No document terms found"
+          emptyMessage={docsAvailable ? 'No document terms found' : 'No doc hit data for this session'}
         />
       </div>
       {selected && (
@@ -51,7 +58,7 @@ export function DocsPage() {
                 <div style={{ maxHeight: 400, overflowY: 'auto' }}>
                   {hits.map((hit, i) => (
                     <div key={i} className="border-bottom py-2 px-1">
-                      <div className="font-monospace small text-truncate">{hit.file_path}:{hit.line}</div>
+                      <div className="font-monospace small text-truncate">{hit.path}:{hit.line}</div>
                       <div className="small text-muted">{hit.match_text}</div>
                     </div>
                   ))}

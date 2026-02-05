@@ -7,7 +7,7 @@ import { StatusBadge } from '../components/foundation/StatusBadge'
 import type { Run } from '../types/api'
 
 const columns: Column<Run>[] = [
-  { key: 'run_id', header: 'ID', width: '60px', render: (r) => <span className="font-monospace">#{r.run_id}</span> },
+  { key: 'id', header: 'ID', width: '60px', render: (r) => <span className="font-monospace">#{r.id}</span> },
   {
     key: 'status', header: 'Status', width: '90px',
     render: (r) => <StatusBadge status={r.status === 'success' ? 'success' : r.status === 'failed' ? 'failed' : 'running'} label={r.status} size="sm" />,
@@ -28,7 +28,7 @@ export function RunsPage() {
     { skip: !workspaceId },
   )
   const { data: summary } = useGetRunSummaryQuery(
-    { id: selectedRun?.run_id ?? 0, workspace_id: workspaceId! },
+    { id: selectedRun?.id ?? 0, workspace_id: workspaceId! },
     { skip: !selectedRun || !workspaceId },
   )
 
@@ -44,9 +44,9 @@ export function RunsPage() {
           columns={columns}
           data={runs ?? []}
           loading={isLoading}
-          selectedId={selectedRun ? String(selectedRun.run_id) : undefined}
+          selectedId={selectedRun ? String(selectedRun.id) : undefined}
           onSelect={(run) => setSelectedRun(run)}
-          getItemId={(r) => String(r.run_id)}
+          getItemId={(r) => String(r.id)}
           pagination={{ limit, offset, onChange: setOffset }}
           emptyMessage="No runs found"
         />
@@ -54,14 +54,14 @@ export function RunsPage() {
       {selectedRun && (
         <div style={{ width: 320, flexShrink: 0, borderLeft: '1px solid var(--bs-border-color)' }}>
           <InspectorPanel
-            title={`Run #${selectedRun.run_id}`}
+            title={`Run #${selectedRun.id}`}
             subtitle={selectedRun.status}
             onClose={() => setSelectedRun(null)}
           >
             <InspectorSection title="Details">
               <div className="small">
                 <div className="mb-1"><strong>Status:</strong> <StatusBadge status={selectedRun.status === 'success' ? 'success' : 'failed'} label={selectedRun.status} size="sm" /></div>
-                <div className="mb-1"><strong>Root:</strong> <span className="font-monospace">{selectedRun.root_path}</span></div>
+                {selectedRun.root_path && <div className="mb-1"><strong>Root:</strong> <span className="font-monospace">{selectedRun.root_path}</span></div>}
                 {selectedRun.git_from && <div className="mb-1"><strong>From:</strong> {selectedRun.git_from}</div>}
                 {selectedRun.git_to && <div className="mb-1"><strong>To:</strong> {selectedRun.git_to}</div>}
                 <div className="mb-1"><strong>Started:</strong> {new Date(selectedRun.started_at).toLocaleString()}</div>
@@ -71,11 +71,11 @@ export function RunsPage() {
             {summary && (
               <InspectorSection title="Summary" collapsible defaultOpen>
                 <div className="small">
-                  <div className="d-flex justify-content-between mb-1"><span>Symbols</span><span>{summary.symbols_count}</span></div>
-                  <div className="d-flex justify-content-between mb-1"><span>Code Units</span><span>{summary.code_units_count}</span></div>
-                  <div className="d-flex justify-content-between mb-1"><span>Commits</span><span>{summary.commits_count}</span></div>
-                  <div className="d-flex justify-content-between mb-1"><span>Diff Files</span><span>{summary.diff_files_count}</span></div>
-                  <div className="d-flex justify-content-between mb-1"><span>Doc Hits</span><span>{summary.doc_hits_count}</span></div>
+                  <div className="d-flex justify-content-between mb-1"><span>Symbols</span><span>{summary.counts?.symbol_occurrences ?? 0}</span></div>
+                  <div className="d-flex justify-content-between mb-1"><span>Code Units</span><span>{summary.counts?.code_unit_snapshots ?? 0}</span></div>
+                  <div className="d-flex justify-content-between mb-1"><span>Commits</span><span>{summary.counts?.commits ?? 0}</span></div>
+                  <div className="d-flex justify-content-between mb-1"><span>Diff Files</span><span>{summary.counts?.diff_files ?? 0}</span></div>
+                  <div className="d-flex justify-content-between mb-1"><span>Doc Hits</span><span>{summary.counts?.doc_hits ?? 0}</span></div>
                 </div>
               </InspectorSection>
             )}

@@ -8,7 +8,7 @@ const docsApi = api.injectEndpoints({
       transformResponse: (response: { items: DocTerm[] }) => response.items,
       providesTags: ['DocTerm'],
     }),
-    getDocHits: builder.query<DocHit[], { workspace_id: string; term?: string; run_id?: number; path_prefix?: string; limit?: number; offset?: number }>({
+    getDocHits: builder.query<DocHit[], { workspace_id: string; term?: string; run_id?: number; path?: string; limit?: number; offset?: number }>({
       query: (params) => `/docs/hits${qs(params)}`,
       transformResponse: (response: { items: DocHit[] }) => response.items,
     }),

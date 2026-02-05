@@ -15,7 +15,7 @@ export function FilesPage() {
     { skip: !workspaceId },
   )
 
-  const selectedEntry = files?.find((f) => f.path === selectedPath && !f.is_dir)
+  const selectedEntry = files?.find((f) => f.path === selectedPath && f.kind === 'file')
 
   const { data: fileContent, isFetching: contentLoading } = useGetFileContentQuery(
     { workspace_id: workspaceId!, path: selectedPath ?? '' },
@@ -33,7 +33,7 @@ export function FilesPage() {
           selectedPath={selectedPath}
           expandedPaths={expandedPaths}
           onSelect={(entry: FileEntry) => {
-            if (entry.is_dir) {
+            if (entry.kind === 'dir') {
               setExpandedPaths((prev) => {
                 const next = new Set(prev)
                 if (next.has(entry.path)) next.delete(entry.path)

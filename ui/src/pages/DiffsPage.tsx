@@ -1,15 +1,14 @@
-import { useState } from 'react'
-import { useAppSelector, selectActiveWorkspaceId } from '../store'
+import { useEffect, useState } from 'react'
 import { useGetDiffRunsQuery, useGetDiffFilesQuery, useGetDiffFileQuery } from '../api/client'
+import { useSessionContext } from '../hooks/useSessionContext'
 import { EntityTable, type Column } from '../components/data-display/EntityTable'
 import { DiffViewer } from '../components/code-display/DiffViewer'
 import { StatusBadge } from '../components/foundation/StatusBadge'
 import type { DiffRun, DiffFile } from '../types/api'
 
 const runColumns: Column<DiffRun>[] = [
-  { key: 'run_id', header: 'Run', width: '60px', render: (r) => <span className="font-monospace">#{r.run_id}</span> },
-  { key: 'git_range', header: 'Range', render: (r) => <span className="small">{r.git_from} → {r.git_to}</span> },
-  { key: 'files', header: 'Files', width: '60px', render: (r) => <span className="small">{r.files_count}</span> },
+  { key: 'id', header: 'Run', width: '60px', render: (r) => <span className="font-monospace">#{r.id}</span> },
+  { key: 'git_range', header: 'Range', render: (r) => <span className="small">{[r.git_from, r.git_to].filter(Boolean).join(' → ')}</span> },
 ]
 
 const fileColumns: Column<DiffFile>[] = [
@@ -17,32 +16,40 @@ const fileColumns: Column<DiffFile>[] = [
     key: 'status', header: '', width: '32px',
     render: (f) => <StatusBadge status={f.status === 'A' ? 'success' : f.status === 'D' ? 'failed' : 'warning'} label={f.status} size="sm" />,
   },
-  { key: 'path', header: 'File', render: (f) => <span className="font-monospace small text-truncate d-block" style={{ maxWidth: 250 }}>{f.file_path}</span> },
-  {
-    key: 'changes', header: '+/-', width: '80px',
-    render: (f) => <span className="small"><span className="text-success">+{f.additions}</span> <span className="text-danger">-{f.deletions}</span></span>,
-  },
+  { key: 'path', header: 'File', render: (f) => <span className="font-monospace small text-truncate d-block" style={{ maxWidth: 250 }}>{f.path}</span> },
 ]
 
 export function DiffsPage() {
-  const workspaceId = useAppSelector(selectActiveWorkspaceId)
+  const { workspaceId, sessionId, activeSession } = useSessionContext()
   const [selectedRun, setSelectedRun] = useState<DiffRun | null>(null)
   const [selectedFile, setSelectedFile] = useState<DiffFile | null>(null)
+  const diffAvailable = Boolean(activeSession?.runs.diff)
 
   const { data: runs, isLoading: runsLoading } = useGetDiffRunsQuery(
-    { workspace_id: workspaceId! },
-    { skip: !workspaceId },
+    { workspace_id: workspaceId!, session_id: sessionId ?? undefined },
+    { skip: !workspaceId || !sessionId },
   )
 
   const { data: files, isLoading: filesLoading } = useGetDiffFilesQuery(
-    { run_id: selectedRun?.run_id ?? 0, workspace_id: workspaceId! },
+    { run_id: selectedRun?.id ?? 0, workspace_id: workspaceId! },
     { skip: !selectedRun || !workspaceId },
   )
 
   const { data: hunks, isFetching: hunksLoading } = useGetDiffFileQuery(
-    { run_id: selectedRun?.run_id ?? 0, workspace_id: workspaceId!, file_path: selectedFile?.file_path ?? '' },
+    { run_id: selectedRun?.id ?? 0, workspace_id: workspaceId!, path: selectedFile?.path ?? '' },
     { skip: !selectedRun || !selectedFile || !workspaceId },
   )
+
+  useEffect(() => {
+    setSelectedRun(null)
+    setSelectedFile(null)
+  }, [sessionId])
+
+  useEffect(() => {
+    if (!selectedRun && runs && runs.length > 0) {
+      setSelectedRun(runs[0])
+    }
+  }, [runs, selectedRun])
 
   if (!workspaceId) return <div className="p-4 text-muted">Select a workspace first.</div>
 
@@ -54,25 +61,25 @@ export function DiffsPage() {
         <EntityTable
           columns={runColumns}
           data={runs ?? []}
-          loading={runsLoading}
-          selectedId={selectedRun ? String(selectedRun.run_id) : undefined}
+          loading={runsLoading && diffAvailable}
+          selectedId={selectedRun ? String(selectedRun.id) : undefined}
           onSelect={(r) => { setSelectedRun(r); setSelectedFile(null) }}
-          getItemId={(r) => String(r.run_id)}
-          emptyMessage="No diff runs"
+          getItemId={(r) => String(r.id)}
+          emptyMessage={diffAvailable ? 'No diff runs' : 'No diff data for this session'}
         />
       </div>
 
       {/* Middle: File list */}
       {selectedRun && (
         <div style={{ width: 320, flexShrink: 0, borderRight: '1px solid var(--bs-border-color)' }} className="p-3 overflow-auto">
-          <h6 className="mb-2">Files in Run #{selectedRun.run_id}</h6>
+          <h6 className="mb-2">Files in Run #{selectedRun.id}</h6>
           <EntityTable
             columns={fileColumns}
             data={files ?? []}
             loading={filesLoading}
-            selectedId={selectedFile?.file_path}
+            selectedId={selectedFile?.path}
             onSelect={setSelectedFile}
-            getItemId={(f) => f.file_path}
+            getItemId={(f) => f.path}
             emptyMessage="No files"
           />
         </div>
@@ -86,7 +93,7 @@ export function DiffsPage() {
           ) : hunks && hunks.length > 0 ? (
             <>
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="font-monospace small">{selectedFile.file_path}</span>
+                <span className="font-monospace small">{selectedFile.path}</span>
                 <button type="button" className="btn-close btn-sm" onClick={() => setSelectedFile(null)} />
               </div>
               <DiffViewer hunks={hunks} />

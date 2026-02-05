@@ -15,7 +15,7 @@ type Story = StoryObj<typeof CodeUnitDetail>
 
 const funcUnit: CodeUnitDetailType = {
   ...mockCodeUnits[0],
-  body: `func NewCommandProcessor(opts ...Option) CommandProcessor {
+  body_text: `func NewCommandProcessor(opts ...Option) CommandProcessor {
 \tp := &commandProcessorImpl{
 \t\tregistry: NewRegistry(),
 \t\tlogger:   slog.Default(),
@@ -25,12 +25,12 @@ const funcUnit: CodeUnitDetailType = {
 \t}
 \treturn p
 }`,
-  doc_comment: '// NewCommandProcessor creates a new CommandProcessor with the given options.\n// It initializes a default registry and logger.',
+  doc_text: '// NewCommandProcessor creates a new CommandProcessor with the given options.\n// It initializes a default registry and logger.',
 }
 
 const methodUnit: CodeUnitDetailType = {
   ...mockCodeUnits[1],
-  body: `func (p *commandProcessorImpl) Process(ctx context.Context, cmd Command) (Result, error) {
+  body_text: `func (p *commandProcessorImpl) Process(ctx context.Context, cmd Command) (Result, error) {
 \tif err := p.validate(cmd); err != nil {
 \t\treturn Result{}, fmt.Errorf("validation: %w", err)
 \t}
@@ -43,23 +43,23 @@ const methodUnit: CodeUnitDetailType = {
 }
 
 const typeUnit: CodeUnitDetailType = {
-  code_unit_hash: 'cu_type1',
+  unit_hash: 'cu_type1',
+  run_id: 44,
   kind: 'type',
   name: 'CommandProcessor',
-  package_path: 'github.com/go-go-golems/glazed/pkg/handlers',
-  file_path: 'pkg/handlers/command.go',
+  pkg: 'github.com/go-go-golems/glazed/pkg/handlers',
+  file: 'pkg/handlers/command.go',
   start_line: 45,
   start_col: 1,
   end_line: 52,
   end_col: 2,
   body_hash: 'type_body_hash_1',
-  run_id: 44,
-  body: `type CommandProcessor interface {
+  body_text: `type CommandProcessor interface {
 \tProcess(ctx context.Context, cmd Command) (Result, error)
 \tValidate(cmd Command) error
 \tClose() error
 }`,
-  doc_comment: '// CommandProcessor handles command execution and validation.',
+  doc_text: '// CommandProcessor handles command execution and validation.',
 }
 
 const historyVersions: CodeUnit[] = [

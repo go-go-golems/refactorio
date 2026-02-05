@@ -54,15 +54,15 @@ export default function App() {
   const activeSessionId = useAppSelector(selectActiveSessionId)
   const sidebarCollapsed = useAppSelector(selectSidebarCollapsed)
 
-  const { data: wsConfig } = useGetWorkspacesQuery()
+  const { data: workspaces } = useGetWorkspacesQuery()
   const { data: sessions } = useGetSessionsQuery(activeWorkspaceId!, { skip: !activeWorkspaceId })
 
   // Auto-select first workspace if none selected
   useEffect(() => {
-    if (!activeWorkspaceId && wsConfig?.workspaces.length) {
-      dispatch(setActiveWorkspace(wsConfig.workspaces[0].id))
+    if (!activeWorkspaceId && workspaces?.length) {
+      dispatch(setActiveWorkspace(workspaces[0].id))
     }
-  }, [activeWorkspaceId, wsConfig, dispatch])
+  }, [activeWorkspaceId, workspaces, dispatch])
 
   // Auto-select first session when sessions load
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function App() {
     }
   }, [activeSessionId, sessions, dispatch])
 
-  const activeWorkspace = wsConfig?.workspaces.find((w) => w.id === activeWorkspaceId)
+  const activeWorkspace = workspaces?.find((w) => w.id === activeWorkspaceId)
   const activeSession = sessions?.find((s) => s.id === activeSessionId)
 
   // Derive active sidebar item from current path
@@ -84,7 +84,7 @@ export default function App() {
     })?.id
 
   // If no workspace, redirect to workspace setup
-  if (wsConfig && wsConfig.workspaces.length === 0 && location.pathname !== '/workspace') {
+  if (workspaces && workspaces.length === 0 && location.pathname !== '/workspace') {
     return (
       <AppShell>
         <WorkspacePage />

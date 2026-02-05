@@ -60,6 +60,18 @@ function SkeletonResult() {
   )
 }
 
+function buildResultId(result: SearchResult): string {
+  return [
+    result.type,
+    result.primary,
+    result.path ?? '',
+    result.line ?? '',
+    result.col ?? '',
+    result.run_id ?? '',
+    result.commit_hash ?? '',
+  ].join('|')
+}
+
 function ResultItem({
   result,
   selected,
@@ -85,7 +97,7 @@ function ResultItem({
       <div className="flex-grow-1 min-width-0">
         <div className="d-flex justify-content-between align-items-center">
           <span className={`fw-medium ${selected ? '' : ''}`}>
-            {highlightMatch(result.label, query)}
+            {highlightMatch(result.primary, query)}
           </span>
           <span className={`badge ${selected ? 'bg-light text-dark' : 'bg-secondary-subtle text-secondary'}`}>
             {result.type}
@@ -96,9 +108,9 @@ function ResultItem({
             {highlightMatch(result.snippet, query)}
           </div>
         )}
-        {result.location && (
+        {result.path && (
           <div className={`small ${selected ? 'text-light opacity-75' : 'text-muted'}`}>
-            <code className="small">{result.location}</code>
+            <code className="small">{result.path}{result.line ? `:${result.line}` : ''}</code>
           </div>
         )}
       </div>
@@ -141,9 +153,9 @@ function ResultGroup({
         <div className="list-group list-group-flush">
           {group.results.map((result) => (
             <ResultItem
-              key={result.id}
+              key={buildResultId(result)}
               result={result}
-              selected={result.id === selectedId}
+              selected={buildResultId(result) === selectedId}
               onClick={() => onSelect?.(result)}
               query={query}
             />
@@ -218,9 +230,9 @@ export function SearchResults({
     <div className={`list-group list-group-flush ${className}`}>
       {results.map((result) => (
         <ResultItem
-          key={result.id}
+          key={buildResultId(result)}
           result={result}
-          selected={result.id === selectedId}
+          selected={buildResultId(result) === selectedId}
           onClick={() => onSelect?.(result)}
           query={query}
         />

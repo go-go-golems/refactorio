@@ -9,53 +9,45 @@ export interface Workspace {
   updated_at: string
 }
 
-export interface WorkspaceConfig {
-  workspaces: Workspace[]
-}
-
 export interface DBInfo {
+  workspace_id?: string
+  db_path: string
+  repo_root?: string
   schema_version: number
-  tables: string[]
-  fts_tables: string[]
-  features: {
-    gopls_refs: boolean
-    tree_sitter: boolean
-    doc_hits: boolean
-    code_units: boolean
-  }
-  row_counts: Record<string, number>
+  tables: Record<string, boolean>
+  fts_tables: Record<string, boolean>
+  features: Record<string, boolean>
+  views?: Record<string, boolean>
 }
 
 export interface Run {
-  run_id: number
+  id: number
   status: 'running' | 'success' | 'failed'
-  root_path: string
+  root_path?: string
   git_from?: string
   git_to?: string
+  tool_version?: string
   args_json?: string
   error_json?: string
   started_at: string
   finished_at?: string
+  sources_dir?: string
 }
 
 export interface RunSummary {
   run_id: number
-  symbols_count: number
-  code_units_count: number
-  commits_count: number
-  diff_files_count: number
-  diff_lines_count: number
-  doc_hits_count: number
+  counts: Record<string, number>
 }
 
 export interface Session {
   id: string
-  root_path: string
+  workspace_id?: string
+  root_path?: string
   git_from?: string
   git_to?: string
   runs: SessionRuns
-  availability: SessionAvailability
-  last_updated: string
+  availability: Record<string, boolean>
+  last_updated?: string
 }
 
 export interface SessionRuns {
@@ -68,107 +60,101 @@ export interface SessionRuns {
   tree_sitter?: number
 }
 
-export interface SessionAvailability {
-  commits: boolean
-  diff: boolean
-  symbols: boolean
-  code_units: boolean
-  doc_hits: boolean
-  gopls_refs: boolean
-  tree_sitter: boolean
-}
-
 export interface Symbol {
   symbol_hash: string
   name: string
   kind: string
-  package_path: string
+  pkg: string
+  recv?: string
   signature?: string
-  exported: boolean
-  file_path: string
-  start_line: number
-  start_col: number
-  end_line: number
-  end_col: number
+  file: string
+  line: number
+  col: number
+  is_exported: boolean
   run_id: number
 }
 
 export interface SymbolRef {
-  file_path: string
-  start_line: number
-  start_col: number
-  end_line: number
-  end_col: number
-  is_declaration: boolean
+  run_id: number
+  commit_hash?: string
+  symbol_hash: string
+  path: string
+  line: number
+  col: number
+  is_decl: boolean
+  source: string
 }
 
 export interface CodeUnit {
-  code_unit_hash: string
+  run_id: number
+  unit_hash: string
   kind: string
   name: string
-  receiver?: string
-  package_path: string
-  file_path: string
+  recv?: string
+  pkg: string
+  file: string
   start_line: number
   start_col: number
   end_line: number
   end_col: number
-  body_hash: string
-  run_id: number
+  body_hash?: string
+  signature?: string
 }
 
 export interface CodeUnitDetail extends CodeUnit {
-  body: string
-  doc_comment?: string
+  body_text: string
+  doc_text?: string
 }
 
 export interface Commit {
-  commit_hash: string
-  subject: string
-  body?: string
-  author_name: string
-  author_email: string
-  commit_date: string
   run_id: number
+  hash: string
+  author_name?: string
+  author_email?: string
+  author_date?: string
+  committer_date?: string
+  subject?: string
+  body?: string
 }
 
 export interface CommitFile {
-  file_path: string
+  path: string
   status: string
-  additions: number
-  deletions: number
+  old_path?: string
+  new_path?: string
+  blob_old?: string
+  blob_new?: string
 }
 
 export interface DiffRun {
-  run_id: number
-  root_path: string
-  git_from: string
-  git_to: string
-  files_count: number
+  id: number
+  root_path?: string
+  git_from?: string
+  git_to?: string
 }
 
 export interface DiffFile {
-  file_path: string
+  run_id: number
   status: string
-  hunks_count: number
-  additions: number
-  deletions: number
+  path: string
+  old_path?: string
+  new_path?: string
 }
 
 export interface DiffHunk {
-  hunk_id: number
+  id: number
   old_start: number
-  old_count: number
+  old_lines: number
   new_start: number
-  new_count: number
+  new_lines: number
   lines: DiffLine[]
 }
 
 export interface DiffLine {
   kind: '+' | '-' | ' '
-  old_line?: number
-  new_line?: number
-  content: string
+  line_no_old?: number
+  line_no_new?: number
+  text: string
 }
 
 export interface DocTerm {
@@ -177,35 +163,46 @@ export interface DocTerm {
 }
 
 export interface DocHit {
-  file_path: string
+  run_id: number
   term: string
+  path: string
   line: number
   col: number
   match_text: string
-  run_id: number
 }
 
 export interface FileEntry {
   path: string
-  is_dir: boolean
-  children_count?: number
+  kind: 'file' | 'dir'
+  ext?: string
+  exists?: boolean
+  is_binary?: boolean
 }
 
 export interface SearchResult {
   type: 'symbol' | 'code_unit' | 'commit' | 'diff' | 'doc' | 'file'
-  id: string
-  label: string
+  primary: string
+  secondary?: string
+  path?: string
+  line?: number
+  col?: number
   snippet?: string
-  location?: string
-  payload: unknown
+  run_id?: number
+  commit_hash?: string
+  payload?: unknown
 }
 
 export interface SearchRequest {
   query: string
   types?: string[]
-  run_id?: number
   session_id?: string
-  file_path?: string
+  filters?: {
+    path?: string
+    pkg?: string
+    symbol_kind?: string
+    term?: string
+  }
+  run_ids?: Record<string, number>
   limit?: number
   offset?: number
 }

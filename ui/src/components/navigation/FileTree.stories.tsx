@@ -12,51 +12,51 @@ export default meta
 type Story = StoryObj<typeof FileTree>
 
 const rootEntries: FileEntry[] = [
-  { path: 'cmd', is_dir: true, children_count: 3 },
-  { path: 'internal', is_dir: true, children_count: 4 },
-  { path: 'pkg', is_dir: true, children_count: 8 },
-  { path: 'go.mod', is_dir: false },
-  { path: 'go.sum', is_dir: false },
-  { path: 'Makefile', is_dir: false },
-  { path: 'README.md', is_dir: false },
+  { path: 'cmd', kind: 'dir' },
+  { path: 'internal', kind: 'dir' },
+  { path: 'pkg', kind: 'dir' },
+  { path: 'go.mod', kind: 'file' },
+  { path: 'go.sum', kind: 'file' },
+  { path: 'Makefile', kind: 'file' },
+  { path: 'README.md', kind: 'file' },
 ]
 
 const childrenMap: Record<string, FileEntry[]> = {
   cmd: [
-    { path: 'cmd/refactorio', is_dir: true, children_count: 2 },
-    { path: 'cmd/tools', is_dir: true, children_count: 1 },
+    { path: 'cmd/refactorio', kind: 'dir' },
+    { path: 'cmd/tools', kind: 'dir' },
   ],
   'cmd/refactorio': [
-    { path: 'cmd/refactorio/api.go', is_dir: false },
-    { path: 'cmd/refactorio/root.go', is_dir: false },
-    { path: 'cmd/refactorio/main.go', is_dir: false },
+    { path: 'cmd/refactorio/api.go', kind: 'file' },
+    { path: 'cmd/refactorio/root.go', kind: 'file' },
+    { path: 'cmd/refactorio/main.go', kind: 'file' },
   ],
   'cmd/tools': [
-    { path: 'cmd/tools/seed.go', is_dir: false },
+    { path: 'cmd/tools/seed.go', kind: 'file' },
   ],
   pkg: [
-    { path: 'pkg/handlers', is_dir: true, children_count: 5 },
-    { path: 'pkg/workbenchapi', is_dir: true, children_count: 12 },
-    { path: 'pkg/refactorindex', is_dir: true, children_count: 8 },
+    { path: 'pkg/handlers', kind: 'dir' },
+    { path: 'pkg/workbenchapi', kind: 'dir' },
+    { path: 'pkg/refactorindex', kind: 'dir' },
   ],
   'pkg/handlers': [
-    { path: 'pkg/handlers/command.go', is_dir: false },
-    { path: 'pkg/handlers/middleware.go', is_dir: false },
-    { path: 'pkg/handlers/types.go', is_dir: false },
+    { path: 'pkg/handlers/command.go', kind: 'file' },
+    { path: 'pkg/handlers/middleware.go', kind: 'file' },
+    { path: 'pkg/handlers/types.go', kind: 'file' },
   ],
   'pkg/workbenchapi': [
-    { path: 'pkg/workbenchapi/server.go', is_dir: false },
-    { path: 'pkg/workbenchapi/routes.go', is_dir: false },
-    { path: 'pkg/workbenchapi/symbols.go', is_dir: false },
-    { path: 'pkg/workbenchapi/diffs.go', is_dir: false },
+    { path: 'pkg/workbenchapi/server.go', kind: 'file' },
+    { path: 'pkg/workbenchapi/routes.go', kind: 'file' },
+    { path: 'pkg/workbenchapi/symbols.go', kind: 'file' },
+    { path: 'pkg/workbenchapi/diffs.go', kind: 'file' },
   ],
   internal: [
-    { path: 'internal/config', is_dir: true, children_count: 2 },
-    { path: 'internal/util.go', is_dir: false },
+    { path: 'internal/config', kind: 'dir' },
+    { path: 'internal/util.go', kind: 'file' },
   ],
   'internal/config': [
-    { path: 'internal/config/config.go', is_dir: false },
-    { path: 'internal/config/config_test.go', is_dir: false },
+    { path: 'internal/config/config.go', kind: 'file' },
+    { path: 'internal/config/config_test.go', kind: 'file' },
   ],
 }
 

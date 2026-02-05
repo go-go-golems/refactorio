@@ -1,10 +1,11 @@
 import { api, qs } from './baseApi'
-import type { Workspace, WorkspaceConfig, DBInfo } from '../types/api'
+import type { Workspace, DBInfo, PaginatedResponse } from '../types/api'
 
 const workspacesApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getWorkspaces: builder.query<WorkspaceConfig, void>({
+    getWorkspaces: builder.query<Workspace[], void>({
       query: () => '/workspaces',
+      transformResponse: (response: PaginatedResponse<Workspace>) => response.items,
       providesTags: ['Workspace'],
     }),
     getDBInfo: builder.query<DBInfo, string>({

@@ -80,8 +80,8 @@ export const ManyResults: Story = {
   args: {
     results: [
       ...mockSearchResults,
-      ...mockSearchResults.map((r, i) => ({ ...r, id: `${r.id}-2-${i}`, label: `${r.label} (copy)` })),
-      ...mockSearchResults.map((r, i) => ({ ...r, id: `${r.id}-3-${i}`, label: `${r.label} (another)` })),
+      ...mockSearchResults.map((r, i) => ({ ...r, primary: `${r.primary} (copy ${i})` })),
+      ...mockSearchResults.map((r, i) => ({ ...r, primary: `${r.primary} (another ${i})` })),
     ],
     groupByType: true,
     query: 'Command',
@@ -92,6 +92,15 @@ export const Interactive: Story = {
   render: function InteractiveResults() {
     const [selectedId, setSelectedId] = useState<string>()
     const [selected, setSelected] = useState<SearchResult>()
+    const buildId = (r: SearchResult) => [
+      r.type,
+      r.primary,
+      r.path ?? '',
+      r.line ?? '',
+      r.col ?? '',
+      r.run_id ?? '',
+      r.commit_hash ?? '',
+    ].join('|')
 
     return (
       <div>
@@ -100,7 +109,7 @@ export const Interactive: Story = {
           query="Command"
           selectedId={selectedId}
           onSelect={(r) => {
-            setSelectedId(r.id)
+            setSelectedId(buildId(r))
             setSelected(r)
           }}
         />

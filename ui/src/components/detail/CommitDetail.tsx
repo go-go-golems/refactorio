@@ -33,19 +33,16 @@ export function CommitDetail({
   onFileClick,
   onViewDiff,
 }: CommitDetailProps) {
-  const totalAdditions = files?.reduce((sum, f) => sum + f.additions, 0) ?? 0
-  const totalDeletions = files?.reduce((sum, f) => sum + f.deletions, 0) ?? 0
-
   return (
     <div className="commit-detail">
       {/* Header */}
       <div className="d-flex align-items-start gap-2 mb-3">
         <EntityIcon type="commit" size="md" />
         <div className="flex-grow-1" style={{ minWidth: 0 }}>
-          <span className="fw-semibold text-break">{commit.subject}</span>
+          <span className="fw-semibold text-break">{commit.subject ?? 'Commit'}</span>
           <div className="d-flex align-items-center gap-2 mt-1">
-            <span className="font-monospace small">{commit.commit_hash.slice(0, 7)}</span>
-            <CopyButton text={commit.commit_hash} size="sm" />
+            <span className="font-monospace small">{commit.hash.slice(0, 7)}</span>
+            <CopyButton text={commit.hash} size="sm" />
           </div>
         </div>
       </div>
@@ -55,12 +52,13 @@ export function CommitDetail({
         <div className="d-flex gap-2 mb-1">
           <span className="text-muted small" style={{ minWidth: 60 }}>Author</span>
           <span className="small">
-            {commit.author_name} &lt;{commit.author_email}&gt;
+            {commit.author_name ?? 'Unknown'}
+            {commit.author_email ? ` <${commit.author_email}>` : ''}
           </span>
         </div>
         <div className="d-flex gap-2 mb-1">
           <span className="text-muted small" style={{ minWidth: 60 }}>Date</span>
-          <span className="small">{new Date(commit.commit_date).toLocaleString()}</span>
+          <span className="small">{new Date(commit.committer_date ?? commit.author_date ?? '').toLocaleString()}</span>
         </div>
         <div className="d-flex gap-2 mb-1">
           <span className="text-muted small" style={{ minWidth: 60 }}>Run</span>
@@ -93,16 +91,12 @@ export function CommitDetail({
             <label className="text-muted small text-uppercase mb-0">
               Changed Files ({files.length})
             </label>
-            <span className="small">
-              <span className="text-success">+{totalAdditions}</span>
-              {' / '}
-              <span className="text-danger">&minus;{totalDeletions}</span>
-            </span>
+            <span className="small text-muted">Status</span>
           </div>
           <div style={{ maxHeight: 300, overflowY: 'auto' }}>
             {files.map((file) => (
               <button
-                key={file.file_path}
+                key={file.path}
                 type="button"
                 className="btn btn-sm w-100 text-start d-flex align-items-center gap-2 border-bottom rounded-0 py-1"
                 onClick={() => onFileClick?.(file)}
@@ -110,12 +104,7 @@ export function CommitDetail({
               >
                 {fileStatusBadge(file.status)}
                 <span className="font-monospace small text-truncate flex-grow-1">
-                  {file.file_path}
-                </span>
-                <span className="small text-nowrap">
-                  <span className="text-success">+{file.additions}</span>
-                  {' '}
-                  <span className="text-danger">&minus;{file.deletions}</span>
+                  {file.path}
                 </span>
               </button>
             ))}

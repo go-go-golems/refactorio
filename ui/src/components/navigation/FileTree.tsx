@@ -82,7 +82,7 @@ function TreeNode({
 
   const handleClick = useCallback(() => {
     onSelect?.(entry)
-    if (entry.is_dir) {
+    if (entry.kind === 'dir') {
       if (isExpanded) {
         onCollapse?.(entry.path)
       } else {
@@ -109,7 +109,7 @@ function TreeNode({
         onClick={handleClick}
         title={entry.path}
       >
-        {entry.is_dir ? (
+        {entry.kind === 'dir' ? (
           <>
             <ChevronIcon expanded={isExpanded} />
             <FolderIcon open={isExpanded} />
@@ -123,18 +123,14 @@ function TreeNode({
         <span className="text-truncate flex-grow-1" style={{ fontSize: '0.85rem' }}>
           {name}
         </span>
-        {entry.is_dir && entry.children_count != null && !isExpanded && (
-          <span className="text-muted" style={{ fontSize: '0.7rem' }}>
-            {entry.children_count}
-          </span>
-        )}
+        {/* children count not provided by backend yet */}
         {badge != null && (
           <span className="badge bg-secondary rounded-pill" style={{ fontSize: '0.65rem' }}>
             {badge}
           </span>
         )}
       </button>
-      {entry.is_dir && isExpanded && children && (
+      {entry.kind === 'dir' && isExpanded && children && (
         <div role="group">
           {children.map((child) => (
             <TreeNode

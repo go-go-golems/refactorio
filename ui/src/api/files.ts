@@ -11,7 +11,7 @@ const filesApi = api.injectEndpoints({
     getFileContent: builder.query<{ content: string; path: string }, { workspace_id: string; path: string; ref?: string }>({
       query: (params) => `/file${qs(params)}`,
     }),
-    getFileHistory: builder.query<Commit[], { workspace_id: string; path: string }>({
+    getFileHistory: builder.query<Commit[], { workspace_id: string; path: string; run_id?: number }>({
       query: (params) => `/files/history${qs(params)}`,
       transformResponse: (response: { items: Commit[] }) => response.items,
     }),

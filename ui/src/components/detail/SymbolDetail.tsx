@@ -31,9 +31,9 @@ function RefItem({ ref: symbolRef }: { ref: SymbolRef }) {
   return (
     <div className="d-flex align-items-center gap-2 py-1 border-bottom">
       <span className="small font-monospace text-truncate flex-grow-1">
-        {symbolRef.file_path}:{symbolRef.start_line}
+        {symbolRef.path}:{symbolRef.line}
       </span>
-      {symbolRef.is_declaration && (
+      {symbolRef.is_decl && (
         <StatusBadge status="success" label="decl" size="sm" />
       )}
     </div>
@@ -57,7 +57,7 @@ export function SymbolDetail({
         <div className="flex-grow-1" style={{ minWidth: 0 }}>
           <div className="d-flex align-items-center gap-2">
             <span className="fw-semibold text-break">{symbol.name}</span>
-            {symbol.exported ? (
+            {symbol.is_exported ? (
               <StatusBadge status="success" label="exported" size="sm" />
             ) : (
               <StatusBadge status="warning" label="unexported" size="sm" />
@@ -81,15 +81,15 @@ export function SymbolDetail({
       {/* Fields */}
       <div className="mb-3">
         <FieldRow label="Package">
-          <span className="font-monospace">{symbol.package_path}</span>
-          <CopyButton text={symbol.package_path} size="sm" variant="icon" />
+          <span className="font-monospace">{symbol.pkg}</span>
+          <CopyButton text={symbol.pkg} size="sm" variant="icon" />
         </FieldRow>
         <FieldRow label="File">
-          <span className="font-monospace">{symbol.file_path}:{symbol.start_line}</span>
-          <CopyButton text={`${symbol.file_path}:${symbol.start_line}`} size="sm" variant="icon" />
+          <span className="font-monospace">{symbol.file}:{symbol.line}</span>
+          <CopyButton text={`${symbol.file}:${symbol.line}`} size="sm" variant="icon" />
         </FieldRow>
         <FieldRow label="Range">
-          L{symbol.start_line}:{symbol.start_col} &ndash; L{symbol.end_line}:{symbol.end_col}
+          L{symbol.line}:{symbol.col}
         </FieldRow>
         <FieldRow label="Run">
           #{symbol.run_id}
@@ -131,7 +131,7 @@ export function SymbolDetail({
         {!refsLoading && refs && refs.length > 0 && (
           <div style={{ maxHeight: 200, overflowY: 'auto' }}>
             {refs.map((r, i) => (
-              <RefItem key={`${r.file_path}:${r.start_line}:${i}`} ref={r} />
+              <RefItem key={`${r.path}:${r.line}:${i}`} ref={r} />
             ))}
           </div>
         )}

@@ -1,4 +1,4 @@
-import type { Session, SessionAvailability } from '../../types/api'
+import type { Session } from '../../types/api'
 import { StatusBadge } from '../foundation'
 
 export interface SessionCardProps {
@@ -12,7 +12,7 @@ export interface SessionCardProps {
   onEdit?: () => void
 }
 
-const domainLabels: Record<keyof SessionAvailability, string> = {
+const domainLabels: Record<string, string> = {
   commits: 'Commits',
   diff: 'Diffs',
   symbols: 'Symbols',
@@ -98,16 +98,14 @@ export function SessionCard({
         </div>
 
         <div className="border-top pt-2">
-          {(Object.entries(session.availability) as [keyof SessionAvailability, boolean][]).map(
-            ([domain, available]) => (
+          {Object.entries(session.availability).map(([domain, available]) => (
               <AvailabilityRow
                 key={domain}
-                domain={domainLabels[domain]}
+                domain={domainLabels[domain] ?? domain}
                 available={available}
                 runId={session.runs[domain as keyof typeof session.runs]}
               />
-            )
-          )}
+            ))}
         </div>
 
         <div className="text-end mt-2">

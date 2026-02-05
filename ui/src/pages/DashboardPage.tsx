@@ -20,6 +20,8 @@ export function DashboardPage() {
     return <div className="p-4 text-muted">Select a workspace to get started.</div>
   }
 
+  const hasTable = (name: string) => !!dbInfo?.tables?.[name]
+
   return (
     <div className="p-4">
       <h4 className="mb-4">Dashboard</h4>
@@ -34,7 +36,7 @@ export function DashboardPage() {
           <div className="col-md-3">
             <div className="card">
               <div className="card-body text-center">
-                <div className="fs-3 fw-bold">{dbInfo.row_counts.symbols?.toLocaleString() ?? 0}</div>
+                <div className="fs-3 fw-bold">{hasTable('symbol_occurrences') ? 'Yes' : 'No'}</div>
                 <small className="text-muted">Symbols</small>
               </div>
             </div>
@@ -42,7 +44,7 @@ export function DashboardPage() {
           <div className="col-md-3">
             <div className="card">
               <div className="card-body text-center">
-                <div className="fs-3 fw-bold">{dbInfo.row_counts.code_unit_snapshots?.toLocaleString() ?? 0}</div>
+                <div className="fs-3 fw-bold">{hasTable('code_unit_snapshots') ? 'Yes' : 'No'}</div>
                 <small className="text-muted">Code Units</small>
               </div>
             </div>
@@ -50,7 +52,7 @@ export function DashboardPage() {
           <div className="col-md-3">
             <div className="card">
               <div className="card-body text-center">
-                <div className="fs-3 fw-bold">{dbInfo.row_counts.commits?.toLocaleString() ?? 0}</div>
+                <div className="fs-3 fw-bold">{hasTable('commits') ? 'Yes' : 'No'}</div>
                 <small className="text-muted">Commits</small>
               </div>
             </div>
@@ -58,7 +60,7 @@ export function DashboardPage() {
           <div className="col-md-3">
             <div className="card">
               <div className="card-body text-center">
-                <div className="fs-3 fw-bold">{dbInfo.row_counts.diff_files?.toLocaleString() ?? 0}</div>
+                <div className="fs-3 fw-bold">{hasTable('diff_files') ? 'Yes' : 'No'}</div>
                 <small className="text-muted">Diff Files</small>
               </div>
             </div>
@@ -102,7 +104,7 @@ export function DashboardPage() {
           {runs.map((run) => (
             <div key={run.run_id} className="list-group-item d-flex justify-content-between align-items-center">
               <div>
-                <span className="font-monospace me-2">#{run.run_id}</span>
+                <span className="font-monospace me-2">#{run.id}</span>
                 <span className={`badge ${run.status === 'success' ? 'bg-success' : run.status === 'failed' ? 'bg-danger' : 'bg-warning'}`}>
                   {run.status}
                 </span>
