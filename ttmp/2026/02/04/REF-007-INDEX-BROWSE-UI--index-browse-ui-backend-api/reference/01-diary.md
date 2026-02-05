@@ -41,6 +41,8 @@ RelatedFiles:
       Note: Strict JSON decoding helper
     - Path: refactorio/pkg/workbenchapi/diffs.go
       Note: Diff run/file endpoints and hunk/line loading
+    - Path: refactorio/pkg/workbenchapi/docs.go
+      Note: Doc term and hit endpoints
     - Path: refactorio/pkg/workbenchapi/json.go
       Note: Shared JSON and error response helpers
     - Path: refactorio/pkg/workbenchapi/routes.go
@@ -61,6 +63,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -786,4 +789,55 @@ gofmt -w refactorio/pkg/workbenchapi/commits.go refactorio/pkg/workbenchapi/rout
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/commits.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add commit endpoints"
+```
+
+## Step 14: Implement Docs Endpoints
+I added the docs endpoints for listing terms and listing hits, with filters for run, path prefix, and term. This powers the Docs/Terms explorer in the UI.
+
+The queries join against the `files` table so the UI can group and filter by file path.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement Task 12 (docs endpoints), commit, and update the diary.
+
+**Inferred user intent:** Provide doc-term browsing to support refactor audits.
+
+**Commit (code):** af9de30 — "Add docs endpoints"
+
+### What I did
+- Added `GET /api/docs/terms` and `GET /api/docs/hits`.
+- Implemented term counts and hit listing with run/path filters.
+- Registered docs routes in the server.
+
+### Why
+- Doc hits are a key part of auditing refactors and tracking leftover terminology.
+
+### What worked
+- Term list and hit list queries are straightforward and stable.
+- Path prefix filter enables file-first browsing.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Grouping by term is fast enough for the expected dataset sizes, but should be paginated.
+
+### What was tricky to build
+Handling missing `doc_hits` tables required explicit checks to avoid crashing on older schemas.
+
+### What warrants a second pair of eyes
+- Confirm the `path_prefix` filter semantics align with the UI’s file grouping.\n
+### What should be done in the future
+- Add support for FTS search on doc hits via `/api/search/docs` if needed for full-text queries.\n
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/docs.go` and route registration in `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/docs.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/docs.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add docs endpoints"
 ```
