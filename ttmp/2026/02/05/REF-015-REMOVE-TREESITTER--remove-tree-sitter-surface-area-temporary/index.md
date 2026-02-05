@@ -1,7 +1,7 @@
 ---
 Title: Remove Tree-Sitter Surface Area (Temporary)
 Ticket: REF-015-REMOVE-TREESITTER
-Status: active
+Status: complete
 Topics:
     - backend
     - frontend
@@ -14,10 +14,11 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: ""
-LastUpdated: 2026-02-05T18:31:40-05:00
+LastUpdated: 2026-02-05T18:34:15.73991863-05:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 # Remove Tree-Sitter Surface Area (Temporary)
 
