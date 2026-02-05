@@ -353,3 +353,113 @@ gofmt -w refactorio/pkg/workbenchapi/runs.go refactorio/pkg/workbenchapi/routes.
 git -C refactorio add pkg/workbenchapi/runs.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add run and raw output endpoints"
 ```
+
+## Step 6: Implement Session Resolver + /api/sessions Endpoints
+I added the session resolver that groups runs by `(root_path, git_from, git_to)` and exposes `/api/sessions` and `/api/sessions/:id`. The resolver infers which domain each run covers by checking for rows in relevant tables, and produces availability flags so the UI can highlight missing data.
+
+I also added optional session overrides stored on the workspace config, allowing manual adjustments via `POST /api/sessions`. Overrides are merged into the computed sessions list and can replace computed entries with custom run mappings.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement the session resolver and session endpoints, commit, and log the progress.
+
+**Inferred user intent:** Make session selection possible so the UI can group runs into coherent slices for browsing.
+
+**Commit (code):** 3ab4469 — "Add sessions endpoints"
+
+### What I did
+- Added `Session`, `SessionRuns`, and `SessionOverride` types.
+- Implemented `/api/sessions` and `/api/sessions/:id` endpoints.
+- Added session grouping and availability computation.
+- Added a session override handler (`POST /api/sessions`) that persists overrides in workspace config.
+- Registered session routes in the server.
+
+### Why
+- Sessions provide the UI with stable, human-meaningful groupings of runs.
+- Overrides handle incomplete metadata cases where git ranges are missing.
+
+### What worked
+- Sessions are grouped deterministically and include availability flags.
+- Overrides persist alongside workspace configuration.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Run data presence checks need to be table-aware to avoid errors on older schemas.
+
+### What was tricky to build
+Balancing readable session IDs with uniqueness required a short hash in the ID. This avoids collisions when two root paths share the same git range while keeping IDs relatively stable.
+
+### What warrants a second pair of eyes
+- The decision to fall back to per-run sessions when `git_from`/`git_to` are missing.
+- Whether the short hash in session IDs is sufficient for UI deep-linking expectations.
+
+### What should be done in the future
+- Add a DELETE endpoint for session overrides if we want users to remove manual mappings.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/sessions.go` and `refactorio/pkg/workbenchapi/session_types.go`.
+- Verify workspace config changes in `refactorio/pkg/workbenchapi/workspace.go`.
+- Confirm route registration in `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/session_types.go refactorio/pkg/workbenchapi/sessions.go refactorio/pkg/workbenchapi/workspace.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/session_types.go pkg/workbenchapi/sessions.go pkg/workbenchapi/workspace.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add sessions endpoints"
+```
+
+## Step 7: Stabilize Session IDs
+I fixed a subtle issue where session IDs could change when multiple runs mapped to the same session key. The ID is now assigned only once at session creation time, avoiding accidental suffixing as additional runs are processed.
+
+This keeps session deep links stable and prevents confusing UI behavior when multiple runs share the same git range.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Correct the session ID generation behavior and commit the fix.
+
+**Inferred user intent:** Maintain stable session identifiers for consistent UI navigation.
+
+**Commit (code):** 31f44fe — "Fix session id stability"
+
+### What I did
+- Updated session ID assignment to occur only when the session builder is created.
+- Ensured subsequent runs for the same session do not override the ID.
+
+### Why
+- Session IDs should be stable per session key, not dependent on run iteration order.
+
+### What worked
+- IDs now remain consistent even when multiple runs share a session.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Assigning identifiers inside the per-run loop can create accidental churn.
+
+### What was tricky to build
+It was easy to miss that ID assignment occurred on every run iteration because of the map lookup flow; isolating it to the session-creation branch fixes the instability.
+
+### What warrants a second pair of eyes
+- Confirm the updated ID logic still avoids collisions across distinct session keys.
+
+### What should be done in the future
+- Add a small unit test for session ID stability once we add tests for session logic.
+
+### Code review instructions
+- Review `refactorio/pkg/workbenchapi/sessions.go` around session creation and ID assignment.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/sessions.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/sessions.go
+git -C refactorio commit -m "Fix session id stability"
+```
