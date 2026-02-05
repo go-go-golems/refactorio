@@ -29,3 +29,5 @@
 - [x] Audit page stories for missing session handlers after session scoping
 - [x] Add zerolog request/error logging to workbench API (incl. session computation errors)
 - [x] Convert refactorio CLI to glazed command wiring with logging layer (--log-level)
+- [x] Migrate/refill live workspace DB (meta_runs schema + ingest domains) to unblock /api/sessions
+- [x] Fix /api/files and file search handling for nullable file_exists/is_binary

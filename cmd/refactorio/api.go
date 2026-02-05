@@ -19,23 +19,14 @@ type APIServeCommand struct {
 }
 
 type APIServeSettings struct {
-	Addr                string `glazed.parameter:"addr"`
-	BasePath            string `glazed.parameter:"base-path"`
-	WorkspaceConfigPath string `glazed.parameter:"workspace-config"`
+	Addr                string `glazed:"addr"`
+	BasePath            string `glazed:"base-path"`
+	WorkspaceConfigPath string `glazed:"workspace-config"`
 }
 
 var _ cmds.BareCommand = &APIServeCommand{}
 
 func NewAPIServeCommand() (*APIServeCommand, error) {
-	glazedLayer, err := schema.NewGlazedSchema()
-	if err != nil {
-		return nil, err
-	}
-	commandSettingsLayer, err := cli.NewCommandSettingsLayer()
-	if err != nil {
-		return nil, err
-	}
-
 	cmdDesc := cmds.NewCommandDescription(
 		"serve",
 		cmds.WithShort("Start the workbench API server"),
@@ -65,7 +56,6 @@ Examples:
 				fields.WithHelp("Path to workspace config file (default: OS config dir)"),
 			),
 		),
-		cmds.WithLayersList(glazedLayer, commandSettingsLayer),
 	)
 
 	return &APIServeCommand{CommandDescription: cmdDesc}, nil
@@ -74,7 +64,7 @@ Examples:
 func (c *APIServeCommand) Run(ctx context.Context, parsedLayers *values.Values) error {
 	_ = ctx
 	settings := &APIServeSettings{}
-	if err := values.DecodeSectionInto(parsedLayers, schema.DefaultSlug, settings); err != nil {
+	if err := parsedLayers.DecodeSectionInto(schema.DefaultSlug, settings); err != nil {
 		return err
 	}
 

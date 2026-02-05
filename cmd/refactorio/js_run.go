@@ -26,25 +26,16 @@ type JSRunCommand struct {
 }
 
 type JSRunSettings struct {
-	ScriptPath   string `glazed.parameter:"script"`
-	IndexDB      string `glazed.parameter:"index-db"`
-	RunID        int64  `glazed.parameter:"run-id"`
-	TracePath    string `glazed.parameter:"trace"`
-	OutputFormat string `glazed.parameter:"format"`
+	ScriptPath   string `glazed:"script"`
+	IndexDB      string `glazed:"index-db"`
+	RunID        int64  `glazed:"run-id"`
+	TracePath    string `glazed:"trace"`
+	OutputFormat string `glazed:"format"`
 }
 
 var _ cmds.BareCommand = &JSRunCommand{}
 
 func NewJSRunCommand() (*JSRunCommand, error) {
-	glazedLayer, err := schema.NewGlazedSchema()
-	if err != nil {
-		return nil, err
-	}
-	commandSettingsLayer, err := cli.NewCommandSettingsLayer()
-	if err != nil {
-		return nil, err
-	}
-
 	cmdDesc := cmds.NewCommandDescription(
 		"run",
 		cmds.WithShort("Run a JavaScript file against the refactor index"),
@@ -86,7 +77,6 @@ Examples:
 				fields.WithHelp("Output format: json|text"),
 			),
 		),
-		cmds.WithLayersList(glazedLayer, commandSettingsLayer),
 	)
 
 	return &JSRunCommand{CommandDescription: cmdDesc}, nil
@@ -94,7 +84,7 @@ Examples:
 
 func (c *JSRunCommand) Run(ctx context.Context, parsedLayers *values.Values) error {
 	settings := &JSRunSettings{}
-	if err := values.DecodeSectionInto(parsedLayers, schema.DefaultSlug, settings); err != nil {
+	if err := parsedLayers.DecodeSectionInto(schema.DefaultSlug, settings); err != nil {
 		return err
 	}
 

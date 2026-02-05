@@ -11,13 +11,26 @@ Topics:
 DocType: reference
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: cmd/refactorio/api.go
+      Note: Glazed v1 API migration for api serve command
+    - Path: cmd/refactorio/js_run.go
+      Note: Glazed v1 API migration for js run command
+    - Path: cmd/refactorio/root.go
+      Note: Logging section wiring rename for Glazed v1
+    - Path: pkg/workbenchapi/files.go
+      Note: Fix nullable files columns causing /api/files 500
+    - Path: pkg/workbenchapi/search.go
+      Note: Fix nullable files columns in file search path
+    - Path: ttmp/2026/02/05/REF-008-API-CONTRACT-ALIGNMENT--ui-api-contract-alignment-clean-cutover/tasks.md
+      Note: Track and check completion of live backend unblock tasks
 ExternalSources: []
-Summary: "Implementation diary for the UI/API contract alignment work."
-LastUpdated: 2026-02-05T17:49:41-05:00
-WhatFor: "Track step-by-step alignment changes and review guidance."
-WhenToUse: "Use when resuming alignment work or reviewing what changed and why."
+Summary: Implementation diary for the UI/API contract alignment work.
+LastUpdated: 2026-02-05T18:12:10-05:00
+WhatFor: Track step-by-step alignment changes and review guidance.
+WhenToUse: Use when resuming alignment work or reviewing what changed and why.
 ---
+
 
 # Diary
 
@@ -260,4 +273,73 @@ I wired zerolog into the Workbench API and converted the refactorio CLI to Glaze
 Commands run:
 ```bash
 docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 23,24
+```
+
+## Step 6: Stabilize Live Backend Session/Data Flow and Remove `/api/files` 500
+I completed the live backend recovery path so the UI can run against real data: migrated the existing `foobar.db` schema to current, ingested all major domains, fixed Glazed v1 breakages in `cmd/refactorio`, and fixed nullable file metadata handling that caused `/api/files` to fail.
+
+### Prompt Context
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue the API-alignment execution by unblocking live backend usage and verifying real UI/API behavior end-to-end.
+
+**Inferred user intent:** Make the running UI work with the current backend and real indexed data, not just mocked Storybook data.
+
+**Commit (code):** pending
+
+### What I did
+- Migrated `refactorio/foobar.db` to schema v17 with `refactor-index init --db ...` so `/api/sessions` no longer fails on missing `meta_runs` columns.
+- Refilled live index data in `foobar.db` using non-`ingest range` commands:
+  - `ingest commits --from HEAD~30 --to HEAD`
+  - `ingest diff --from HEAD~30 --to HEAD`
+  - `ingest symbols`
+  - `ingest code-units`
+  - `ingest doc-hits`
+- Updated `cmd/refactorio` command wiring for Glazed v1:
+  - Removed deprecated `schema.NewGlazedSchema` / `cli.NewCommandSettingsLayer` usage.
+  - Switched to `parsedValues.DecodeSectionInto(...)`.
+  - Updated struct tags from `glazed.parameter` to `glazed`.
+  - Replaced `AddLoggingLayerToRootCommand` with `AddLoggingSectionToRootCommand`.
+- Fixed backend file endpoints to tolerate nullable `files.file_exists` and `files.is_binary`:
+  - `pkg/workbenchapi/files.go`
+  - `pkg/workbenchapi/search.go`
+- Restarted backend in tmux and validated live endpoints via both direct backend (`:8080`) and Vite proxy (`:3001`).
+
+### Why
+- The live UI was blocked by backend 500s (`session_error`, then `/files` query scan failures), preventing practical end-to-end validation.
+
+### What worked
+- `/api/sessions?workspace_id=refactorio-foobar` now returns 200 and session rows.
+- `/api/files` and `/api/search/files` now return 200 with real results.
+- Vite-proxied requests at `http://localhost:3001/api/...` now resolve successfully for sessions and files.
+
+### What didn't work
+- `refactor-index ingest range` is still not usable with the current setup because it compiles historical worktrees that contain old Glazed API calls.
+
+### What was tricky to build
+The running tmux backend process initially stayed on old code while I patched handlers; I had to force a clean process restart and verify by PID/log startup lines before re-testing endpoints.
+
+### What warrants a second pair of eyes
+- Whether we want to normalize `files.file_exists`/`is_binary` during ingest instead of handling nulls at read-time.
+- Whether `ingest range` should be patched to avoid compiling incompatible historical worktrees or replaced in the playbook.
+
+### Code review instructions
+- Start with `refactorio/cmd/refactorio/api.go`, `refactorio/cmd/refactorio/js_run.go`, and `refactorio/cmd/refactorio/root.go`.
+- Then review `refactorio/pkg/workbenchapi/files.go` and `refactorio/pkg/workbenchapi/search.go`.
+- Confirm live data state via `refactorio/foobar.db` (`meta_runs`, `files`, `symbol_occurrences`, `code_unit_snapshots`, `doc_hits`).
+
+### Technical details
+Commands run:
+```bash
+GOWORK=off go test ./...
+GOWORK=off go run ./cmd/refactor-index init --db /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/foobar.db
+GOWORK=off go run ./cmd/refactor-index ingest commits --db ... --repo ... --from HEAD~30 --to HEAD
+GOWORK=off go run ./cmd/refactor-index ingest diff --db ... --repo ... --from HEAD~30 --to HEAD
+GOWORK=off go run ./cmd/refactor-index ingest symbols --db ... --root ...
+GOWORK=off go run ./cmd/refactor-index ingest code-units --db ... --root ...
+GOWORK=off go run ./cmd/refactor-index ingest doc-hits --db ... --root ... --terms /tmp/refactorio-terms.txt
+curl -sS "http://127.0.0.1:8080/api/sessions?workspace_id=refactorio-foobar"
+curl -sS "http://127.0.0.1:8080/api/files?workspace_id=refactorio-foobar&prefix="
+curl -sS "http://localhost:3001/api/files?workspace_id=refactorio-foobar&prefix="
+docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 25,26
 ```

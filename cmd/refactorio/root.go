@@ -14,7 +14,7 @@ func NewRootCommand() (*cobra.Command, error) {
 			return logging.InitLoggerFromCobra(cmd)
 		},
 	}
-	if err := logging.AddLoggingLayerToRootCommand(rootCmd, "refactorio"); err != nil {
+	if err := logging.AddLoggingSectionToRootCommand(rootCmd, "refactorio"); err != nil {
 		return nil, errors.Wrap(err, "add logging layer")
 	}
 

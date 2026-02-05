@@ -105,8 +105,8 @@ func (s *Server) handleFiles(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var path string
 		var extVal sql.NullString
-		var existsVal int
-		var binaryVal int
+		var existsVal sql.NullInt64
+		var binaryVal sql.NullInt64
 		if err := rows.Scan(&path, &extVal, &existsVal, &binaryVal); err != nil {
 			writeError(w, http.StatusInternalServerError, "query_error", "failed to scan files", nil)
 			return
@@ -124,7 +124,12 @@ func (s *Server) handleFiles(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if len(parts) == 1 {
-			item := FileTreeItem{Path: joinPrefix(matchPrefix, segment), Kind: "file", Exists: existsVal == 1, IsBinary: binaryVal == 1}
+			item := FileTreeItem{
+				Path:     joinPrefix(matchPrefix, segment),
+				Kind:     "file",
+				Exists:   existsVal.Valid && existsVal.Int64 == 1,
+				IsBinary: binaryVal.Valid && binaryVal.Int64 == 1,
+			}
 			if extVal.Valid {
 				item.Ext = extVal.String
 			}

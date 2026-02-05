@@ -808,13 +808,13 @@ ORDER BY f.path LIMIT ? OFFSET ?`
 	items := []FileSearchRecord{}
 	for rows.Next() {
 		var record FileSearchRecord
-		var exists int
-		var binary int
+		var exists sql.NullInt64
+		var binary sql.NullInt64
 		if err := rows.Scan(&record.Path, &record.Ext, &exists, &binary); err != nil {
 			return nil, err
 		}
-		record.Exists = exists == 1
-		record.Binary = binary == 1
+		record.Exists = exists.Valid && exists.Int64 == 1
+		record.Binary = binary.Valid && binary.Int64 == 1
 		items = append(items, record)
 	}
 	return items, nil
