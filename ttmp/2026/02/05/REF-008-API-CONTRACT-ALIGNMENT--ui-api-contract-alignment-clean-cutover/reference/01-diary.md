@@ -14,7 +14,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: "Implementation diary for the UI/API contract alignment work."
-LastUpdated: 2026-02-05T17:49:03-05:00
+LastUpdated: 2026-02-05T17:49:41-05:00
 WhatFor: "Track step-by-step alignment changes and review guidance."
 WhenToUse: "Use when resuming alignment work or reviewing what changed and why."
 ---
@@ -229,7 +229,7 @@ I wired zerolog into the Workbench API and converted the refactorio CLI to Glaze
 
 **Inferred user intent:** Make session failures diagnosable with actionable logs and align the CLI with existing Glazed conventions.
 
-**Commit (code):** N/A (pending)
+**Commit (code):** b44d71e — "Add zerolog request logging and Glazed CLI wiring"
 
 ### What I did
 - Added request logging middleware in `workbenchapi` to log method/path/status/duration/bytes/workspace_id.
