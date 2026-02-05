@@ -29,6 +29,10 @@ RelatedFiles:
       Note: Schema reviewed while mapping UI requirements
     - Path: refactorio/pkg/refactorindex/store.go
       Note: DB initialization and FTS setup reviewed
+    - Path: refactorio/pkg/workbenchapi/db.go
+      Note: Workspace-aware DB open helper
+    - Path: refactorio/pkg/workbenchapi/db_info.go
+      Note: DB info endpoint and schema/FTS detection
     - Path: refactorio/pkg/workbenchapi/decode.go
       Note: Strict JSON decoding helper
     - Path: refactorio/pkg/workbenchapi/json.go
@@ -45,6 +49,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -236,4 +241,58 @@ Commands run:
 gofmt -w refactorio/pkg/workbenchapi/server.go refactorio/pkg/workbenchapi/routes.go refactorio/pkg/workbenchapi/workspace.go refactorio/pkg/workbenchapi/decode.go refactorio/cmd/refactorio/api.go
 git -C refactorio add cmd/refactorio/api.go pkg/workbenchapi/server.go pkg/workbenchapi/routes.go pkg/workbenchapi/workspace.go pkg/workbenchapi/decode.go
 git -C refactorio commit -m "Add workspace registry endpoints"
+```
+
+## Step 4: Add DB Open Helper + /api/db/info
+I added a workspace-aware DB resolver and a `/api/db/info` endpoint that reports schema version, table availability, FTS presence, and feature flags. This matches the UI’s need to validate a workspace and understand what data is available.
+
+The handler uses SQLite metadata and a simple schema version query, and it is careful to handle missing tables gracefully (older DBs). This should make the UI’s “DB info” panel robust across versions.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement the DB info endpoint with schema/FTS detection and commit the changes with diary updates.
+
+**Inferred user intent:** Build out core data discovery endpoints before larger browse/search work.
+
+**Commit (code):** f1fe1bd — "Add db info endpoint"
+
+### What I did
+- Added a workspace-aware DB open helper in `pkg/workbenchapi/db.go`.
+- Implemented `/api/db/info` in `pkg/workbenchapi/db_info.go`.
+- Registered the DB route with the server’s route setup.
+
+### Why
+- The UI needs to validate schema versions and FTS support to enable/disable features.
+- Standardized DB access is required before larger query work.
+
+### What worked
+- The endpoint cleanly reports table presence, FTS tables, and feature flags.
+- Workspace resolution supports either `workspace_id` or `db_path`.
+
+### What didn't work
+- N/A
+
+### What I learned
+- SQLite metadata queries can be used safely even if schema tables are missing, as long as we guard lookups.
+
+### What was tricky to build
+The main nuance is handling older DBs that lack `schema_versions` while still returning a useful response; this required table existence checks before querying.
+
+### What warrants a second pair of eyes
+- Ensure the feature flags (gopls refs, tree-sitter, doc hits) map cleanly to the UI expectations.
+
+### What should be done in the future
+- Add an explicit validation endpoint that checks the expected schema version and required tables.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/db_info.go` and `refactorio/pkg/workbenchapi/db.go`.
+- Verify route registration in `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/db.go refactorio/pkg/workbenchapi/db_info.go refactorio/pkg/workbenchapi/routes.go
+git -C refactorio add pkg/workbenchapi/db.go pkg/workbenchapi/db_info.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add db info endpoint"
 ```
