@@ -1260,3 +1260,77 @@ Files reviewed:
 - `refactorio/ttmp/2026/02/04/REF-007-INDEX-BROWSE-UI--index-browse-ui-backend-api/sources/local/ui-design.md.md`
 - `refactorio/pkg/doc/topics/04-workbench-api-reference.md`
 - `pinocchio/cmd/web-chat/web/package.json`
+
+## Step 22: Scaffold Frontend and Implement Foundation/Layout Widgets
+I created the React + Vite + Bootstrap + Zustand frontend scaffold and set up Storybook 8 with MSW for API mocking. Then I implemented the first round of widgets: foundation components (CopyButton, StatusBadge, EntityIcon, Pagination) and layout components (AppShell, Sidebar, Topbar, ThreePaneLayout).
+
+### Prompt Context
+**User prompt (verbatim):** "Create a analysis of the widgets you are going to create and how to create storybook stories for them and store the analysis in the ticket. Then, setup storybook, and continue implementing widgets, one by one, so I can track your progress in storybook."
+
+**Assistant interpretation:** Create a comprehensive widget catalog with Storybook story specifications, set up Storybook with MSW mocking, and implement widgets incrementally with stories.
+
+**Inferred user intent:** Enable incremental, reviewable UI development with Storybook-driven workflow.
+
+**Commit (code):** 5d6521e — "Add Refactorio Workbench UI scaffold with Storybook"
+
+### What I did
+- Created widget catalog analysis document with 29 components and story specs
+- Set up React + Vite + Bootstrap + Zustand in `refactorio/ui/`
+- Configured Storybook 8 with addons (essentials, a11y, interactions)
+- Set up MSW (Mock Service Worker) with realistic API mock data
+- Implemented foundation components:
+  - CopyButton: Copy to clipboard with visual feedback
+  - StatusBadge: Colored status indicators with pulse animation
+  - EntityIcon: Type-specific icons for symbols, commits, files, etc.
+  - Pagination: Server-side pagination with page numbers
+- Implemented layout components:
+  - AppShell: Full app layout with topbar and sidebar
+  - Sidebar: Collapsible navigation with sections and badges
+  - Topbar: Workspace/session selectors and search input
+  - ThreePaneLayout: List → Preview → Inspector pattern
+
+### Why
+- Storybook enables isolated component development and visual testing
+- MSW provides realistic API mocking without a running backend
+- Foundation and layout components are prerequisites for all views
+
+### What worked
+- Storybook 8 runs smoothly at http://localhost:6006/
+- MSW integration with msw-storybook-addon works well
+- Bootstrap provides consistent styling with minimal custom CSS
+
+### What didn't work
+- N/A
+
+### What I learned
+- Storybook 8 has better Vite integration than previous versions
+- MSW 2.x has a different API than 1.x (browser module path changed)
+
+### What was tricky to build
+- Getting the sidebar collapsible sections to work with proper state management
+- Ensuring the three-pane layout handles dynamic width changes smoothly
+
+### What warrants a second pair of eyes
+- The EntityIcon SVG paths are simplified; may need refinement for visual clarity
+- Sidebar navigation state management could be moved to Zustand store
+
+### What should be done in the future
+- Continue with data display components (EntityTable, SearchResults)
+- Then code display components (CodeViewer, DiffViewer)
+- Then detail panels and search components
+
+### Code review instructions
+- Start with `refactorio/ui/src/components/foundation/` for basic widgets
+- Check `refactorio/ui/src/components/layout/` for layout structure
+- Run `npm run storybook` in `refactorio/ui/` to see all components
+- Review mock data in `refactorio/ui/src/mocks/data.ts`
+
+### Technical details
+Commands run:
+```bash
+mkdir -p refactorio/ui/src/components/{foundation,layout}
+npm install  # in ui/
+npm run storybook  # started in tmux session
+git add ui/ ttmp/.../analysis/02-ui-widget-catalog-storybook-plan.md
+git commit -m "Add Refactorio Workbench UI scaffold with Storybook"
+```
