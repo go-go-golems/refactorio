@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 )
 
 type sessionBuilder struct {
@@ -413,7 +414,29 @@ func buildSessionID(prefix string, rootPath string, gitFrom string, gitTo string
 	key := fmt.Sprintf("%s|%s|%s", rootPath, gitFrom, gitTo)
 	hash := sha1.Sum([]byte(key))
 	short := hex.EncodeToString(hash[:4])
-	return fmt.Sprintf("%s:%s..%s:%s", prefix, gitFrom, gitTo, short)
+	safeFrom := sanitizeSessionLabel(gitFrom)
+	safeTo := sanitizeSessionLabel(gitTo)
+	return fmt.Sprintf("%s:%s..%s:%s", prefix, safeFrom, safeTo, short)
+}
+
+func sanitizeSessionLabel(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "unknown"
+	}
+	var builder strings.Builder
+	builder.Grow(len(value))
+	for _, r := range value {
+		switch {
+		case unicode.IsLetter(r), unicode.IsNumber(r):
+			builder.WriteRune(r)
+		case r == '-', r == '_', r == '.', r == '~':
+			builder.WriteRune(r)
+		default:
+			builder.WriteRune('_')
+		}
+	}
+	return builder.String()
 }
 
 func (s *Server) loadWorkspaceConfig() (*WorkspaceConfig, error) {
