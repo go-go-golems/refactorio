@@ -37,6 +37,8 @@ RelatedFiles:
       Note: DB info endpoint and schema/FTS detection
     - Path: refactorio/pkg/workbenchapi/decode.go
       Note: Strict JSON decoding helper
+    - Path: refactorio/pkg/workbenchapi/diffs.go
+      Note: Diff run/file endpoints and hunk/line loading
     - Path: refactorio/pkg/workbenchapi/json.go
       Note: Shared JSON and error response helpers
     - Path: refactorio/pkg/workbenchapi/routes.go
@@ -57,6 +59,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -671,4 +674,58 @@ gofmt -w refactorio/pkg/workbenchapi/code_units.go refactorio/pkg/workbenchapi/s
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/code_units.go pkg/workbenchapi/search.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add code unit endpoints"
+```
+
+## Step 12: Implement Diff Endpoints
+I added diff-related endpoints covering diff runs, diff file lists, and per-file hunks/lines. This supports the Diffs explorer and detail view in the UI.
+
+The diff file endpoint reconstructs hunks and lines directly from the SQLite tables, returning a structured payload that is easy for the frontend to render.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement Task 10 (diff endpoints), commit, and update the diary.
+
+**Inferred user intent:** Enable diff browsing and per-file hunk views in the UI.
+
+**Commit (code):** c7fba04 — "Add diff endpoints"
+
+### What I did
+- Added `GET /api/diff-runs`, `GET /api/diff/:run_id/files`, and `GET /api/diff/:run_id/file`.
+- Added SQL helpers to load hunks and lines per file.
+- Registered diff routes in the server.
+
+### Why
+- Diffs are core to understanding code changes in refactor work.
+
+### What worked
+- Diff file list uses existing refactorindex query helpers.
+- Hunk/line reconstruction is deterministic and straightforward for UI consumption.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Using per-hunk queries keeps the result structure clear, even if it’s slightly more DB round-trips.
+
+### What was tricky to build
+Ensuring diff run lookup works both with explicit sessions and the default “all diff runs” list required two query paths.
+
+### What warrants a second pair of eyes
+- Confirm the diff run lookup logic for `session_id` is sufficient for the UI.
+- Review the diff file query path to ensure it matches how diff_files are stored.
+
+### What should be done in the future
+- Add hunk/line counts to the diff file list if the UI needs summary stats.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/diffs.go` and `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/diffs.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/diffs.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add diff endpoints"
 ```
