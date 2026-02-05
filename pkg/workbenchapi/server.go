@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct {
-	Addr     string
-	BasePath string
+	Addr                string
+	BasePath            string
+	WorkspaceConfigPath string
 }
 
 type Server struct {
@@ -29,7 +30,6 @@ func NewServer(cfg Config) *Server {
 	}
 
 	apiMux := http.NewServeMux()
-	registerBaseRoutes(apiMux)
 
 	rootMux := http.NewServeMux()
 	basePath := normalizeBasePath(cfg.BasePath)
@@ -39,11 +39,13 @@ func NewServer(cfg Config) *Server {
 		rootMux.Handle(basePath+"/", http.StripPrefix(basePath, apiMux))
 	}
 
-	return &Server{
+	server := &Server{
 		cfg:     cfg,
 		apiMux:  apiMux,
 		rootMux: rootMux,
 	}
+	server.registerRoutes()
+	return server
 }
 
 func (s *Server) ListenAndServe() error {
@@ -74,4 +76,11 @@ func normalizeBasePath(value string) string {
 		trimmed = "/" + trimmed
 	}
 	return strings.TrimRight(trimmed, "/")
+}
+
+func (s *Server) workspaceConfigPath() (string, error) {
+	if strings.TrimSpace(s.cfg.WorkspaceConfigPath) != "" {
+		return s.cfg.WorkspaceConfigPath, nil
+	}
+	return DefaultWorkspaceConfigPath()
 }
