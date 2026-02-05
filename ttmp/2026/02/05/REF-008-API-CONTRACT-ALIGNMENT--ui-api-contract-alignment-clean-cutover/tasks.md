@@ -31,3 +31,5 @@
 - [x] Convert refactorio CLI to glazed command wiring with logging layer (--log-level)
 - [x] Migrate/refill live workspace DB (meta_runs schema + ingest domains) to unblock /api/sessions
 - [x] Fix /api/files and file search handling for nullable file_exists/is_binary
+- [x] Wire topbar workspace/session selectors to Redux state for real session switching
+- [x] Prevent stale domain tables from persisting across session switches

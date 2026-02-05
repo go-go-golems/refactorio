@@ -26,6 +26,7 @@ export function CommitsPage() {
     { workspace_id: workspaceId!, run_id: commitsRunId, limit, offset, q: searchQuery || undefined },
     { skip: !workspaceId || !commitsRunId },
   )
+  const commitRows = commitsAvailable ? (commits ?? []) : []
 
   const { data: files, isFetching: filesLoading } = useGetCommitFilesQuery(
     { hash: selected?.hash ?? '', workspace_id: workspaceId! },
@@ -55,7 +56,7 @@ export function CommitsPage() {
         </div>
         <EntityTable
           columns={columns}
-          data={commits ?? []}
+          data={commitRows}
           loading={isLoading && commitsAvailable}
           selectedId={selected?.hash}
           onSelect={setSelected}

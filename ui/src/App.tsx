@@ -45,6 +45,14 @@ const sidebarSections: SidebarSection[] = [
   },
 ]
 
+function sessionOptionLabel(session: { id: string; git_from?: string; git_to?: string }) {
+  const range = [session.git_from, session.git_to].filter(Boolean).join(' \u2192 ')
+  if (range) return range
+  const runMatch = session.id.match(/:run-(\d+)$/)
+  if (runMatch) return `Session #${runMatch[1]}`
+  return 'Unnamed Session'
+}
+
 export default function App() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -73,6 +81,11 @@ export default function App() {
 
   const activeWorkspace = workspaces?.find((w) => w.id === activeWorkspaceId)
   const activeSession = sessions?.find((s) => s.id === activeSessionId)
+  const workspaceOptions = (workspaces ?? []).map((w) => ({ id: w.id, label: w.name }))
+  const sessionOptions = (sessions ?? []).map((s) => ({
+    id: s.id,
+    label: sessionOptionLabel(s),
+  }))
 
   // Derive active sidebar item from current path
   const activePath = location.pathname
@@ -103,8 +116,14 @@ export default function App() {
       topbarProps={{
         workspaceName: activeWorkspace?.name,
         sessionName: activeSession ? [activeSession.git_from, activeSession.git_to].filter(Boolean).join(' \u2192 ') : undefined,
+        workspaceOptions,
+        sessionOptions,
+        selectedWorkspaceId: activeWorkspaceId,
+        selectedSessionId: activeSessionId,
+        onWorkspaceSelect: (workspaceId) => dispatch(setActiveWorkspace(workspaceId)),
+        onSessionSelect: (sessionId) => dispatch(setActiveSession(sessionId)),
         onWorkspaceClick: () => navigate('/workspace'),
-        onSessionClick: () => {/* TODO: session selector dropdown */},
+        onSessionClick: undefined,
         onSearch: (q) => navigate(`/search?q=${encodeURIComponent(q)}`),
       }}
       sidebarCollapsed={sidebarCollapsed}

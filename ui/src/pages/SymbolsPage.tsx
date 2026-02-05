@@ -37,6 +37,7 @@ export function SymbolsPage() {
     },
     { skip: !workspaceId || !symbolsRunId },
   )
+  const symbolRows = symbolsAvailable ? (symbols ?? []) : []
 
   const { data: refs, isFetching: refsLoading } = useGetSymbolRefsQuery(
     { hash: selectedSymbol?.symbol_hash ?? '', workspace_id: workspaceId!, run_id: refsRunId },
@@ -78,7 +79,7 @@ export function SymbolsPage() {
         </div>
         <EntityTable
           columns={columns}
-          data={symbols ?? []}
+          data={symbolRows}
           loading={isLoading && symbolsAvailable}
           selectedId={selectedSymbol?.symbol_hash}
           onSelect={(s) => setSelectedSymbol(s)}

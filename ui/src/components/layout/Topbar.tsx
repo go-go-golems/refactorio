@@ -3,6 +3,18 @@ export interface TopbarProps {
   workspaceName?: string
   /** Current session name */
   sessionName?: string
+  /** Workspace options for selector */
+  workspaceOptions?: Array<{ id: string; label: string }>
+  /** Session options for selector */
+  sessionOptions?: Array<{ id: string; label: string }>
+  /** Selected workspace ID */
+  selectedWorkspaceId?: string | null
+  /** Selected session ID */
+  selectedSessionId?: string | null
+  /** Called when workspace selection changes */
+  onWorkspaceSelect?: (workspaceId: string | null) => void
+  /** Called when session selection changes */
+  onSessionSelect?: (sessionId: string | null) => void
   /** Called when workspace selector is clicked */
   onWorkspaceClick?: () => void
   /** Called when session selector is clicked */
@@ -18,6 +30,12 @@ export interface TopbarProps {
 export function Topbar({
   workspaceName,
   sessionName,
+  workspaceOptions,
+  sessionOptions,
+  selectedWorkspaceId,
+  selectedSessionId,
+  onWorkspaceSelect,
+  onSessionSelect,
   onWorkspaceClick,
   onSessionClick,
   onSearch,
@@ -41,25 +59,60 @@ export function Topbar({
 
         {/* Selectors */}
         <div className="d-flex align-items-center gap-2 mx-3">
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-            onClick={onWorkspaceClick}
-            disabled={!onWorkspaceClick}
-          >
-            {workspaceName || 'No workspace'}
-            <span className="opacity-50">▾</span>
-          </button>
+          {workspaceOptions && onWorkspaceSelect ? (
+            <select
+              className="form-select form-select-sm"
+              style={{ minWidth: 180 }}
+              value={selectedWorkspaceId ?? ''}
+              onChange={(e) => onWorkspaceSelect(e.target.value || null)}
+              aria-label="Workspace"
+            >
+              <option value="" disabled>No workspace</option>
+              {workspaceOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+              onClick={onWorkspaceClick}
+              disabled={!onWorkspaceClick}
+            >
+              {workspaceName || 'No workspace'}
+              <span className="opacity-50">▾</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-            onClick={onSessionClick}
-            disabled={!onSessionClick || !workspaceName}
-          >
-            {sessionName || 'No session'}
-            <span className="opacity-50">▾</span>
-          </button>
+          {sessionOptions && onSessionSelect ? (
+            <select
+              className="form-select form-select-sm"
+              style={{ minWidth: 220 }}
+              value={selectedSessionId ?? ''}
+              onChange={(e) => onSessionSelect(e.target.value || null)}
+              disabled={!selectedWorkspaceId || sessionOptions.length === 0}
+              aria-label="Session"
+            >
+              <option value="">No session</option>
+              {sessionOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+              onClick={onSessionClick}
+              disabled={!onSessionClick || !workspaceName}
+            >
+              {sessionName || 'No session'}
+              <span className="opacity-50">▾</span>
+            </button>
+          )}
         </div>
 
         {/* Search */}

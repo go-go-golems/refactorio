@@ -29,6 +29,7 @@ export function DiffsPage() {
     { workspace_id: workspaceId!, session_id: sessionId ?? undefined },
     { skip: !workspaceId || !sessionId },
   )
+  const runRows = diffAvailable ? (runs ?? []) : []
 
   const { data: files, isLoading: filesLoading } = useGetDiffFilesQuery(
     { run_id: selectedRun?.id ?? 0, workspace_id: workspaceId! },
@@ -46,10 +47,10 @@ export function DiffsPage() {
   }, [sessionId])
 
   useEffect(() => {
-    if (!selectedRun && runs && runs.length > 0) {
-      setSelectedRun(runs[0])
+    if (!selectedRun && runRows.length > 0) {
+      setSelectedRun(runRows[0])
     }
-  }, [runs, selectedRun])
+  }, [runRows, selectedRun])
 
   if (!workspaceId) return <div className="p-4 text-muted">Select a workspace first.</div>
 
@@ -60,7 +61,7 @@ export function DiffsPage() {
         <h6 className="mb-2">Diff Runs</h6>
         <EntityTable
           columns={runColumns}
-          data={runs ?? []}
+          data={runRows}
           loading={runsLoading && diffAvailable}
           selectedId={selectedRun ? String(selectedRun.id) : undefined}
           onSelect={(r) => { setSelectedRun(r); setSelectedFile(null) }}

@@ -22,6 +22,7 @@ export function DocsPage() {
     { workspace_id: workspaceId!, run_id: docsRunId, limit, offset },
     { skip: !workspaceId || !docsRunId },
   )
+  const termRows = docsAvailable ? (terms ?? []) : []
 
   const { data: hits, isFetching: hitsLoading } = useGetDocHitsQuery(
     { workspace_id: workspaceId!, run_id: docsRunId, term: selected?.term },
@@ -41,7 +42,7 @@ export function DocsPage() {
         <h4 className="mb-3">Docs / Terms</h4>
         <EntityTable
           columns={columns}
-          data={terms ?? []}
+          data={termRows}
           loading={isLoading}
           selectedId={selected?.term}
           onSelect={setSelected}

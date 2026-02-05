@@ -24,12 +24,27 @@ RelatedFiles:
       Note: Fix nullable files columns in file search path
     - Path: ttmp/2026/02/05/REF-008-API-CONTRACT-ALIGNMENT--ui-api-contract-alignment-clean-cutover/tasks.md
       Note: Track and check completion of live backend unblock tasks
+    - Path: ui/src/App.tsx
+      Note: Wire controlled workspace/session selectors and stable session labels
+    - Path: ui/src/components/layout/Topbar.tsx
+      Note: Implement real topbar combobox selectors
+    - Path: ui/src/pages/CodeUnitsPage.tsx
+      Note: Prevent stale code unit rows on session switch
+    - Path: ui/src/pages/CommitsPage.tsx
+      Note: Prevent stale commit rows when session has no commits run
+    - Path: ui/src/pages/DiffsPage.tsx
+      Note: Prevent stale diff run rows on session switch
+    - Path: ui/src/pages/DocsPage.tsx
+      Note: Prevent stale doc term rows on session switch
+    - Path: ui/src/pages/SymbolsPage.tsx
+      Note: Prevent stale symbol rows on session switch
 ExternalSources: []
 Summary: Implementation diary for the UI/API contract alignment work.
-LastUpdated: 2026-02-05T18:12:10-05:00
+LastUpdated: 2026-02-05T18:20:10-05:00
 WhatFor: Track step-by-step alignment changes and review guidance.
 WhenToUse: Use when resuming alignment work or reviewing what changed and why.
 ---
+
 
 
 # Diary
@@ -342,4 +357,62 @@ curl -sS "http://127.0.0.1:8080/api/sessions?workspace_id=refactorio-foobar"
 curl -sS "http://127.0.0.1:8080/api/files?workspace_id=refactorio-foobar&prefix="
 curl -sS "http://localhost:3001/api/files?workspace_id=refactorio-foobar&prefix="
 docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 25,26
+```
+
+## Step 7: Wire Real Topbar Session Selector and Fix Stale Session-Scoped Tables
+I fixed the UX/behavior issue where session switching in the topbar did not meaningfully work. The topbar now has controlled workspace/session selectors wired to Redux, and session-scoped pages now clear stale table data when the selected session lacks that domain.
+
+### Prompt Context
+**User prompt (verbatim):** "Ok, the sessions drop down / selecting sessions doesn't seem to work. You can use playwright to muck about a bit if you want."
+
+**Assistant interpretation:** Reproduce the session-selection issue in the live UI and implement a fix that makes topbar session selection functional and reliable.
+
+**Inferred user intent:** Ensure users can actually switch sessions from the topbar and trust that pages reflect the selected session immediately.
+
+**Commit (code):** pending
+
+### What I did
+- Reproduced behavior using Playwright against the live app on `http://localhost:3001`.
+- Identified that topbar session interaction was placeholder wiring (`onSessionClick` TODO) rather than a real selector.
+- Replaced topbar workspace/session buttons with controlled `<select>` inputs:
+  - `ui/src/components/layout/Topbar.tsx`
+- Wired selector values and dispatch handlers in app root:
+  - `ui/src/App.tsx`
+  - `onWorkspaceSelect` -> `setActiveWorkspace(...)`
+  - `onSessionSelect` -> `setActiveSession(...)`
+- Improved session labels to be distinguishable when ranges are absent:
+  - `Session #<run-id>` fallback from session id (instead of repeated "Unnamed Session").
+- Fixed stale table state after session switches for run-scoped pages:
+  - `ui/src/pages/CommitsPage.tsx`
+  - `ui/src/pages/SymbolsPage.tsx`
+  - `ui/src/pages/CodeUnitsPage.tsx`
+  - `ui/src/pages/DocsPage.tsx`
+  - `ui/src/pages/DiffsPage.tsx`
+  - Each page now uses empty rows when the selected session has no run id for that domain, preventing prior-session data from lingering.
+
+### Why
+- Users could not reliably switch sessions from the topbar.
+- Even when selection changed, stale RTK Query data could remain visible for domains missing in the new session, making it appear as if switching failed.
+
+### What worked
+- Playwright confirmed session combobox selection updates immediately.
+- On `Commits` page:
+  - selecting `Session #7` shows "No commits data for this session"
+  - selecting `HEAD~30 → HEAD` shows the expected commits list
+- Session options are now clear and distinguishable.
+
+### What didn't work
+- `npm run build` still fails due pre-existing unrelated UI type issues outside this change set.
+
+### What warrants a second pair of eyes
+- Whether we should standardize human-friendly session names server-side (instead of deriving labels in UI).
+- Whether stale-data guards should be centralized in shared hooks rather than per-page.
+
+### Technical details
+Commands run:
+```bash
+# Reproduce and verify with Playwright (live app)
+# Navigate, select sessions, and confirm page behavior.
+
+docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 27,28
 ```

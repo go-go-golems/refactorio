@@ -29,6 +29,7 @@ export function CodeUnitsPage() {
     { workspace_id: workspaceId!, run_id: codeUnitsRunId, limit, offset, kind: kindFilter || undefined, name: searchQuery || undefined },
     { skip: !workspaceId || !codeUnitsRunId },
   )
+  const unitRows = codeUnitsAvailable ? (units ?? []) : []
 
   const { data: detail, isFetching: detailLoading } = useGetCodeUnitQuery(
     { hash: selected?.unit_hash ?? '', workspace_id: workspaceId!, run_id: codeUnitsRunId },
@@ -59,7 +60,7 @@ export function CodeUnitsPage() {
         </div>
         <EntityTable
           columns={columns}
-          data={units ?? []}
+          data={unitRows}
           loading={isLoading && codeUnitsAvailable}
           selectedId={selected?.unit_hash}
           onSelect={setSelected}
