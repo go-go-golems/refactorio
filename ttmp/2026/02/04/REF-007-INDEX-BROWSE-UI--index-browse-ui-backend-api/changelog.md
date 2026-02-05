@@ -40,3 +40,16 @@ Step 20: add workbench REST API reference (commit 37d7ae7)
 
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/doc/topics/04-workbench-api-reference.md — Documented full REST API surface
 
+
+## 2026-02-05
+
+Step 26: Complete widget catalog - navigation, search, selection, detail, form components (commits c19cf75, cfba20b, fc50865, 9ad80c9, bb8fe1e)
+
+### Related Files
+
+- ui/src/components/detail/ — SymbolDetail
+- ui/src/components/form/ — WorkspaceForm
+- ui/src/components/navigation/ — FileTree
+- ui/src/components/search/ — GlobalSearchBar
+- ui/src/components/selection/ — WorkspaceSelector
+

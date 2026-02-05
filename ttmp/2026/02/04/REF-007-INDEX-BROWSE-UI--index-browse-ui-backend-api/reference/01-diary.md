@@ -69,12 +69,35 @@ RelatedFiles:
       Note: Workspace config model and CRUD handlers
     - Path: ttmp/2026/02/04/REF-007-INDEX-BROWSE-UI--index-browse-ui-backend-api/scripts/seed_api_smoke.go
       Note: Smoke-test seed script for end-to-end API validation (commit cb90323)
+    - Path: ui/src/components/detail/CodeUnitDetail.tsx
+      Note: CodeUnitDetail component (commit 9ad80c9)
+    - Path: ui/src/components/detail/CommitDetail.tsx
+      Note: CommitDetail component (commit 9ad80c9)
+    - Path: ui/src/components/detail/SymbolDetail.tsx
+      Note: SymbolDetail component (commit 9ad80c9)
+    - Path: ui/src/components/form/WorkspaceForm.tsx
+      Note: WorkspaceForm component (commit bb8fe1e)
+    - Path: ui/src/components/navigation/Breadcrumb.tsx
+      Note: Breadcrumb component (commit c19cf75)
+    - Path: ui/src/components/navigation/FileTree.tsx
+      Note: FileTree component (commit c19cf75)
+    - Path: ui/src/components/navigation/TabNav.tsx
+      Note: TabNav component (commit c19cf75)
+    - Path: ui/src/components/search/FilterPanel.tsx
+      Note: FilterPanel component (commit cfba20b)
+    - Path: ui/src/components/search/GlobalSearchBar.tsx
+      Note: GlobalSearchBar component (commit cfba20b)
+    - Path: ui/src/components/selection/SessionSelector.tsx
+      Note: SessionSelector component (commit fc50865)
+    - Path: ui/src/components/selection/WorkspaceSelector.tsx
+      Note: WorkspaceSelector component (commit fc50865)
 ExternalSources: []
 Summary: Diary for backend API documentation and analysis.
 LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -1515,3 +1538,84 @@ Per the widget catalog, these components remain:
 - The go.work requires Go 1.25.6 but 1.25.5 may be installed (LSP diagnostic, doesn't affect frontend work)
 - No `.prettierrc` or `eslint.config` — code formatting is manual for now
 - The `App.tsx` file referenced in `main.tsx` doesn't exist yet — Storybook works independently
+
+## Step 26: Complete Widget Catalog — Navigation, Search, Selection, Detail, Form Components
+
+I picked up the ticket and implemented all remaining widget catalog components across 5 categories: navigation (FileTree, Breadcrumb, TabNav), search (GlobalSearchBar, FilterPanel), selection (WorkspaceSelector, SessionSelector), detail panels (SymbolDetail, CodeUnitDetail, CommitDetail), and forms (WorkspaceForm). Each component has Storybook stories exercising key states.
+
+This completes the widget catalog from the analysis doc. All 25 components now have implementations and stories in Storybook. The next phase is page-level integration: wiring components into routed views with Zustand stores and API client.
+
+### Prompt Context
+**User prompt (verbatim):** "Use docmgr and work on the ticket REF-007-INDEX-BROWSE-UI. Keep a detailed diary as you work. Add tasks for the UI implementation to the ticket after analyzing what needs to be built and the status of the API, then work on each task one by one, committing as you go, writing in your diary, and checking off the task."
+
+**Assistant interpretation:** Continue the UI widget implementation from where the previous developer left off, implementing all remaining components from the widget catalog.
+
+**Inferred user intent:** Complete the component library so page-level integration can begin.
+
+**Commits (code):**
+- c19cf75 — "Add navigation components: FileTree, Breadcrumb, TabNav"
+- cfba20b — "Add search components: GlobalSearchBar, FilterPanel"
+- fc50865 — "Add selection components: WorkspaceSelector, SessionSelector"
+- 9ad80c9 — "Add detail components: SymbolDetail, CodeUnitDetail, CommitDetail"
+- bb8fe1e — "Add WorkspaceForm component"
+
+### What I did
+- Implemented FileTree with recursive nodes, expand/collapse, selection, badges, loading/empty states
+- Implemented Breadcrumb with clickable segments and truncation
+- Implemented TabNav with badges and disabled states
+- Implemented GlobalSearchBar with suggestions dropdown, keyboard navigation, clear button
+- Implemented FilterPanel with checkbox-group, select, text, and date-range filter types
+- Implemented WorkspaceSelector with list, selection highlight, add/edit actions, loading/empty
+- Implemented SessionSelector with dropdown, availability badges, single-session mode
+- Implemented SymbolDetail with refs list, compute refs CTA, signature display, actions
+- Implemented CodeUnitDetail with body viewer, doc comment, history timeline, diff CTA
+- Implemented CommitDetail with file list, status badges, additions/deletions stats
+- Implemented WorkspaceForm with validation, edit mode, loading/error states
+- Added index.ts barrel exports for all new component directories
+
+### Why
+- All widget catalog components must exist before page-level integration can begin
+- Storybook-first development ensures components are reviewed in isolation before wiring
+
+### What worked
+- The existing patterns (Bootstrap + inline SVG icons + barrel exports) scaled well to all new components
+- MSW mock data from `src/mocks/data.ts` provided realistic props for stories
+- Components compose well: SymbolDetail uses CopyButton, StatusBadge, EntityIcon; CodeUnitDetail uses CodeViewer
+
+### What didn't work
+- N/A
+
+### What I learned
+- FileTree needs both controlled (`expandedPaths` prop) and uncontrolled (internal state) modes to work in both Storybook stories and real app
+- The GlobalSearchBar suggestion filtering needs to happen inline (not deferred) to feel responsive
+- Bootstrap dropdowns need `data-bs-toggle` attributes but require Bootstrap JS; for now SessionSelector renders the dropdown structure — JS toggle will come with page integration
+
+### What was tricky to build
+- FileTree recursive rendering: The `childrenMap` pattern (parent path → children entries) keeps the component lazy-loadable without requiring a deeply nested tree structure upfront. Getting the expand/collapse to work in both controlled and uncontrolled modes required careful state merging.
+- SymbolDetail refs section: Handling four states (loading, refs present, refs empty, refs not computed) required explicit conditional rendering rather than a simple ternary.
+
+### What warrants a second pair of eyes
+- SessionSelector uses Bootstrap dropdown markup but may need Bootstrap JS or a React dropdown library for proper toggle behavior
+- SymbolDetail's `RefItem` component names its prop `ref` which shadows React's reserved prop name (uses `ref: symbolRef` destructuring, but worth verifying)
+
+### What should be done in the future
+- Wire components into routed pages (App.tsx with react-router-dom)
+- Create Zustand stores for workspace, session, and UI state
+- Create API client in `src/api/` that calls the REST endpoints
+- Add Bootstrap JS or a headless dropdown library for SessionSelector
+- go:embed integration for production builds
+
+### Code review instructions
+- Browse Storybook at http://localhost:6006/ to see all 25 components
+- New components are in: `navigation/`, `search/`, `selection/`, `detail/`, `form/`
+- Each component has a `.stories.tsx` file with multiple story variants
+
+### Technical details
+Components implemented (11 new, 14 existing = 25 total):
+```
+navigation/  FileTree, Breadcrumb, TabNav         (+ stories)
+search/      GlobalSearchBar, FilterPanel          (+ stories)
+selection/   WorkspaceSelector, SessionSelector    (+ stories, existing: SessionCard)
+detail/      SymbolDetail, CodeUnitDetail, CommitDetail (+ stories, existing: InspectorPanel)
+form/        WorkspaceForm                         (+ stories)
+```
