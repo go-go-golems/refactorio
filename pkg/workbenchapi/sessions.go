@@ -179,24 +179,32 @@ func computeSessions(db *sql.DB, ref WorkspaceRef, overrides []SessionOverride) 
 		key := sessionKey(run)
 		builder := builders[key]
 		if builder == nil {
-			builder = &sessionBuilder{session: &Session{Runs: SessionRuns{}, Availability: map[string]bool{}}, domainTimes: map[string]time.Time{}}
+			builder = &sessionBuilder{
+				session:     &Session{Runs: SessionRuns{}, Availability: map[string]bool{}},
+				domainTimes: map[string]time.Time{},
+			}
+			sessionID := buildSessionID(ref.ID, run.RootPath, run.GitFrom, run.GitTo, run.ID)
+			if count, ok := idMap[sessionID]; ok {
+				count++
+				idMap[sessionID] = count
+				sessionID = fmt.Sprintf("%s-%d", sessionID, count)
+			} else {
+				idMap[sessionID] = 1
+			}
+			builder.session.ID = sessionID
 			builders[key] = builder
 		}
 
-		builder.session.RootPath = run.RootPath
-		builder.session.GitFrom = run.GitFrom
-		builder.session.GitTo = run.GitTo
-		builder.session.WorkspaceID = ref.ID
-
-		sessionID := buildSessionID(ref.ID, run.RootPath, run.GitFrom, run.GitTo, run.ID)
-		if count, ok := idMap[sessionID]; ok {
-			count++
-			idMap[sessionID] = count
-			sessionID = fmt.Sprintf("%s-%d", sessionID, count)
-		} else {
-			idMap[sessionID] = 1
+		if builder.session.RootPath == "" {
+			builder.session.RootPath = run.RootPath
 		}
-		builder.session.ID = sessionID
+		if builder.session.GitFrom == "" {
+			builder.session.GitFrom = run.GitFrom
+		}
+		if builder.session.GitTo == "" {
+			builder.session.GitTo = run.GitTo
+		}
+		builder.session.WorkspaceID = ref.ID
 
 		runTime, runRaw := runTimestamp(run)
 		if runTime.After(builder.updatedAt) {
