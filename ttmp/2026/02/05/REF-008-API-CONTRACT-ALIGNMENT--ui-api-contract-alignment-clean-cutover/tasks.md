@@ -2,8 +2,8 @@
 
 ## Active
 
-- [ ] Run UI against live backend (playbook) and confirm all pages render with real data
-- [ ] Capture any remaining contract mismatches and update alignment notes
+- [x] Run UI against live backend (playbook) and confirm all pages render with real data
+- [x] Capture any remaining contract mismatches and update alignment notes
 
 ## Done
 

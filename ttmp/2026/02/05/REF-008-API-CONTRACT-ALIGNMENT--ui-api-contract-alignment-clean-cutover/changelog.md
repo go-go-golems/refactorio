@@ -54,3 +54,14 @@ Step 9: fixed remaining frontend TypeScript build blockers in DiffViewer stories
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/components/selection/SessionSelector.tsx — Use Session availability type directly
 - /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/pages/DashboardPage.tsx — Use run.id key to match Run contract
 
+
+## 2026-02-05
+
+Step 10: completed live-backend validation and fixed final runtime mismatches: diff-runs session override lookup and Symbols duplicate row keys (commit 3388bbb).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/pkg/workbenchapi/diffs.go — Resolve session_id using workspace overrides for /api/diff-runs
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ttmp/2026/02/05/REF-008-API-CONTRACT-ALIGNMENT--ui-api-contract-alignment-clean-cutover/tasks.md — Mark remaining active tasks complete after live validation
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/pages/SymbolsPage.tsx — Use composite row IDs to avoid duplicate React keys
+

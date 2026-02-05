@@ -18,6 +18,10 @@ RelatedFiles:
       Note: Glazed v1 API migration for js run command
     - Path: cmd/refactorio/root.go
       Note: Logging section wiring rename for Glazed v1
+    - Path: pkg/workbenchapi/diffs.go
+      Note: |-
+        Include workspace session overrides when resolving diff runs by session_id
+        Resolve session overrides for session-scoped diff-runs
     - Path: pkg/workbenchapi/files.go
       Note: Fix nullable files columns causing /api/files 500
     - Path: pkg/workbenchapi/search.go
@@ -51,13 +55,16 @@ RelatedFiles:
     - Path: ui/src/pages/DocsPage.tsx
       Note: Prevent stale doc term rows on session switch
     - Path: ui/src/pages/SymbolsPage.tsx
-      Note: Prevent stale symbol rows on session switch
+      Note: |-
+        Prevent stale symbol rows on session switch and use unique table row keys
+        Composite row keys prevent duplicate-key rendering warnings
 ExternalSources: []
 Summary: Implementation diary for the UI/API contract alignment work.
-LastUpdated: 2026-02-05T18:49:01-05:00
+LastUpdated: 2026-02-05T18:56:55-05:00
 WhatFor: Track step-by-step alignment changes and review guidance.
 WhenToUse: Use when resuming alignment work or reviewing what changed and why.
 ---
+
 
 
 
@@ -518,4 +525,71 @@ This closes the previously documented “build still fails due unrelated UI type
 Commands run:
 ```bash
 npm --prefix ui run build
+```
+
+## Step 10: Live Backend Playbook Validation and Final Mismatch Closure
+I ran the full live UI validation pass against the running backend and verified every navigation page renders with real indexed data. During this pass, I found two remaining runtime mismatches that were not caught by compile checks: session-scoped diff run lookup ignored workspace overrides (causing a 404 for `all-indexed`), and the Symbols table used non-unique row keys when multiple occurrences shared the same symbol hash.
+
+I fixed both mismatches, revalidated with backend tests and frontend build, restarted the backend process to ensure fresh code was serving, and reran Playwright route checks. After the fixes, page traversal across Dashboard, Runs, Symbols, Code Units, Commits, Diffs, Docs/Terms, Files, and Search showed no console errors and no 4xx/5xx UI breakpoints.
+
+### Prompt Context
+**User prompt (verbatim):** "continue REF-008"
+
+**Assistant interpretation:** Continue the ticket by completing remaining active validation tasks and documenting outcomes.
+
+**Inferred user intent:** Finish REF-008 end-to-end by proving real runtime behavior and closing remaining contract gaps.
+
+**Commit (code):** 3388bbb — "Fix session-scoped diff-runs and duplicate symbol row keys"
+
+### What I did
+- Executed live Playwright traversal against `http://127.0.0.1:3001` for all sidebar pages.
+- Detected runtime mismatch #1:
+  - `GET /api/diff-runs?workspace_id=...&session_id=refactorio-foobar:all-indexed` returned 404 `session not found`.
+  - Root cause: `pkg/workbenchapi/diffs.go` called `computeSessions(..., nil)` and ignored session overrides from workspace config.
+- Fixed mismatch #1 by loading workspace session overrides before `computeSessions` in `handleDiffRuns`.
+- Detected runtime mismatch #2:
+  - React duplicate-key warnings on Symbols page from repeated `symbol_hash` keys.
+  - Root cause: table row identity used only `symbol_hash`.
+- Fixed mismatch #2 by using a composite symbol row ID (`symbol_hash:file:line:col:run_id`) in `ui/src/pages/SymbolsPage.tsx`.
+- Revalidated:
+  - `GOWORK=off go test ./pkg/workbenchapi/...`
+  - `npm --prefix ui run build`
+  - Playwright route traversal with console check now at 0 errors.
+- Checked off remaining REF-008 tasks (IDs 1 and 2).
+
+### Why
+- REF-008 had two open tasks requiring live backend validation and mismatch capture; compile-only checks were insufficient.
+
+### What worked
+- Backend now returns 200 for session-scoped `diff-runs` when session is an override.
+- UI route traversal against live data is stable and error-free in console.
+
+### What didn't work
+- Initial validation was temporarily skewed by a stale backend process on `:8080`; a forced restart was required to apply current code.
+
+### What I learned
+- Session override handling must be applied consistently anywhere session IDs are accepted, not only in `/sessions`.
+
+### What was tricky to build
+- The stale backend process made API responses appear inconsistent with source code. I had to verify the listening PID and restart the server bound to `127.0.0.1:8080` before trusting runtime observations.
+
+### What warrants a second pair of eyes
+- Any other endpoint that may add `session_id` support in the future should reuse the same override-aware resolution pattern used now in `diff-runs`.
+
+### What should be done in the future
+- Consider closing `REF-008-API-CONTRACT-ALIGNMENT` now that all tasks are checked.
+
+### Code review instructions
+- Start with `pkg/workbenchapi/diffs.go` for the session override fix.
+- Then review `ui/src/pages/SymbolsPage.tsx` for row identity changes.
+- Validate with:
+  - `curl -sS 'http://127.0.0.1:8080/api/diff-runs?workspace_id=refactorio-foobar&session_id=refactorio-foobar%3Aall-indexed'`
+  - `npm --prefix ui run build`
+
+### Technical details
+Commands run:
+```bash
+GOWORK=off go test ./pkg/workbenchapi/...
+npm --prefix ui run build
+docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 1,2
 ```
