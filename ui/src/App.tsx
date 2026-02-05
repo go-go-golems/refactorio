@@ -53,6 +53,11 @@ function sessionOptionLabel(session: { id: string; git_from?: string; git_to?: s
   return 'Unnamed Session'
 }
 
+function sessionCoverage(session: { availability?: Record<string, boolean> }) {
+  if (!session.availability) return 0
+  return Object.values(session.availability).filter(Boolean).length
+}
+
 export default function App() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -75,7 +80,14 @@ export default function App() {
   // Auto-select first session when sessions load
   useEffect(() => {
     if (!activeSessionId && sessions?.length) {
-      dispatch(setActiveSession(sessions[0].id))
+      const best = sessions
+        .slice()
+        .sort((a, b) => {
+          const coverageDelta = sessionCoverage(b) - sessionCoverage(a)
+          if (coverageDelta !== 0) return coverageDelta
+          return (b.last_updated ?? '').localeCompare(a.last_updated ?? '')
+        })[0]
+      dispatch(setActiveSession(best.id))
     }
   }, [activeSessionId, sessions, dispatch])
 

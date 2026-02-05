@@ -55,6 +55,12 @@ export function SessionCard({
   const gitRange = [session.git_from, session.git_to].filter(Boolean).join(' → ')
   const availableCount = Object.values(session.availability).filter(Boolean).length
   const totalDomains = Object.keys(session.availability).length
+  const updatedText = (() => {
+    if (!session.last_updated) return 'n/a'
+    const parsed = new Date(session.last_updated)
+    if (Number.isNaN(parsed.getTime())) return 'n/a'
+    return parsed.toLocaleString()
+  })()
 
   return (
     <div
@@ -110,7 +116,7 @@ export function SessionCard({
 
         <div className="text-end mt-2">
           <small className="text-muted">
-            Updated {new Date(session.last_updated).toLocaleString()}
+            Updated {updatedText}
           </small>
         </div>
       </div>

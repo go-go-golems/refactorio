@@ -26,6 +26,8 @@ RelatedFiles:
       Note: Track and check completion of live backend unblock tasks
     - Path: ui/src/App.tsx
       Note: Wire controlled workspace/session selectors and stable session labels
+    - Path: ui/src/components/selection/SessionCard.tsx
+      Note: Handle missing/invalid session last_updated values gracefully
     - Path: ui/src/components/layout/Topbar.tsx
       Note: Implement real topbar combobox selectors
     - Path: ui/src/pages/CodeUnitsPage.tsx
@@ -40,7 +42,7 @@ RelatedFiles:
       Note: Prevent stale symbol rows on session switch
 ExternalSources: []
 Summary: Implementation diary for the UI/API contract alignment work.
-LastUpdated: 2026-02-05T18:20:10-05:00
+LastUpdated: 2026-02-05T18:24:07-05:00
 WhatFor: Track step-by-step alignment changes and review guidance.
 WhenToUse: Use when resuming alignment work or reviewing what changed and why.
 ---
@@ -415,4 +417,38 @@ Commands run:
 # Navigate, select sessions, and confirm page behavior.
 
 docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 27,28
+```
+
+## Step 8: Prefer Highest-Coverage Session and Stabilize Missing Timestamps
+I refined session UX so first-load auto-selection prefers the session with the widest domain coverage (instead of the newest/first item), and I fixed session card rendering for sessions that omit `last_updated` (for example synthetic/override sessions).
+
+### Prompt Context
+**User prompt (verbatim):** "actually also make a session that covers everything? I'm actually not sure what a session even is"
+
+**Assistant interpretation:** Create an aggregate session for full UI coverage and ensure the UI reliably selects/represents it.
+
+**Inferred user intent:** Avoid manual per-domain session hopping and make session selection behavior obvious/stable.
+
+**Commit (code):** pending
+
+### What I did
+- Created a backend session override `refactorio-foobar:all-indexed` combining currently available run IDs for commits/diff/symbols/code units/doc hits.
+- Updated app auto-select logic to choose the session with highest `availability` coverage, tie-breaking by `last_updated`.
+- Updated `SessionCard` to display `Updated n/a` when `last_updated` is absent/invalid, preventing `Invalid Date` UI artifacts.
+
+### Why
+- Session lists include narrow sessions (single-domain runs). Auto-selecting the first entry can land users in a partially empty UI even when a broader session is available.
+- Synthetic sessions may not carry `last_updated`; UI must handle this safely.
+
+### What worked
+- `/api/sessions?workspace_id=refactorio-foobar` now includes the aggregate `all-indexed` session.
+- On app load, session defaults now consistently bias toward broad coverage.
+
+### What didn't work
+- Full UI build remains blocked by unrelated pre-existing TypeScript errors in Storybook/component files outside this diff.
+
+### Technical details
+Commands run:
+```bash
+curl -sS "http://127.0.0.1:8080/api/sessions?workspace_id=refactorio-foobar" | jq -c '.'
 ```

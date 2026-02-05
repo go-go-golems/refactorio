@@ -32,3 +32,12 @@ Implemented real topbar workspace/session selectors (Redux-wired) and fixed stal
 - ui/src/pages/DocsPage.tsx — Clear stale doc terms when selected session has no doc-hits run
 - ui/src/pages/SymbolsPage.tsx — Clear stale symbol table when selected session has no symbols run
 
+
+## 2026-02-05
+
+Refined session defaulting to prefer the highest-coverage session and hardened session cards for missing timestamps so synthetic aggregate sessions render cleanly.
+
+### Related Files
+
+- ui/src/App.tsx — Auto-select highest-coverage session (availability-first, timestamp tie-break)
+- ui/src/components/selection/SessionCard.tsx — Render `Updated n/a` when `last_updated` is absent/invalid
