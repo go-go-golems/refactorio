@@ -14,7 +14,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: "Implementation diary for the UI/API contract alignment work."
-LastUpdated: 2026-02-05T17:32:44-05:00
+LastUpdated: 2026-02-05T17:33:12-05:00
 WhatFor: "Track step-by-step alignment changes and review guidance."
 WhenToUse: "Use when resuming alignment work or reviewing what changed and why."
 ---
@@ -141,7 +141,7 @@ I added global MSW handlers to Storybook so session-scoped pages always have `/a
 
 **Inferred user intent:** Make Storybook reliable again after session scoping so page stories load without missing endpoints.
 
-**Commit (code):** N/A (pending)
+**Commit (code):** c9b2846 — "Fix Storybook MSW handlers for session-scoped pages"
 
 ### What I did
 - Added global MSW handlers in Storybook preview so `/api/sessions` is mocked across all stories.
