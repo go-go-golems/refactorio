@@ -1203,3 +1203,60 @@ Commands run:
 git -C refactorio add pkg/doc/topics/04-workbench-api-reference.md
 git -C refactorio commit -m "Add workbench API REST reference"
 ```
+
+## Step 21: Analyze UI Requirements and Create Implementation Tasks
+I analyzed the UI design spec to understand what needs to be built for the frontend. The spec describes a comprehensive "Refactorio Workbench" web UI that sits on top of the REST API we just completed.
+
+The UI design document outlines:
+- **Core concepts**: Workspace, Run, Index Session (UI concept), Entity types
+- **App shell layout**: Top bar (workspace/session selector, search, command palette), left navigation, main content area
+- **View catalog**: 12+ distinct views covering investigation, exploration, and refactor assistance
+- **MVP scope**: MVP 1 focuses on the investigation workbench (workspace, runs, sessions, search, symbols, diffs, docs, files)
+
+### Prompt Context
+**User prompt (verbatim):** "Use docmgr and work on the ticket REF-007-INDEX-BROWSE-UI. Keep a detailed diary as you work. Add tasks for the UI implementation to the ticket after analyzing what needs to be built and the status of the API, then work on each task one by one, committing as you go, writing in your diary, and checking off the task."
+
+**Assistant interpretation:** Analyze the UI spec, create tasks for frontend implementation, and work through them incrementally with commits and diary updates.
+
+**Inferred user intent:** Build a working frontend UI for the Refactorio Workbench, starting with the investigation workbench MVP.
+
+**Commit (code):** N/A (analysis phase)
+
+### What I did
+- Read the UI design spec (`sources/local/ui-design.md.md`)
+- Analyzed the existing backend API (all 20 backend tasks completed)
+- Reviewed the workspace structure (Go 1.25.6, pinocchio has Preact+Vite pattern)
+- Identified there is no existing frontend code for refactorio
+- Planned the implementation based on MVP 1 scope
+
+### Why
+- The backend API is complete; now we need a frontend to make it usable
+- Following the spec's MVP 1 recommendation provides a useful product quickly
+
+### What worked
+- The UI spec is well-structured with clear MVP scope
+- The backend API reference doc (`pkg/doc/topics/04-workbench-api-reference.md`) provides exact endpoint shapes
+
+### What didn't work
+- N/A (analysis phase)
+
+### What I learned
+- The pinocchio project uses Preact+Vite+Zustand, which is a good lightweight pattern
+- The UI spec recommends React + RTK Query + Bootstrap, but we can adapt
+- MVP 1 scope includes: workspace connect, runs list, session dashboard, unified search, symbols explorer, diffs explorer, docs/terms explorer, file viewer
+
+### What was tricky to understand
+- The "Index Session" concept is a UI-level grouping of runs that share the same `(root_path, git_from, git_to)` - this is already implemented in the backend
+
+### What warrants a second pair of eyes
+- Technology choice: Preact vs React, Zustand vs RTK Query
+- Whether to embed frontend in Go binary or keep separate dev server
+
+### What should be done in the future
+- MVP 2 (refactor assist) and MVP 3 (end-to-end refactor runs) after MVP 1 is complete
+
+### Technical details
+Files reviewed:
+- `refactorio/ttmp/2026/02/04/REF-007-INDEX-BROWSE-UI--index-browse-ui-backend-api/sources/local/ui-design.md.md`
+- `refactorio/pkg/doc/topics/04-workbench-api-reference.md`
+- `pinocchio/cmd/web-chat/web/package.json`

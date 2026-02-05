@@ -1,0 +1,251 @@
+import { http, HttpResponse, delay } from 'msw'
+import {
+  mockWorkspaces,
+  mockDBInfo,
+  mockRuns,
+  mockSessions,
+  mockSymbols,
+  mockCodeUnits,
+  mockCommits,
+  mockDiffFiles,
+  mockDiffHunks,
+  mockDocTerms,
+  mockFileTree,
+  mockSearchResults,
+} from './data'
+
+const API_BASE = '/api'
+
+export const handlers = [
+  // Health check
+  http.get(`${API_BASE}/health`, async () => {
+    await delay(100)
+    return HttpResponse.json({ status: 'ok' })
+  }),
+
+  // Workspaces
+  http.get(`${API_BASE}/workspaces`, async () => {
+    await delay(150)
+    return HttpResponse.json({ workspaces: mockWorkspaces })
+  }),
+
+  http.get(`${API_BASE}/workspaces/:id`, async ({ params }) => {
+    await delay(100)
+    const workspace = mockWorkspaces.find((w) => w.id === params.id)
+    if (!workspace) {
+      return HttpResponse.json({ error: 'Workspace not found' }, { status: 404 })
+    }
+    return HttpResponse.json(workspace)
+  }),
+
+  // DB Info
+  http.get(`${API_BASE}/db/info`, async () => {
+    await delay(200)
+    return HttpResponse.json(mockDBInfo)
+  }),
+
+  // Runs
+  http.get(`${API_BASE}/runs`, async ({ request }) => {
+    await delay(150)
+    const url = new URL(request.url)
+    const limit = parseInt(url.searchParams.get('limit') || '50')
+    const offset = parseInt(url.searchParams.get('offset') || '0')
+    const items = mockRuns.slice(offset, offset + limit)
+    return HttpResponse.json({ items, total: mockRuns.length, limit, offset })
+  }),
+
+  http.get(`${API_BASE}/runs/:id`, async ({ params }) => {
+    await delay(100)
+    const run = mockRuns.find((r) => r.run_id === parseInt(params.id as string))
+    if (!run) {
+      return HttpResponse.json({ error: 'Run not found' }, { status: 404 })
+    }
+    return HttpResponse.json(run)
+  }),
+
+  // Sessions
+  http.get(`${API_BASE}/sessions`, async () => {
+    await delay(150)
+    return HttpResponse.json({ sessions: mockSessions })
+  }),
+
+  http.get(`${API_BASE}/sessions/:id`, async ({ params }) => {
+    await delay(100)
+    const session = mockSessions.find((s) => s.id === params.id)
+    if (!session) {
+      return HttpResponse.json({ error: 'Session not found' }, { status: 404 })
+    }
+    return HttpResponse.json(session)
+  }),
+
+  // Symbols
+  http.get(`${API_BASE}/symbols`, async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const limit = parseInt(url.searchParams.get('limit') || '50')
+    const offset = parseInt(url.searchParams.get('offset') || '0')
+    const query = url.searchParams.get('q')
+
+    let items = mockSymbols
+    if (query) {
+      items = items.filter(
+        (s) =>
+          s.name.toLowerCase().includes(query.toLowerCase()) ||
+          s.package_path.toLowerCase().includes(query.toLowerCase())
+      )
+    }
+    const paginated = items.slice(offset, offset + limit)
+    return HttpResponse.json({ items: paginated, total: items.length, limit, offset })
+  }),
+
+  http.get(`${API_BASE}/symbols/:hash`, async ({ params }) => {
+    await delay(100)
+    const symbol = mockSymbols.find((s) => s.symbol_hash === params.hash)
+    if (!symbol) {
+      return HttpResponse.json({ error: 'Symbol not found' }, { status: 404 })
+    }
+    return HttpResponse.json(symbol)
+  }),
+
+  // Code Units
+  http.get(`${API_BASE}/code-units`, async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const limit = parseInt(url.searchParams.get('limit') || '50')
+    const offset = parseInt(url.searchParams.get('offset') || '0')
+    const items = mockCodeUnits.slice(offset, offset + limit)
+    return HttpResponse.json({ items, total: mockCodeUnits.length, limit, offset })
+  }),
+
+  http.get(`${API_BASE}/code-units/:hash`, async ({ params }) => {
+    await delay(100)
+    const unit = mockCodeUnits.find((u) => u.code_unit_hash === params.hash)
+    if (!unit) {
+      return HttpResponse.json({ error: 'Code unit not found' }, { status: 404 })
+    }
+    return HttpResponse.json({
+      ...unit,
+      body: `func NewCommandProcessor(opts ...Option) CommandProcessor {
+  impl := &commandProcessorImpl{
+    middleware: make([]Middleware, 0),
+    validators: make([]Validator, 0),
+  }
+  for _, opt := range opts {
+    opt(impl)
+  }
+  return impl
+}`,
+      doc_comment: '// NewCommandProcessor creates a new CommandProcessor with the given options.',
+    })
+  }),
+
+  // Commits
+  http.get(`${API_BASE}/commits`, async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const limit = parseInt(url.searchParams.get('limit') || '50')
+    const offset = parseInt(url.searchParams.get('offset') || '0')
+    const items = mockCommits.slice(offset, offset + limit)
+    return HttpResponse.json({ items, total: mockCommits.length, limit, offset })
+  }),
+
+  http.get(`${API_BASE}/commits/:hash`, async ({ params }) => {
+    await delay(100)
+    const commit = mockCommits.find((c) => c.commit_hash === params.hash)
+    if (!commit) {
+      return HttpResponse.json({ error: 'Commit not found' }, { status: 404 })
+    }
+    return HttpResponse.json(commit)
+  }),
+
+  // Diff
+  http.get(`${API_BASE}/diff-runs`, async () => {
+    await delay(150)
+    return HttpResponse.json({
+      items: [
+        {
+          run_id: 43,
+          root_path: '/Users/dev/src/glazed',
+          git_from: 'HEAD~20',
+          git_to: 'HEAD',
+          files_count: mockDiffFiles.length,
+        },
+      ],
+    })
+  }),
+
+  http.get(`${API_BASE}/diff/:runId/files`, async () => {
+    await delay(150)
+    return HttpResponse.json({ items: mockDiffFiles })
+  }),
+
+  http.get(`${API_BASE}/diff/:runId/file`, async () => {
+    await delay(100)
+    return HttpResponse.json({ hunks: mockDiffHunks })
+  }),
+
+  // Docs
+  http.get(`${API_BASE}/docs/terms`, async () => {
+    await delay(150)
+    return HttpResponse.json({ items: mockDocTerms })
+  }),
+
+  // Files
+  http.get(`${API_BASE}/files`, async () => {
+    await delay(150)
+    return HttpResponse.json({ items: mockFileTree })
+  }),
+
+  http.get(`${API_BASE}/file`, async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const path = url.searchParams.get('path')
+    return HttpResponse.json({
+      path,
+      content: `package handlers
+
+import (
+	"context"
+)
+
+// CommandProcessor handles command execution
+type CommandProcessor interface {
+	Process(ctx context.Context, cmd Command) (Result, error)
+	Validate(cmd Command) error
+}
+
+// NewCommandProcessor creates a new CommandProcessor with the given options.
+func NewCommandProcessor(opts ...Option) CommandProcessor {
+	impl := &commandProcessorImpl{
+		middleware: make([]Middleware, 0),
+		validators: make([]Validator, 0),
+	}
+	for _, opt := range opts {
+		opt(impl)
+	}
+	return impl
+}
+`,
+    })
+  }),
+
+  // Search
+  http.post(`${API_BASE}/search`, async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as { query?: string; types?: string[] }
+    let results = mockSearchResults
+
+    if (body.query) {
+      const q = body.query.toLowerCase()
+      results = results.filter(
+        (r) => r.label.toLowerCase().includes(q) || r.snippet?.toLowerCase().includes(q)
+      )
+    }
+
+    if (body.types && body.types.length > 0) {
+      results = results.filter((r) => body.types!.includes(r.type))
+    }
+
+    return HttpResponse.json({ items: results })
+  }),
+]

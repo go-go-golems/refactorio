@@ -1,8 +1,25 @@
 # Tasks
 
-## TODO
+## TODO - UI Implementation (MVP 1: Investigation Workbench)
 
-- [ ] Add tasks here
+- [ ] Scaffold frontend project (Vite + React + Bootstrap + Zustand) in `refactorio/ui/`
+- [ ] Implement app shell layout (top bar, left navigation, main content area)
+- [ ] Implement workspace selection modal and workspace context provider
+- [ ] Implement DB info display and schema validation warnings
+- [ ] Implement runs list view + run detail view
+- [ ] Implement session dashboard with session cards and availability badges
+- [ ] Implement unified search with type toggles, filters, and preview panel
+- [ ] Implement symbols explorer (list, filters, pagination) + symbol detail (tabs: overview, refs, history, audit)
+- [ ] Implement code units explorer + code unit detail (tabs: snapshot, history, diffs, related)
+- [ ] Implement commits explorer + commit detail (tabs: overview, files, diff, impact)
+- [ ] Implement diffs explorer + diff detail (hunks, lines, search within diff)
+- [ ] Implement docs/terms explorer (terms-first and file-first modes)
+- [ ] Implement files explorer (tree) + file viewer (code view, diff overlay, history, annotations)
+- [ ] Implement raw outputs view
+- [ ] Wire frontend to Go backend (go:embed for production, proxy for dev)
+- [ ] Add responsive layout and keyboard navigation (command palette)
+
+## DONE - Backend API Implementation
 
 - [x] Scaffold Workbench API server package + cobra command (refactorio api serve) with router, JSON helpers, and error model
 - [x] Implement workspace registry (config file) + CRUD endpoints
