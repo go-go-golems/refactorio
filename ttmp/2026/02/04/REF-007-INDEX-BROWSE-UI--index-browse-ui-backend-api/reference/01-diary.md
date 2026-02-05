@@ -45,6 +45,8 @@ RelatedFiles:
       Note: FTS-backed search endpoints and unified search
     - Path: refactorio/pkg/workbenchapi/server.go
       Note: Server config
+    - Path: refactorio/pkg/workbenchapi/symbols.go
+      Note: Symbol list/detail/ref endpoints
     - Path: refactorio/pkg/workbenchapi/workspace.go
       Note: Workspace config model and CRUD handlers
 ExternalSources: []
@@ -53,6 +55,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -558,4 +561,55 @@ gofmt -w refactorio/pkg/workbenchapi/search.go refactorio/pkg/workbenchapi/route
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/search.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add search endpoints"
+```
+
+## Step 10: Implement Symbol Endpoints
+I added the core symbol browsing endpoints: list, detail, and references. The list route reuses the refactorindex query helper; the detail endpoint resolves a symbol’s primary definition, and the refs endpoint surfaces gopls references with pagination.
+
+This aligns with the UI’s Symbols explorer and Symbol detail views, and sets up the foundation for refactor-target selection.\n\n### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Build Task 8 (symbol endpoints), commit, and update the diary.
+
+**Inferred user intent:** Make symbol exploration functional in the UI early.
+
+**Commit (code):** 1caaee7 — "Add symbol endpoints"
+
+### What I did
+- Added `GET /api/symbols` with filters and pagination.
+- Added `GET /api/symbols/:hash` for definition details.
+- Added `GET /api/symbols/:hash/refs` for gopls references.
+- Registered symbol routes in the server.
+- Added small parsing helpers for booleans.
+
+### Why
+- The UI depends on symbol browsing and drill-down as a central workflow.
+
+### What worked
+- Symbol list uses existing refactorindex query logic.
+- Refs endpoint returns `refs_available` and respects `run_id`.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Pulling the “primary” definition can be done with a minimal join on `symbol_occurrences`.
+
+### What was tricky to build
+Handling symbol refs when the `symbol_refs` table is missing required explicit checks to avoid errors on older DBs.
+
+### What warrants a second pair of eyes
+- Verify `GET /api/symbols/:hash` returns the expected occurrence when multiple runs exist.\n- Confirm the `refs_available` heuristic is acceptable for the UI.\n
+### What should be done in the future
+- Consider returning unresolved refs when `symbol_refs_unresolved` is present.\n
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/symbols.go` and `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/symbols.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/symbols.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add symbol endpoints"
 ```

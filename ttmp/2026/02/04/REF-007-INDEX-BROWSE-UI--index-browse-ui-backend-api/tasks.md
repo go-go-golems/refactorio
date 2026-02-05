@@ -10,7 +10,7 @@
 - [x] Implement runs endpoints (/api/runs, /api/runs/:id, /api/runs/:id/summary, /api/runs/:id/raw-outputs, /api/raw-outputs)
 - [x] Implement session resolver + /api/sessions endpoints
 - [x] Implement search endpoints (FTS per type + unified /api/search)
-- [ ] Implement symbol endpoints (/api/symbols, /api/symbols/:hash, /api/symbols/:hash/refs)
+- [x] Implement symbol endpoints (/api/symbols, /api/symbols/:hash, /api/symbols/:hash/refs)
 - [ ] Implement code unit endpoints (/api/code-units, /api/code-units/:hash, /api/code-units/:hash/history, /api/code-units/:hash/diff)
 - [ ] Implement diff endpoints (/api/diff-runs, /api/diff/:run_id/files, /api/diff/:run_id/file)
 - [ ] Implement commit endpoints (/api/commits, /api/commits/:hash, /api/commits/:hash/files, /api/commits/:hash/diff)
