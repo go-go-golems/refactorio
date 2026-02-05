@@ -14,7 +14,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: "Implementation diary for the UI/API contract alignment work."
-LastUpdated: 2026-02-05T17:18:32-05:00
+LastUpdated: 2026-02-05T17:19:44-05:00
 WhatFor: "Track step-by-step alignment changes and review guidance."
 WhenToUse: "Use when resuming alignment work or reviewing what changed and why."
 ---
@@ -36,7 +36,7 @@ I also updated Storybook mocks and MSW handlers to reflect the new data shapes s
 
 **Inferred user intent:** Track the alignment work in a structured way and ensure there’s a clean, reviewable commit trail.
 
-**Commit (code):** N/A (pending)
+**Commit (code):** ee1e0bc — "Align UI API contract and session scoping"
 
 ### What I did
 - Updated UI API types to match backend response shapes (ids, field names, maps vs arrays).
@@ -90,7 +90,7 @@ I added a shared session context hook and wired session run IDs into the symbols
 
 **Inferred user intent:** Ensure the UI honors the session model so pages show coherent, session-specific data.
 
-**Commit (code):** N/A (pending)
+**Commit (code):** ee1e0bc — "Align UI API contract and session scoping"
 
 ### What I did
 - Added `useSessionContext` to resolve the active session and per-domain run IDs.
