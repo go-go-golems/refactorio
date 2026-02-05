@@ -12,12 +12,13 @@ import (
 )
 
 type Workspace struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	DBPath    string    `json:"db_path"`
-	RepoRoot  string    `json:"repo_root,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	DBPath    string            `json:"db_path"`
+	RepoRoot  string            `json:"repo_root,omitempty"`
+	Sessions  []SessionOverride `json:"sessions,omitempty"`
+	CreatedAt time.Time         `json:"created_at"`
+	UpdatedAt time.Time         `json:"updated_at"`
 }
 
 type WorkspaceConfig struct {

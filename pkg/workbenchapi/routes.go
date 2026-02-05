@@ -10,6 +10,7 @@ func (s *Server) registerRoutes() {
 	s.registerDBRoutes()
 	s.registerWorkspaceRoutes()
 	s.registerRunRoutes()
+	s.registerSessionRoutes()
 }
 
 func (s *Server) registerBaseRoutes() {
