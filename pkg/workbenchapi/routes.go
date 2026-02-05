@@ -16,6 +16,7 @@ func (s *Server) registerRoutes() {
 	s.registerCodeUnitRoutes()
 	s.registerDiffRoutes()
 	s.registerCommitRoutes()
+	s.registerDocRoutes()
 }
 
 func (s *Server) registerBaseRoutes() {
