@@ -17,11 +17,11 @@ type Story = StoryObj<typeof DiffViewer>
 
 const complexHunks: DiffHunk[] = [
   {
-    hunk_id: 1,
+    id: 1,
     old_start: 10,
-    old_count: 8,
+    old_lines: 8,
     new_start: 10,
-    new_count: 12,
+    new_lines: 12,
     lines: [
       { kind: ' ', line_no_old: 10, line_no_new: 10, text: 'func NewCommandProcessor(opts ...Option) CommandProcessor {' },
       { kind: '-', line_no_old: 11, text: '\timpl := &Processor{' },
@@ -38,11 +38,11 @@ const complexHunks: DiffHunk[] = [
     ],
   },
   {
-    hunk_id: 2,
+    id: 2,
     old_start: 45,
-    old_count: 5,
+    old_lines: 5,
     new_start: 49,
-    new_count: 7,
+    new_lines: 7,
     lines: [
       { kind: ' ', line_no_old: 45, line_no_new: 49, text: '// Process handles the command execution' },
       { kind: '-', line_no_old: 46, text: 'func (p *Processor) Process(ctx context.Context, cmd Command) (Result, error) {' },
@@ -93,11 +93,11 @@ export const AdditionsOnly: Story = {
   args: {
     hunks: [
       {
-        hunk_id: 1,
+        id: 1,
         old_start: 0,
-        old_count: 0,
+        old_lines: 0,
         new_start: 1,
-        new_count: 5,
+        new_lines: 5,
         lines: [
           { kind: '+', line_no_new: 1, text: '// Package handlers provides command handling' },
           { kind: '+', line_no_new: 2, text: 'package handlers' },
@@ -114,11 +114,11 @@ export const DeletionsOnly: Story = {
   args: {
     hunks: [
       {
-        hunk_id: 1,
+        id: 1,
         old_start: 1,
-        old_count: 5,
+        old_lines: 5,
         new_start: 0,
-        new_count: 0,
+        new_lines: 0,
         lines: [
           { kind: '-', line_no_old: 1, text: '// Deprecated: use handlers package instead' },
           { kind: '-', line_no_old: 2, text: 'package legacy' },
@@ -141,11 +141,11 @@ export const LongLines: Story = {
   args: {
     hunks: [
       {
-        hunk_id: 1,
+        id: 1,
         old_start: 1,
-        old_count: 2,
+        old_lines: 2,
         new_start: 1,
-        new_count: 2,
+        new_lines: 2,
         lines: [
           { kind: '-', line_no_old: 1, text: 'func processVeryLongFunctionNameWithManyParameters(ctx context.Context, param1 string, param2 int, param3 bool, param4 []string) error {' },
           { kind: '+', line_no_new: 1, text: 'func processCommand(ctx context.Context, cmd Command) error {' },

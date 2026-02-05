@@ -25,7 +25,7 @@ export function AppShell({
   sidebarProps,
   topbarProps,
   sidebarCollapsed = false,
-  onSidebarToggle,
+  onSidebarToggle: _onSidebarToggle,
   hideSidebar = false,
   hideTopbar = false,
   className = '',

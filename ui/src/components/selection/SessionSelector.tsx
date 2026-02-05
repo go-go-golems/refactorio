@@ -1,4 +1,4 @@
-import type { Session, SessionAvailability } from '../../types/api'
+import type { Session } from '../../types/api'
 import { StatusBadge } from '../foundation'
 
 export interface SessionSelectorProps {
@@ -12,7 +12,7 @@ export interface SessionSelectorProps {
   loading?: boolean
 }
 
-function availabilityCount(a: SessionAvailability): number {
+function availabilityCount(a: Session['availability']): number {
   return Object.values(a).filter(Boolean).length
 }
 

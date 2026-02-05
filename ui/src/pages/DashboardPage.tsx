@@ -102,7 +102,7 @@ export function DashboardPage() {
       ) : runs && runs.length > 0 ? (
         <div className="list-group">
           {runs.map((run) => (
-            <div key={run.run_id} className="list-group-item d-flex justify-content-between align-items-center">
+            <div key={run.id} className="list-group-item d-flex justify-content-between align-items-center">
               <div>
                 <span className="font-monospace me-2">#{run.id}</span>
                 <span className={`badge ${run.status === 'success' ? 'bg-success' : run.status === 'failed' ? 'bg-danger' : 'bg-warning'}`}>

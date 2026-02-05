@@ -201,8 +201,8 @@ export const Interactive: StoryObj<typeof EntityTable<Symbol>> = {
     }
 
     const sortedData = [...mockSymbols].sort((a, b) => {
-      const aVal = String((a as Record<string, unknown>)[sortColumn] ?? '')
-      const bVal = String((b as Record<string, unknown>)[sortColumn] ?? '')
+      const aVal = String((a as unknown as Record<string, unknown>)[sortColumn] ?? '')
+      const bVal = String((b as unknown as Record<string, unknown>)[sortColumn] ?? '')
       const cmp = aVal.localeCompare(bVal)
       return sortDirection === 'asc' ? cmp : -cmp
     })

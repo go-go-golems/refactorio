@@ -103,12 +103,13 @@ export function DiffViewer({
   }
 
   // For now, only unified mode is implemented
+  void mode
   return (
     <div className={`diff-viewer ${className}`}>
       <pre className="m-0">
         <code>
           {hunks.map((hunk, hunkIndex) => (
-            <div key={hunk.hunk_id || hunkIndex} className="diff-hunk">
+            <div key={hunk.id || hunkIndex} className="diff-hunk">
               <HunkHeader hunk={hunk} />
               {hunk.lines.map((line, lineIndex) => (
                 <DiffLineRow
