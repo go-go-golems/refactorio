@@ -11,6 +11,10 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: refactorio/cmd/refactorio/api.go
+      Note: New API serve command
+    - Path: refactorio/cmd/refactorio/root.go
+      Note: Wired API command into CLI
     - Path: refactorio/pkg/refactorindex/ingest_code_units.go
       Note: Code unit snapshot details reviewed
     - Path: refactorio/pkg/refactorindex/ingest_commits.go
@@ -25,12 +29,19 @@ RelatedFiles:
       Note: Schema reviewed while mapping UI requirements
     - Path: refactorio/pkg/refactorindex/store.go
       Note: DB initialization and FTS setup reviewed
+    - Path: refactorio/pkg/workbenchapi/json.go
+      Note: Shared JSON and error response helpers
+    - Path: refactorio/pkg/workbenchapi/routes.go
+      Note: Base route registration
+    - Path: refactorio/pkg/workbenchapi/server.go
+      Note: Server config
 ExternalSources: []
 Summary: Diary for backend API documentation and analysis.
 LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 # Diary
