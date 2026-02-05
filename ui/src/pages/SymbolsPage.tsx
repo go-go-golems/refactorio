@@ -15,6 +15,10 @@ const columns: Column<Symbol>[] = [
   { key: 'file', header: 'File', render: (s) => <span className="font-monospace small">{s.file}:{s.line}</span> },
 ]
 
+function symbolRowID(s: Symbol): string {
+  return `${s.symbol_hash}:${s.file}:${s.line}:${s.col}:${s.run_id}`
+}
+
 export function SymbolsPage() {
   const { workspaceId, sessionId, activeSession } = useSessionContext()
   const [offset, setOffset] = useState(0)
@@ -81,9 +85,9 @@ export function SymbolsPage() {
           columns={columns}
           data={symbolRows}
           loading={isLoading && symbolsAvailable}
-          selectedId={selectedSymbol?.symbol_hash}
+          selectedId={selectedSymbol ? symbolRowID(selectedSymbol) : undefined}
           onSelect={(s) => setSelectedSymbol(s)}
-          getItemId={(s) => s.symbol_hash}
+          getItemId={symbolRowID}
           pagination={{ limit, offset, onChange: setOffset }}
           emptyMessage={symbolsAvailable ? 'No symbols found' : 'No symbol data for this session'}
         />

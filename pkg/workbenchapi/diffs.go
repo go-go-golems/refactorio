@@ -61,7 +61,16 @@ func (s *Server) handleDiffRuns(w http.ResponseWriter, r *http.Request) {
 	defer func() { _ = closer() }()
 
 	if sessionID := strings.TrimSpace(r.URL.Query().Get("session_id")); sessionID != "" {
-		sessions, err := computeSessions(db, ref, nil)
+		overrides := []SessionOverride{}
+		if ref.ID != "" {
+			if cfg, err := s.loadWorkspaceConfig(); err == nil {
+				if ws, _, ok := cfg.FindWorkspace(ref.ID); ok {
+					overrides = ws.Sessions
+				}
+			}
+		}
+
+		sessions, err := computeSessions(db, ref, overrides)
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, "session_error", "failed to compute sessions", nil)
 			return
