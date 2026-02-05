@@ -53,3 +53,14 @@ Step 26: Complete widget catalog - navigation, search, selection, detail, form c
 - ui/src/components/search/ — GlobalSearchBar
 - ui/src/components/selection/ — WorkspaceSelector
 
+
+## 2026-02-05
+
+Step 27: Refactor API to RTK Query slices, rewrite all 10 pages, add MSW-backed Storybook stories (commit 516b03a)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/api/baseApi.ts — RTK Query base API with injectEndpoints pattern
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/pages/DiffsPage.tsx — Most complex page - 3-panel diff viewer
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/stories/decorators.tsx — Shared Storybook decorator with Redux Provider + MemoryRouter
+

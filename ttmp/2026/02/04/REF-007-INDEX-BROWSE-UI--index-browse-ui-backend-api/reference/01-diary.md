@@ -11,92 +11,99 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
-    - Path: cmd/refactorio/api.go
+    - Path: refactorio/cmd/refactorio/api.go
       Note: New API serve command
-    - Path: cmd/refactorio/root.go
+    - Path: refactorio/cmd/refactorio/root.go
       Note: Wired API command into CLI
-    - Path: pkg/doc/topics/04-workbench-api-reference.md
+    - Path: refactorio/pkg/doc/topics/04-workbench-api-reference.md
       Note: REST API reference help entry (commit 37d7ae7)
-    - Path: pkg/refactorindex/ingest_code_units.go
+    - Path: refactorio/pkg/refactorindex/ingest_code_units.go
       Note: Code unit snapshot details reviewed
-    - Path: pkg/refactorindex/ingest_commits.go
+    - Path: refactorio/pkg/refactorindex/ingest_commits.go
       Note: Commit ingestion details reviewed
-    - Path: pkg/refactorindex/ingest_diff.go
+    - Path: refactorio/pkg/refactorindex/ingest_diff.go
       Note: Diff ingestion details reviewed
-    - Path: pkg/refactorindex/ingest_symbols.go
+    - Path: refactorio/pkg/refactorindex/ingest_symbols.go
       Note: Symbol ingestion details reviewed
-    - Path: pkg/refactorindex/query.go
+    - Path: refactorio/pkg/refactorindex/query.go
       Note: Query helpers referenced for API mapping
-    - Path: pkg/refactorindex/schema.go
+    - Path: refactorio/pkg/refactorindex/schema.go
       Note: Schema reviewed while mapping UI requirements
-    - Path: pkg/refactorindex/store.go
+    - Path: refactorio/pkg/refactorindex/store.go
       Note: DB initialization and FTS setup reviewed
-    - Path: pkg/workbenchapi/api_test.go
+    - Path: refactorio/pkg/workbenchapi/api_test.go
       Note: |-
         Added endpoint smoke tests for db info
         Expanded smoke tests for code-units
-    - Path: pkg/workbenchapi/code_units.go
+    - Path: refactorio/pkg/workbenchapi/code_units.go
       Note: Code unit list/detail/history/diff endpoints
-    - Path: pkg/workbenchapi/commits.go
+    - Path: refactorio/pkg/workbenchapi/commits.go
       Note: Commit list/detail/files/diff endpoints
-    - Path: pkg/workbenchapi/db.go
+    - Path: refactorio/pkg/workbenchapi/db.go
       Note: Workspace-aware DB open helper
-    - Path: pkg/workbenchapi/db_info.go
+    - Path: refactorio/pkg/workbenchapi/db_info.go
       Note: DB info endpoint and schema/FTS detection
-    - Path: pkg/workbenchapi/decode.go
+    - Path: refactorio/pkg/workbenchapi/decode.go
       Note: Strict JSON decoding helper
-    - Path: pkg/workbenchapi/diffs.go
+    - Path: refactorio/pkg/workbenchapi/diffs.go
       Note: Diff run/file endpoints and hunk/line loading
-    - Path: pkg/workbenchapi/docs.go
+    - Path: refactorio/pkg/workbenchapi/docs.go
       Note: Doc term and hit endpoints
-    - Path: pkg/workbenchapi/files.go
+    - Path: refactorio/pkg/workbenchapi/files.go
       Note: File tree
-    - Path: pkg/workbenchapi/json.go
+    - Path: refactorio/pkg/workbenchapi/json.go
       Note: Shared JSON and error response helpers
-    - Path: pkg/workbenchapi/routes.go
+    - Path: refactorio/pkg/workbenchapi/routes.go
       Note: Base route registration
-    - Path: pkg/workbenchapi/runs.go
+    - Path: refactorio/pkg/workbenchapi/runs.go
       Note: Run list/detail/summary and raw outputs endpoints
-    - Path: pkg/workbenchapi/search.go
+    - Path: refactorio/pkg/workbenchapi/search.go
       Note: FTS-backed search endpoints and unified search
-    - Path: pkg/workbenchapi/server.go
+    - Path: refactorio/pkg/workbenchapi/server.go
       Note: Server config
-    - Path: pkg/workbenchapi/symbols.go
+    - Path: refactorio/pkg/workbenchapi/symbols.go
       Note: Symbol list/detail/ref endpoints
-    - Path: pkg/workbenchapi/tree_sitter.go
+    - Path: refactorio/pkg/workbenchapi/tree_sitter.go
       Note: Tree-sitter capture listing endpoint
-    - Path: pkg/workbenchapi/workspace.go
+    - Path: refactorio/pkg/workbenchapi/workspace.go
       Note: Workspace config model and CRUD handlers
-    - Path: ttmp/2026/02/04/REF-007-INDEX-BROWSE-UI--index-browse-ui-backend-api/scripts/seed_api_smoke.go
+    - Path: refactorio/ttmp/2026/02/04/REF-007-INDEX-BROWSE-UI--index-browse-ui-backend-api/scripts/seed_api_smoke.go
       Note: Smoke-test seed script for end-to-end API validation (commit cb90323)
-    - Path: ui/src/components/detail/CodeUnitDetail.tsx
+    - Path: refactorio/ui/src/App.tsx
+      Note: Main app with routing and AppShell (commit 516b03a)
+    - Path: refactorio/ui/src/api/baseApi.ts
+      Note: RTK Query base API (commit 516b03a)
+    - Path: refactorio/ui/src/components/detail/CodeUnitDetail.tsx
       Note: CodeUnitDetail component (commit 9ad80c9)
-    - Path: ui/src/components/detail/CommitDetail.tsx
+    - Path: refactorio/ui/src/components/detail/CommitDetail.tsx
       Note: CommitDetail component (commit 9ad80c9)
-    - Path: ui/src/components/detail/SymbolDetail.tsx
+    - Path: refactorio/ui/src/components/detail/SymbolDetail.tsx
       Note: SymbolDetail component (commit 9ad80c9)
-    - Path: ui/src/components/form/WorkspaceForm.tsx
+    - Path: refactorio/ui/src/components/form/WorkspaceForm.tsx
       Note: WorkspaceForm component (commit bb8fe1e)
-    - Path: ui/src/components/navigation/Breadcrumb.tsx
+    - Path: refactorio/ui/src/components/navigation/Breadcrumb.tsx
       Note: Breadcrumb component (commit c19cf75)
-    - Path: ui/src/components/navigation/FileTree.tsx
+    - Path: refactorio/ui/src/components/navigation/FileTree.tsx
       Note: FileTree component (commit c19cf75)
-    - Path: ui/src/components/navigation/TabNav.tsx
+    - Path: refactorio/ui/src/components/navigation/TabNav.tsx
       Note: TabNav component (commit c19cf75)
-    - Path: ui/src/components/search/FilterPanel.tsx
+    - Path: refactorio/ui/src/components/search/FilterPanel.tsx
       Note: FilterPanel component (commit cfba20b)
-    - Path: ui/src/components/search/GlobalSearchBar.tsx
+    - Path: refactorio/ui/src/components/search/GlobalSearchBar.tsx
       Note: GlobalSearchBar component (commit cfba20b)
-    - Path: ui/src/components/selection/SessionSelector.tsx
+    - Path: refactorio/ui/src/components/selection/SessionSelector.tsx
       Note: SessionSelector component (commit fc50865)
-    - Path: ui/src/components/selection/WorkspaceSelector.tsx
+    - Path: refactorio/ui/src/components/selection/WorkspaceSelector.tsx
       Note: WorkspaceSelector component (commit fc50865)
+    - Path: refactorio/ui/src/stories/decorators.tsx
+      Note: Storybook page decorator (commit 516b03a)
 ExternalSources: []
 Summary: Diary for backend API documentation and analysis.
 LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -1618,4 +1625,103 @@ search/      GlobalSearchBar, FilterPanel          (+ stories)
 selection/   WorkspaceSelector, SessionSelector    (+ stories, existing: SessionCard)
 detail/      SymbolDetail, CodeUnitDetail, CommitDetail (+ stories, existing: InspectorPanel)
 form/        WorkspaceForm                         (+ stories)
+```
+
+## Step 27: RTK Query Slices, Page Integration, and Storybook Stories
+
+Refactored the entire frontend data layer from a monolithic API client to domain-specific RTK Query slices, rewrote all 10 page components with correct component interfaces and Bootstrap classes, and created MSW-backed Storybook stories for every page. This step moves the UI from a widget catalog to a fully wired application.
+
+The previous API client was a single large file. The Zustand stores were replaced with Redux Toolkit (configureStore + createSlice). Each API domain (workspaces, runs, sessions, symbols, codeUnits, commits, diffs, docs, files, search) now has its own RTK Query slice using the `injectEndpoints` pattern, with `transformResponse` to extract arrays from paginated API responses. All 10 page components were either rewritten from scratch (6 had wrong Tailwind CSS and incorrect field names from a prior subagent) or fixed (3 had wrong `idField` prop instead of `getItemId`).
+
+### Prompt Context
+
+**User prompt (verbatim):** "move the API to rtk slices" and "Create storybook stories for the individual pages, use msw to mock up the REST API to test things as truly as possible."
+
+**Assistant interpretation:** Split the monolithic API client into per-domain RTK Query slices, fix all broken page components, and create comprehensive Storybook page-level stories using MSW for realistic API mocking.
+
+**Inferred user intent:** Get the UI from a disconnected widget catalog to a working, testable application where pages are wired to the API through proper state management, and where each page can be visually verified in isolation via Storybook.
+
+**Commit (code):** 516b03a — "Refactor UI to RTK Query slices, rewrite pages, add Storybook stories"
+
+### What I did
+- Created `src/api/baseApi.ts` with `createApi` (empty endpoints) + `qs` helper
+- Created 10 domain slice files using `api.injectEndpoints()`: workspaces, runs, sessions, symbols, codeUnits, commits, diffs, docs, files, search
+- Rewrote `src/api/client.ts` as a barrel re-export of all hooks
+- Replaced Zustand stores with Redux Toolkit: `store.ts`, `uiSlice.ts`, `hooks.ts`
+- Rewrote 6 broken pages (CommitsPage, DiffsPage, DocsPage, FilesPage, SearchPage, WorkspacePage) from scratch with correct Bootstrap 5 classes
+- Fixed 3 pages (RunsPage, SymbolsPage, CodeUnitsPage) — changed `idField` to `getItemId`
+- Wrote DashboardPage with DB info cards, session cards, and recent runs list
+- Rewrote App.tsx with correct AppShell/Sidebar/Topbar prop interfaces
+- Created `src/stories/decorators.tsx` with `withPageContext` (Redux Provider + MemoryRouter)
+- Added mock data: `mockRunSummary`, `mockSymbolRefs`, `mockCommitFiles`, `mockDocHits`
+- Added MSW handlers for all new endpoints
+- Created 10 page story files (Default, Empty, Loading variants each)
+
+### Why
+- Zustand was replaced with RTK because RTK Query provides automatic caching, deduplication, and loading states that integrate with the API layer
+- Domain slices keep each file focused and allow tree-shaking
+- Pages needed rewriting because a prior subagent used Tailwind CSS classes and wrong API field names
+- MSW stories enable visual testing without a running backend
+
+### What worked
+- `injectEndpoints` pattern cleanly separates API domains while sharing a single cache
+- `transformResponse` handles the mismatch between paginated API responses (`{ items: [...] }`) and what pages expect (plain arrays)
+- The `withPageContext` decorator with preloaded Redux state lets stories render without App wrapper
+- Storybook builds successfully with all stories
+
+### What didn't work
+- The `configureStore` in decorators.tsx produced TS errors because importing slice files via `injectEndpoints` mutates the api type. Fixed with `as Record<string, any>` casts on the reducer/middleware.
+- `getDBInfo` endpoint was accidentally omitted from all slices during the split — caught by TS check, added to workspaces slice.
+- App.tsx had wrong prop patterns for AppShell (`sidebar` element vs `sidebarProps` object) — fixed after reading actual component interfaces.
+
+### What I learned
+- RTK Query's `injectEndpoints` requires importing the slice file for side effects before creating the store, which creates type mismatches in test/story contexts where the store is created after imports
+- EntityTable uses `getItemId: (item: T) => string` (not `idField: string`) — this was wrong across all pages
+
+### What was tricky to build
+- The decorator's `configureStore` call conflicted with TypeScript because `api.reducer` type changes after `injectEndpoints` is called. The store module works because it imports `baseApi` before slices, but the decorator imports slices first. Solved with strategic `any` casts.
+
+### What warrants a second pair of eyes
+- The `as Record<string, any>` casts in `decorators.tsx` suppress real type information — acceptable for test infrastructure but should not leak into production code
+- DiffsPage has a 3-panel layout that may need responsive breakpoints for smaller screens
+
+### What should be done in the future
+- Wire go:embed for production builds (task 15)
+- Add keyboard navigation and command palette (task 16)
+- Add responsive layout adjustments for mobile/tablet
+- Consider adding error boundary stories (API 500 responses)
+
+### Code review instructions
+- Start with `src/api/baseApi.ts` and one slice (e.g., `runs.ts`) to understand the pattern
+- Check `src/pages/DiffsPage.tsx` — most complex page with 3-panel layout
+- Run `npx storybook dev -p 6006` and browse Pages/* stories
+- `npx tsc --noEmit` shows only pre-existing warnings (DiffViewer mode, EntityTable.stories cast, AppShell onSidebarToggle)
+
+### Technical details
+API slices created (10):
+```
+workspaces.ts  — CRUD + getDBInfo (6 hooks)
+runs.ts        — list + detail + summary (3 hooks)
+sessions.ts    — list + detail (2 hooks)
+symbols.ts     — list + detail + refs (3 hooks)
+codeUnits.ts   — list + detail + history (3 hooks)
+commits.ts     — list + detail + files (3 hooks)
+diffs.ts       — runs + files + file detail (3 hooks)
+docs.ts        — terms + hits (2 hooks)
+files.ts       — list + content + history (3 hooks)
+search.ts      — unified + 3 typed searches (4 hooks)
+```
+
+Pages created/fixed (10):
+```
+DashboardPage  — DB info cards, sessions, recent runs
+RunsPage       — EntityTable + InspectorPanel
+SymbolsPage    — EntityTable + InspectorPanel + refs
+CodeUnitsPage  — EntityTable + InspectorPanel
+CommitsPage    — EntityTable + CommitDetail
+DiffsPage      — 3-panel: run list | file list | DiffViewer
+DocsPage       — EntityTable + doc hits panel
+FilesPage      — FileTree + CodeViewer
+SearchPage     — GlobalSearchBar + SearchResults
+WorkspacePage  — WorkspaceSelector + WorkspaceForm
 ```
