@@ -463,3 +463,55 @@ go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/sessions.go
 git -C refactorio commit -m "Fix session id stability"
 ```
+
+## Step 8: Sanitize Session IDs for URL Safety
+I updated session ID generation to sanitize `git_from` and `git_to` so IDs are safe for URL path segments. This prevents accidental `/` characters or other unsafe symbols from breaking `/api/sessions/:id` routes.
+
+The sanitized label keeps the IDs readable while still anchoring uniqueness on a short hash of `(root_path, git_from, git_to)`.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Apply the review finding about session ID safety and commit the fix.
+
+**Inferred user intent:** Ensure session endpoints are robust for a variety of git ref strings.
+
+**Commit (code):** ba92eb9 — "Sanitize session ids"
+
+### What I did
+- Added `sanitizeSessionLabel` to replace non-url-safe characters with `_`.
+- Applied sanitization in `buildSessionID`.
+- Ran `go test ./pkg/workbenchapi`.
+
+### Why
+- Git refs can include slashes or characters that break path-based IDs.
+
+### What worked
+- Session IDs now remain stable and URL-safe without changing uniqueness behavior.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Relying on raw git refs in path segments is brittle; sanitization is safer than URL escaping because Go unescapes `%2F`.
+
+### What was tricky to build
+Ensuring IDs stay readable without leaking unsafe path characters required a conservative character whitelist.
+
+### What warrants a second pair of eyes
+- Confirm the sanitize rules are acceptable for UI display and debugging.
+
+### What should be done in the future
+- Consider exposing a separate `display_label` field if we want the exact git ref shown to users.
+
+### Code review instructions
+- Review `buildSessionID` and `sanitizeSessionLabel` in `refactorio/pkg/workbenchapi/sessions.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/sessions.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/sessions.go
+git -C refactorio commit -m "Sanitize session ids"
+```
