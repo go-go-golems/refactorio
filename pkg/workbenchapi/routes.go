@@ -14,6 +14,7 @@ func (s *Server) registerRoutes() {
 	s.registerSearchRoutes()
 	s.registerSymbolRoutes()
 	s.registerCodeUnitRoutes()
+	s.registerDiffRoutes()
 }
 
 func (s *Server) registerBaseRoutes() {
