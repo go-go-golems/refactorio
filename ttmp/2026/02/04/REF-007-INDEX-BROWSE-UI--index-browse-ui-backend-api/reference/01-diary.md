@@ -57,6 +57,8 @@ RelatedFiles:
       Note: Server config
     - Path: refactorio/pkg/workbenchapi/symbols.go
       Note: Symbol list/detail/ref endpoints
+    - Path: refactorio/pkg/workbenchapi/tree_sitter.go
+      Note: Tree-sitter capture listing endpoint
     - Path: refactorio/pkg/workbenchapi/workspace.go
       Note: Workspace config model and CRUD handlers
 ExternalSources: []
@@ -65,6 +67,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -896,4 +899,55 @@ gofmt -w refactorio/pkg/workbenchapi/files.go refactorio/pkg/workbenchapi/routes
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/files.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add file endpoints"
+```
+
+## Step 16: Implement Tree-sitter Capture Endpoint
+I added the optional tree-sitter capture listing endpoint. It supports filtering by query name, capture name, node type, and path, and is safe to call even if the `ts_captures` table is missing.
+
+This rounds out the optional exploration views in the UI.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement Task 14 (tree-sitter endpoint), commit, and update the diary.
+
+**Inferred user intent:** Provide optional structured query browsing when tree-sitter data is available.
+
+**Commit (code):** 6365e5e — "Add tree-sitter capture endpoint"
+
+### What I did
+- Added `GET /api/tree-sitter/captures` with filter support.
+- Registered tree-sitter routes in the server.
+
+### Why
+- Tree-sitter captures provide a structured search option beyond Go symbols.
+
+### What worked
+- Endpoint returns empty results gracefully when the table is missing.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Keeping optional endpoints tolerant of missing tables avoids unnecessary errors.
+
+### What was tricky to build
+Ensuring filters remain optional without bloating the SQL query required a careful argument builder.
+
+### What warrants a second pair of eyes
+- Confirm filter names match the UI spec (query_name, capture_name, node_type, path).
+
+### What should be done in the future
+- Add FTS search on capture snippets if needed.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/tree_sitter.go` and `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/tree_sitter.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/tree_sitter.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add tree-sitter capture endpoint"
 ```
