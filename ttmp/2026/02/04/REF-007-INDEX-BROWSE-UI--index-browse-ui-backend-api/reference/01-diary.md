@@ -41,6 +41,8 @@ RelatedFiles:
       Note: Base route registration
     - Path: refactorio/pkg/workbenchapi/runs.go
       Note: Run list/detail/summary and raw outputs endpoints
+    - Path: refactorio/pkg/workbenchapi/search.go
+      Note: FTS-backed search endpoints and unified search
     - Path: refactorio/pkg/workbenchapi/server.go
       Note: Server config
     - Path: refactorio/pkg/workbenchapi/workspace.go
@@ -51,6 +53,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -514,4 +517,45 @@ gofmt -w refactorio/pkg/workbenchapi/sessions.go
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/sessions.go
 git -C refactorio commit -m "Sanitize session ids"
+```
+
+## Step 9: Implement Search Endpoints
+I added the typed search endpoints (`/api/search/*`) and the unified `POST /api/search` dispatcher. Each search uses the corresponding FTS table and joins back to the core tables to return UI-friendly records, with optional `run_id` and basic filters.
+
+The unified search aggregates per-type results into a single list of `SearchResult` objects, preserving type-specific payloads for richer UI previews.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement task 7 (search endpoints) after reviewing sessions, then commit and update the diary.
+
+**Inferred user intent:** Provide fast, FTS-backed search across all indexed domains to power the UI’s unified search view.
+
+**Commit (code):** 91f02bb — "Add search endpoints"
+
+### What I did
+- Added `/api/search/symbols`, `/api/search/code-units`, `/api/search/diff`, `/api/search/commits`, `/api/search/docs`, `/api/search/files`.\n- Added `POST /api/search` to aggregate cross-domain results.\n- Implemented FTS-backed query helpers for each domain.\n- Registered search routes in the server.\n
+### Why
+- The UI requires fast cross-domain search, and FTS tables are the intended backend for that.\n
+### What worked
+- All search endpoints use parameterized SQL and handle missing FTS tables with clear errors.\n- Unified search returns typed results with payloads for preview panels.\n
+### What didn't work
+- N/A\n
+### What I learned
+- Keeping the typed endpoints alongside unified search reduces UI complexity and keeps debugging simple.\n
+### What was tricky to build
+Balancing a shared `SearchResult` shape with domain-specific fields required a `payload` field to avoid losing type-specific context.\n
+### What warrants a second pair of eyes
+- Verify FTS queries and joins for correctness, especially `diff_lines` and `code_unit_snapshots` joins.\n- Confirm search result field names match frontend expectations.\n
+### What should be done in the future
+- Add fallback behavior when FTS tables are missing (e.g., LIKE-based search with warnings).\n
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/search.go` and the route registration in `refactorio/pkg/workbenchapi/routes.go`.\n- Verify per-type SQL queries match the schema.\n
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/search.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/search.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add search endpoints"
 ```
