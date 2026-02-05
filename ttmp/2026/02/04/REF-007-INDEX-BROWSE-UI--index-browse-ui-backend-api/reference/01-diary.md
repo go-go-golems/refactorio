@@ -15,6 +15,8 @@ RelatedFiles:
       Note: New API serve command
     - Path: cmd/refactorio/root.go
       Note: Wired API command into CLI
+    - Path: pkg/doc/topics/04-workbench-api-reference.md
+      Note: REST API reference help entry (commit 37d7ae7)
     - Path: pkg/refactorindex/ingest_code_units.go
       Note: Code unit snapshot details reviewed
     - Path: pkg/refactorindex/ingest_commits.go
@@ -30,7 +32,9 @@ RelatedFiles:
     - Path: pkg/refactorindex/store.go
       Note: DB initialization and FTS setup reviewed
     - Path: pkg/workbenchapi/api_test.go
-      Note: Added endpoint smoke tests for db info
+      Note: |-
+        Added endpoint smoke tests for db info
+        Expanded smoke tests for code-units
     - Path: pkg/workbenchapi/code_units.go
       Note: Code unit list/detail/history/diff endpoints
     - Path: pkg/workbenchapi/commits.go
@@ -63,12 +67,17 @@ RelatedFiles:
       Note: Tree-sitter capture listing endpoint
     - Path: pkg/workbenchapi/workspace.go
       Note: Workspace config model and CRUD handlers
+    - Path: ttmp/2026/02/04/REF-007-INDEX-BROWSE-UI--index-browse-ui-backend-api/scripts/seed_api_smoke.go
+      Note: Smoke-test seed script for end-to-end API validation (commit cb90323)
 ExternalSources: []
 Summary: Diary for backend API documentation and analysis.
 LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
+
+
 
 
 
@@ -1006,4 +1015,191 @@ gofmt -w refactorio/pkg/workbenchapi/api_test.go
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/api_test.go
 git -C refactorio commit -m "Add workbench API endpoint tests"
+```
+
+## Step 18: Expand Workbench API Test Coverage
+I expanded the API smoke tests to cover the code-units, files, and diff endpoints. The tests now seed file metadata so the file tree endpoint can safely scan rows, and they validate both list and detail handlers for these domains.
+
+This gives us broader regression coverage across the main browse flows without adding heavy fixtures or a full index ingest.
+
+### Prompt Context
+**User prompt (verbatim):** "1. then 2. \n\nWe don't have any UI yet, right? \n\nWrite a full REST reference for the API in refactorio/pkg/doc as a glazed help file (see glazed/pkg/doc/topics/how-to-write-good-documentation-pages.md and glazed/pkg/doc/topics/14-writing-help-entries.md )."
+
+**Assistant interpretation:** First, expand the API tests for code-units, files, and diff endpoints and record the work before moving to the smoke check and documentation tasks.
+
+**Inferred user intent:** Ensure the new endpoints have practical test coverage before running an end-to-end smoke check and publishing documentation.
+
+**Commit (code):** 3f7f3df — "Expand workbench API tests"
+
+### What I did
+- Added tests for `/api/code-units`, `/api/code-units/:hash`, `/api/files`, `/api/files/history`, `/api/diff-runs`, and `/api/diff/:run_id/file`.
+- Updated the test DB seed to include file metadata required by the file tree query.
+- Added run ID and path fields to the seeded data so diff endpoints can resolve.
+
+### Why
+- The browse UI relies on code unit navigation, file browsing, and diff views, so these endpoints need coverage alongside the existing smoke tests.
+
+### What worked
+- All new tests passed with `go test ./pkg/workbenchapi`.
+
+### What didn't work
+- N/A
+
+### What I learned
+- The `/api/files` endpoint expects non-null `file_exists` and `is_binary` flags, so seeding must populate those fields.
+
+### What was tricky to build
+The file tree endpoint scans integer columns directly, so null `file_exists` values would cause scan failures. Explicitly populating file metadata in the seed data kept the tests faithful to real ingest output.
+
+### What warrants a second pair of eyes
+- Confirm the diff endpoint tests are sufficient for UI needs (e.g., whether `/api/diff/:run_id/files` should also be covered).
+
+### What should be done in the future
+- Add tests for file content retrieval once a repo_root-backed workspace is part of the fixture.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/api_test.go`.
+- Validate with `go test ./pkg/workbenchapi`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/api_test.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/api_test.go
+git -C refactorio commit -m "Expand workbench API tests"
+```
+
+## Step 19: Run End-to-End Smoke Check
+I added a small seeding script and used it to create a throwaway SQLite index and repo root, then started `refactorio api serve` and hit core endpoints over HTTP. The responses confirmed the server wiring works with a workspace config file and a real DB on disk.
+
+This validates the end-to-end path from HTTP handler → DB query → JSON response with realistic data.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 18)
+
+**Assistant interpretation:** Run the requested end-to-end smoke check by starting the API server and curling key endpoints against a real index DB, recording the results.
+
+**Inferred user intent:** Ensure the API server behaves correctly outside of unit tests before moving on to documentation.
+
+**Commit (code):** cb90323 — "Add API smoke test seed script"
+
+### What I did
+- Created `seed_api_smoke.go` to generate a minimal SQLite index and repo root.
+- Started `refactorio api serve` with a temp workspace config.
+- Hit `/api/health`, `/api/db/info`, `/api/runs`, `/api/code-units`, `/api/files`, and `/api/diff-runs` via curl.
+
+### Why
+- The smoke check exercises real HTTP routing with an on-disk index database, matching how the UI will call it.
+
+### What worked
+- All endpoints returned JSON payloads as expected.
+
+### What didn't work
+- N/A
+
+### What I learned
+- A tiny seeded index is enough to validate routing, workspace config resolution, and core list endpoints.
+
+### What was tricky to build
+Keeping the smoke check reproducible required a small script to seed the DB and repo root consistently.
+
+### What warrants a second pair of eyes
+- Confirm the smoke check covers the most important endpoints for UI bootstrap beyond the ones we curled.
+
+### What should be done in the future
+- Add a scripted smoke check to CI if we want to catch regressions earlier.
+
+### Code review instructions
+- Start with `refactorio/ttmp/2026/02/04/REF-007-INDEX-BROWSE-UI--index-browse-ui-backend-api/scripts/seed_api_smoke.go`.
+
+### Technical details
+Commands run:
+```bash
+SMOKE_DIR=$(mktemp -d)
+DB_PATH="$SMOKE_DIR/index.sqlite"
+REPO_ROOT="$SMOKE_DIR/repo"
+CONFIG_PATH="$SMOKE_DIR/workspaces.json"
+PORT=8099
+NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+go run ./ttmp/2026/02/04/REF-007-INDEX-BROWSE-UI--index-browse-ui-backend-api/scripts/seed_api_smoke.go --db "$DB_PATH" --repo "$REPO_ROOT"
+
+cat > "$CONFIG_PATH" <<EOJSON
+{
+  "workspaces": [
+    {
+      "id": "smoke",
+      "name": "Smoke",
+      "db_path": "$DB_PATH",
+      "repo_root": "$REPO_ROOT",
+      "created_at": "$NOW",
+      "updated_at": "$NOW"
+    }
+  ]
+}
+EOJSON
+
+go run ./cmd/refactorio api serve --addr 127.0.0.1:$PORT --base-path /api --workspace-config "$CONFIG_PATH" >"$SMOKE_DIR/server.log" 2>&1 &
+PID=$!
+
+sleep 1
+
+curl -s "http://127.0.0.1:$PORT/api/health" > "$SMOKE_DIR/health.json"
+curl -s "http://127.0.0.1:$PORT/api/db/info?workspace_id=smoke" > "$SMOKE_DIR/db_info.json"
+curl -s "http://127.0.0.1:$PORT/api/runs?workspace_id=smoke" > "$SMOKE_DIR/runs.json"
+curl -s "http://127.0.0.1:$PORT/api/code-units?workspace_id=smoke" > "$SMOKE_DIR/code_units.json"
+curl -s "http://127.0.0.1:$PORT/api/files?workspace_id=smoke" > "$SMOKE_DIR/files.json"
+curl -s "http://127.0.0.1:$PORT/api/diff-runs?workspace_id=smoke" > "$SMOKE_DIR/diff_runs.json"
+
+kill "$PID"
+```
+
+## Step 20: Document Workbench REST API
+I wrote a complete REST reference for the workbench API as a Glazed help entry. The document covers the base path, workspace selection, error format, pagination, and every endpoint with filters and response shapes.
+
+This provides the UI (and future tooling) a single source of truth for how to call the backend.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 18)
+
+**Assistant interpretation:** Draft and add a full REST reference doc in `refactorio/pkg/doc` as a Glazed help page.
+
+**Inferred user intent:** Provide an authoritative, structured API reference that can be accessed via the Glazed help system.
+
+**Commit (code):** 37d7ae7 — "Add workbench API REST reference"
+
+### What I did
+- Added a new help entry at `pkg/doc/topics/04-workbench-api-reference.md`.
+- Documented all endpoints, filters, pagination defaults, error format, and optional table behavior.
+
+### Why
+- The UI integration needs a precise, discoverable REST reference to avoid guesswork.
+
+### What worked
+- The document aligns with the Glazed help style guide and existing topic structure.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Enumerating endpoints highlighted the importance of documenting optional FTS tables and repo_root requirements.
+
+### What was tricky to build
+Keeping the reference complete but readable required careful grouping of endpoints and concise response shape summaries.
+
+### What warrants a second pair of eyes
+- Verify the response examples match the current JSON field names in the handlers.
+
+### What should be done in the future
+- Update the reference whenever new routes are added or defaults change.
+
+### Code review instructions
+- Start with `refactorio/pkg/doc/topics/04-workbench-api-reference.md`.
+
+### Technical details
+Commands run:
+```bash
+git -C refactorio add pkg/doc/topics/04-workbench-api-reference.md
+git -C refactorio commit -m "Add workbench API REST reference"
 ```

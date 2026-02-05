@@ -18,3 +18,6 @@
 - [x] Implement files endpoints (/api/files tree, /api/file content, /api/files/history)
 - [x] Implement optional tree-sitter capture endpoint (/api/tree-sitter/captures)
 - [x] Add API tests (db info, runs list, search smoke)
+- [x] Expand API tests for code-units, files, and diff endpoints
+- [x] Run end-to-end smoke check by starting refactorio api serve and curling core endpoints against a real index DB
+- [x] Write workbench REST API reference doc as Glazed help entry
