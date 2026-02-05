@@ -53,10 +53,9 @@ func (s *Server) handleDBInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	features := map[string]bool{
-		"fts":         len(ftsTables) > 0,
-		"gopls_refs":  tables["symbol_refs"],
-		"doc_hits":    tables["doc_hits"],
-		"tree_sitter": tables["ts_captures"],
+		"fts":        len(ftsTables) > 0,
+		"gopls_refs": tables["symbol_refs"],
+		"doc_hits":   tables["doc_hits"],
 	}
 
 	writeJSON(w, http.StatusOK, DBInfoResponse{

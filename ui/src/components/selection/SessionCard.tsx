@@ -19,7 +19,6 @@ const domainLabels: Record<string, string> = {
   code_units: 'Code Units',
   doc_hits: 'Doc Hits',
   gopls_refs: 'Gopls Refs',
-  tree_sitter: 'Tree-sitter',
 }
 
 function AvailabilityRow({

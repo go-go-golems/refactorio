@@ -254,9 +254,6 @@ func computeSessions(db *sql.DB, ref WorkspaceRef, overrides []SessionOverride) 
 		if hasRefs {
 			setRun(&builder.session.Runs.GoplsRefs, builder.domainTimes, "gopls_refs", run.ID, runTime)
 		}
-		if presence["ts_captures"] && tableHasRunData(db, "ts_captures", run.ID) {
-			setRun(&builder.session.Runs.TreeSitter, builder.domainTimes, "tree_sitter", run.ID, runTime)
-		}
 	}
 
 	sessions := []Session{}
@@ -302,13 +299,12 @@ func computeSessions(db *sql.DB, ref WorkspaceRef, overrides []SessionOverride) 
 
 func availabilityFromRuns(runs SessionRuns) map[string]bool {
 	return map[string]bool{
-		"commits":     runs.Commits != nil,
-		"diff":        runs.Diff != nil,
-		"symbols":     runs.Symbols != nil,
-		"code_units":  runs.CodeUnits != nil,
-		"doc_hits":    runs.DocHits != nil,
-		"gopls_refs":  runs.GoplsRefs != nil,
-		"tree_sitter": runs.TreeSitter != nil,
+		"commits":    runs.Commits != nil,
+		"diff":       runs.Diff != nil,
+		"symbols":    runs.Symbols != nil,
+		"code_units": runs.CodeUnits != nil,
+		"doc_hits":   runs.DocHits != nil,
+		"gopls_refs": runs.GoplsRefs != nil,
 	}
 }
 

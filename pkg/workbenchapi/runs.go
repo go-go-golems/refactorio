@@ -340,9 +340,6 @@ func (s *Server) getRunSummary(w http.ResponseWriter, r *http.Request, runID int
 	if tables["symbol_refs_unresolved"] {
 		countTable("symbol_refs_unresolved", "SELECT count(*) FROM symbol_refs_unresolved WHERE run_id = ?", runID)
 	}
-	if tables["ts_captures"] {
-		countTable("ts_captures", "SELECT count(*) FROM ts_captures WHERE run_id = ?", runID)
-	}
 	if tables["raw_outputs"] {
 		countTable("raw_outputs", "SELECT count(*) FROM raw_outputs WHERE run_id = ?", runID)
 	}

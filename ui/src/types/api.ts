@@ -57,7 +57,6 @@ export interface SessionRuns {
   code_units?: number
   doc_hits?: number
   gopls_refs?: number
-  tree_sitter?: number
 }
 
 export interface Symbol {

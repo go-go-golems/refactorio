@@ -80,7 +80,7 @@ Returns schema details and feature availability for the selected DB.
   "schema_version": 17,
   "tables": {"meta_runs": true},
   "fts_tables": {"symbol_defs_fts": true},
-  "features": {"fts": true, "gopls_refs": false, "doc_hits": true, "tree_sitter": false},
+  "features": {"fts": true, "gopls_refs": false, "doc_hits": true},
   "views": {"v_last_commit_per_file": true}
 }
 ```
@@ -431,16 +431,6 @@ Lists commits touching a file.
 - `path` (required)
 - `run_id`
 - `limit` (default 100, max 1000), `offset`
-
-## Tree-sitter
-
-### `GET /tree-sitter/captures`
-Lists tree-sitter captures (if `ts_captures` exists).
-
-**Query**
-- `run_id`
-- `query_name`, `capture_name`, `node_type`, `path`
-- `limit` (default 200, max 2000), `offset`
 
 ## See Also
 - `pkg/workbenchapi/` for the Go handlers.

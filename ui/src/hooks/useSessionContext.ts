@@ -9,7 +9,6 @@ export interface SessionRunIds {
   diff?: number
   docs?: number
   goplsRefs?: number
-  treeSitter?: number
 }
 
 export function useSessionContext() {
@@ -38,7 +37,6 @@ export function useSessionContext() {
       diff: runs?.diff,
       docs: runs?.doc_hits,
       goplsRefs: runs?.gopls_refs,
-      treeSitter: runs?.tree_sitter,
     }
   }, [activeSession])
 

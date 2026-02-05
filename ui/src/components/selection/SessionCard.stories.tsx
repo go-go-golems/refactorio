@@ -55,7 +55,6 @@ export const AllAvailable: Story = {
         code_units: true,
         doc_hits: true,
         gopls_refs: true,
-        tree_sitter: true,
       },
     } as Session,
   },
@@ -72,7 +71,6 @@ export const MostlyMissing: Story = {
         code_units: false,
         doc_hits: false,
         gopls_refs: false,
-        tree_sitter: false,
       },
     } as Session,
   },
@@ -95,7 +93,6 @@ export const MultipleCards: Story = {
             code_units: false,
             doc_hits: false,
             gopls_refs: false,
-            tree_sitter: false,
           },
         }}
       />

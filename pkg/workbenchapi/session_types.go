@@ -1,13 +1,12 @@
 package workbenchapi
 
 type SessionRuns struct {
-	Commits    *int64 `json:"commits,omitempty"`
-	Diff       *int64 `json:"diff,omitempty"`
-	Symbols    *int64 `json:"symbols,omitempty"`
-	CodeUnits  *int64 `json:"code_units,omitempty"`
-	DocHits    *int64 `json:"doc_hits,omitempty"`
-	GoplsRefs  *int64 `json:"gopls_refs,omitempty"`
-	TreeSitter *int64 `json:"tree_sitter,omitempty"`
+	Commits   *int64 `json:"commits,omitempty"`
+	Diff      *int64 `json:"diff,omitempty"`
+	Symbols   *int64 `json:"symbols,omitempty"`
+	CodeUnits *int64 `json:"code_units,omitempty"`
+	DocHits   *int64 `json:"doc_hits,omitempty"`
+	GoplsRefs *int64 `json:"gopls_refs,omitempty"`
 }
 
 type Session struct {
