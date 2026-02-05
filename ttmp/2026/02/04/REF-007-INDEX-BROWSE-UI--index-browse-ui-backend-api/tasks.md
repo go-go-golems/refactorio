@@ -2,8 +2,8 @@
 
 ## TODO - UI Implementation (MVP 1: Investigation Workbench)
 
-- [ ] Scaffold frontend project (Vite + React + Bootstrap + Zustand) in `refactorio/ui/`
-- [ ] Implement app shell layout (top bar, left navigation, main content area)
+- [x] Scaffold frontend project (Vite + React + Bootstrap + Zustand) in `refactorio/ui/`
+- [x] Implement app shell layout (top bar, left navigation, main content area)
 - [ ] Implement workspace selection modal and workspace context provider
 - [ ] Implement DB info display and schema validation warnings
 - [ ] Implement runs list view + run detail view

@@ -1334,3 +1334,184 @@ npm run storybook  # started in tmux session
 git add ui/ ttmp/.../analysis/02-ui-widget-catalog-storybook-plan.md
 git commit -m "Add Refactorio Workbench UI scaffold with Storybook"
 ```
+
+## Step 23: Implement Data Display Components (EntityTable, SearchResults)
+I built two core data display components that most explorer views will depend on: `EntityTable` (generic paginated/sorted/selectable table) and `SearchResults` (grouped results with query highlighting).
+
+### Commit (code): c23d60d — "Add data display and code display components"
+
+### What I did
+- Added `EntityTable` with column definitions, sort indicators, skeleton loading, empty state, and a `Pagination` integration.
+- Added `SearchResults` with two display modes (grouped-by-type with collapsible sections, or flat list), query-term highlighting via regex split, and keyboard-friendly `<button>` rows.
+- Wrote stories that exercise every variant: symbol table, run table, commit table, loading skeleton, empty state, and an interactive story that tracks selection and sort state.
+
+### Why
+- Every explorer view (symbols, commits, runs, diffs, code units) needs a paginated table. Making it generic and well-storied early prevents duplication later.
+- Unified search is a first-class view; SearchResults groups results by entity type with counts and collapsible headers, matching the spec's Section 6.3.
+
+### What worked
+- The `Column<T>` generic gives each table full control over cell rendering while the table owns sort, pagination, and selection.
+- `highlightMatch` splits text on the query regex; this is cheap and avoids an HTML sanitisation dependency.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Bootstrap's `placeholder-glow` + `placeholder col-N` classes produce reasonable skeleton rows without any extra library.
+
+### What was tricky to build
+- Getting the `EntityTable` generic (`EntityTable<T>`) to typecheck cleanly in Storybook stories required explicit `StoryObj<typeof EntityTable<Symbol>>` annotations rather than bare `Story` aliases.
+
+### What warrants a second pair of eyes
+- The SearchResults `groupByType` ordering is hard-coded; if the backend adds new types we need to update `typeOrder`.
+- Sorting in the interactive story is client-side; real usage will be server-side via `onSort` callback.
+
+### Code review instructions
+- `ui/src/components/data-display/EntityTable.tsx` — generic table
+- `ui/src/components/data-display/SearchResults.tsx` — grouped search results
+- Stories in the same directories; open Storybook at http://localhost:6006/
+
+## Step 24: Implement Code Display Components (CodeViewer, DiffViewer)
+I added `CodeViewer` (line-numbered code with multi-mode highlighting) and `DiffViewer` (unified diff with hunk headers and add/remove/context colouring). Both are in `ui/src/components/code-display/`.
+
+### Commit (code): c23d60d — (same commit as Step 23, bundled together)
+
+### What I did
+- Added `CodeViewer` with:
+  - Line numbers, configurable start line, clickable lines
+  - Three highlight class modes: `highlight-default` (yellow), `highlight-add` (green), `highlight-remove` (red), `highlight-focus` (blue)
+  - `maxHeight` for scroll containers
+  - `wrapLines` toggle
+- Added `DiffViewer` with:
+  - Hunk header display (`@@ -old,count +new,count @@`)
+  - Add/remove/context line colouring with per-line old/new line numbers
+  - `highlightQuery` to mark search terms inside diff lines
+  - Dark-mode media query for diff colours
+- Wrote stories covering Go code, TypeScript, highlighted ranges, clickable lines, multiple hunks, additions only, deletions only, empty state, and long lines.
+
+### Why
+- `CodeViewer` is the core of the file viewer and code-unit detail views.
+- `DiffViewer` is needed for diff explorer, commit detail, and code-unit diff comparison.
+
+### What worked
+- CSS-only diff colouring with `@media (prefers-color-scheme: dark)` gives automatic dark-mode support.
+- Keeping the components pure (no fetch, no state beyond props) makes stories trivial.
+
+### What didn't work
+- No syntax highlighting yet — the `language` prop is accepted but not used. A syntax highlighting library (Prism, Shiki) can be layered in later.
+
+### What I learned
+- Bootstrap's theme variables (`--bs-body-bg`, `--bs-border-color`) work well for code viewer containers; no extra theme plumbing needed.
+
+### What was tricky to build
+- Getting the diff viewer line-number columns to stay aligned when one side is empty (e.g. additions only have `new_line`, no `old_line`). Using `min-width` with `flex-shrink: 0` keeps them stable.
+
+### What warrants a second pair of eyes
+- No syntax highlighting — the next developer should decide between Prism.js, Shiki, or a lightweight tree-sitter WASM highlighter.
+- The diff viewer only implements unified mode; split mode (`mode='split'`) is accepted but not rendered differently yet.
+
+### Code review instructions
+- `ui/src/components/code-display/CodeViewer.tsx` and `.stories.tsx`
+- `ui/src/components/code-display/DiffViewer.tsx` and `.stories.tsx`
+
+## Step 25: Implement InspectorPanel and SessionCard
+I added `InspectorPanel` (right-side context panel with header/actions/sections) and `SessionCard` (session dashboard card with availability grid).
+
+### Commit (code): (this step, bundled in final commit)
+
+### What I did
+- Added `InspectorPanel` with:
+  - Title/subtitle header with close button
+  - Action buttons area
+  - Skeleton loading state using Bootstrap placeholders
+  - `InspectorSection` helper with optional collapsible behaviour
+- Added `SessionCard` with:
+  - Session metadata (git range, root path)
+  - Availability progress bar (N/7 domains)
+  - Per-domain availability rows with status badges and run ID links
+  - Selected/hover state styling
+- Wrote stories: symbol inspector, commit inspector, loading, empty state, session cards with various availability levels
+
+### Why
+- `InspectorPanel` is the right pane in the three-pane layout, used across every explorer view.
+- `SessionCard` powers the session dashboard, which is the entry point after workspace selection.
+
+### What worked
+- `InspectorSection` with collapsible mode lets detail panels show summary by default and expand on demand.
+- The session availability progress bar gives an instant visual read of data completeness.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Bootstrap cards with `role="button"` and `tabIndex={0}` plus `onKeyDown` give reasonable keyboard accessibility without extra libraries.
+
+### What was tricky to build
+- Stopping click event propagation from the "Edit" button inside a clickable card required `e.stopPropagation()`.
+
+### Code review instructions
+- `ui/src/components/detail/InspectorPanel.tsx` and `.stories.tsx`
+- `ui/src/components/selection/SessionCard.tsx` and `.stories.tsx`
+
+---
+
+## Handoff Notes for Next Developer
+
+### Current State
+The backend API is **complete** (Steps 1–20, all tasks checked). The frontend UI is **in active development** with Storybook-driven widget implementation.
+
+### What's Done (Frontend)
+**13 components implemented with stories**, across 5 categories:
+
+| Category | Components | Stories |
+|----------|-----------|---------|
+| Foundation | CopyButton, StatusBadge, EntityIcon, Pagination | 22 stories |
+| Layout | AppShell, Sidebar, Topbar, ThreePaneLayout | 14 stories |
+| Data Display | EntityTable, SearchResults | 15 stories |
+| Code Display | CodeViewer, DiffViewer | 19 stories |
+| Detail/Selection | InspectorPanel, SessionCard | 11 stories |
+
+**Also in place:**
+- Storybook 8 running with `npm run storybook` (port 6006)
+- MSW mock data and handlers for all API endpoints (`src/mocks/`)
+- TypeScript API types (`src/types/api.ts`)
+- Vite config with dev proxy to Go backend (`vite.config.ts`)
+- Widget catalog analysis document (`analysis/02-ui-widget-catalog-storybook-plan.md`)
+
+### What's Not Done (Frontend)
+Per the widget catalog, these components remain:
+
+**Navigation:** FileTree, Breadcrumb, TabNav
+**Search:** GlobalSearchBar, FilterPanel, CommandPalette
+**Selection:** WorkspaceSelector, SessionSelector
+**Detail:** SymbolDetail, CodeUnitDetail, CommitDetail
+**Forms:** WorkspaceForm
+
+**Page-level integration** (wiring components into routed views):
+- All the "Implement X explorer" tasks in `tasks.md` are unchecked
+- No Zustand store wiring yet (store directory exists but is empty)
+- No API client (`src/api/` directory exists but is empty)
+- No `App.tsx` with router (only `main.tsx` entry point exists)
+- No go:embed integration for production builds
+
+### How to Continue
+1. **Run Storybook**: `cd refactorio/ui && npm run storybook`
+2. **Review existing components**: Browse http://localhost:6006/ to see all implemented widgets
+3. **Follow the widget catalog**: `analysis/02-ui-widget-catalog-storybook-plan.md` lists all remaining components with props/stories
+4. **Build pages**: After remaining widgets are done, wire them into routes in `App.tsx` with react-router-dom
+5. **Add Zustand store**: Create stores for workspace, session, and UI state
+6. **Add API client**: Create fetch wrappers in `src/api/` that call the REST API
+7. **go:embed**: Use the `go-web-frontend-embed` skill to wire the built frontend into the Go binary
+
+### Key Design Decisions Made
+- **React (not Preact)** — chosen for ecosystem compatibility with Storybook and Bootstrap
+- **Bootstrap 5** — for consistent styling without heavy configuration
+- **Zustand** — lightweight state management, same as pinocchio project
+- **MSW** — realistic API mocking in Storybook without running the backend
+- **No syntax highlighting library** — `CodeViewer` accepts `language` prop but doesn't highlight yet; next dev should choose Prism/Shiki
+- **Unified diff only** — `DiffViewer` accepts `mode='split'` but only renders unified for now
+
+### Known Issues
+- The go.work requires Go 1.25.6 but 1.25.5 may be installed (LSP diagnostic, doesn't affect frontend work)
+- No `.prettierrc` or `eslint.config` — code formatting is manual for now
+- The `App.tsx` file referenced in `main.tsx` doesn't exist yet — Storybook works independently
