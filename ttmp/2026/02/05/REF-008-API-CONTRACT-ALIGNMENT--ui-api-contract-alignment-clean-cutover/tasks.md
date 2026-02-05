@@ -27,3 +27,5 @@
 - [x] Add global MSW handlers in Storybook preview to prevent 404s
 - [x] Fix Storybook story handlers to match API response shapes (sessions/workspaces)
 - [x] Audit page stories for missing session handlers after session scoping
+- [x] Add zerolog request/error logging to workbench API (incl. session computation errors)
+- [x] Convert refactorio CLI to glazed command wiring with logging layer (--log-level)

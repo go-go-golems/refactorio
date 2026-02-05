@@ -51,7 +51,7 @@ func NewServer(cfg Config) *Server {
 func (s *Server) ListenAndServe() error {
 	s.httpServer = &http.Server{
 		Addr:    s.cfg.Addr,
-		Handler: s.rootMux,
+		Handler: withRequestLogging(s.rootMux),
 	}
 
 	if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

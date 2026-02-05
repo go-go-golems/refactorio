@@ -10,7 +10,7 @@ func NewJSCommand() (*cobra.Command, error) {
 		Short: "JavaScript tooling for refactorio",
 	}
 
-	runCmd, err := NewJSRunCommand()
+	runCmd, err := NewJSRunCobraCommand()
 	if err != nil {
 		return nil, err
 	}

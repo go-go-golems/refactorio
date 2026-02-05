@@ -10,6 +10,9 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type sessionBuilder struct {
@@ -72,6 +75,11 @@ func (s *Server) listSessions(w http.ResponseWriter, r *http.Request) {
 
 	sessions, err := computeSessions(db, ref, overrides)
 	if err != nil {
+		log.Error().
+			Err(err).
+			Str("workspace_id", ref.ID).
+			Str("db_path", ref.DBPath).
+			Msg("failed to compute sessions")
 		writeError(w, http.StatusInternalServerError, "session_error", "failed to compute sessions", nil)
 		return
 	}
@@ -102,6 +110,12 @@ func (s *Server) getSession(w http.ResponseWriter, r *http.Request, id string) {
 
 	sessions, err := computeSessions(db, ref, overrides)
 	if err != nil {
+		log.Error().
+			Err(err).
+			Str("workspace_id", ref.ID).
+			Str("db_path", ref.DBPath).
+			Str("session_id", id).
+			Msg("failed to compute sessions")
 		writeError(w, http.StatusInternalServerError, "session_error", "failed to compute sessions", nil)
 		return
 	}
@@ -334,7 +348,7 @@ func tableHasRunData(db *sql.DB, table string, runID int64) bool {
 func loadRunsForSessions(db *sql.DB) ([]RunRecord, error) {
 	rows, err := db.Query("SELECT id, started_at, finished_at, status, tool_version, git_from, git_to, root_path, args_json, error_json, sources_dir FROM meta_runs ORDER BY started_at DESC")
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "query meta_runs for sessions")
 	}
 	defer rows.Close()
 
@@ -363,7 +377,7 @@ func loadRunsForSessions(db *sql.DB) ([]RunRecord, error) {
 			&errorJSON,
 			&sourcesDir,
 		); err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "scan meta_runs for sessions")
 		}
 		if finished.Valid {
 			record.FinishedAt = finished.String

@@ -14,7 +14,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: "Implementation diary for the UI/API contract alignment work."
-LastUpdated: 2026-02-05T17:39:50-05:00
+LastUpdated: 2026-02-05T17:49:03-05:00
 WhatFor: "Track step-by-step alignment changes and review guidance."
 WhenToUse: "Use when resuming alignment work or reviewing what changed and why."
 ---
@@ -217,4 +217,47 @@ tmux send-keys -t refactorio-ui:0.1 "npm run dev" C-m
 curl -s -X POST http://localhost:8080/api/workspaces \
   -H 'Content-Type: application/json' \
   -d '{"id":"refactorio-foobar","name":"refactorio","db_path":"/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/foobar.db","repo_root":"/home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio"}'
+```
+
+## Step 5: Add Zerolog + Glazed CLI Wiring for Debuggable API Sessions
+I wired zerolog into the Workbench API and converted the refactorio CLI to Glazed command wiring with logging flags. This gives us structured request logs and a proper `--log-level` flag to debug session failures.
+
+### Prompt Context
+**User prompt (verbatim):** "Add detailed zerolog logging to refactorio, and use glazed commands (see refactori-index for example on how to setup the main program) $glazed-command-authoring. We get 500 on ... /api/sessions ... It could be that our db is not correct either."
+
+**Assistant interpretation:** Add structured logging for API requests/errors and refactor the CLI to use Glazed command wiring, including log-level flags.
+
+**Inferred user intent:** Make session failures diagnosable with actionable logs and align the CLI with existing Glazed conventions.
+
+**Commit (code):** N/A (pending)
+
+### What I did
+- Added request logging middleware in `workbenchapi` to log method/path/status/duration/bytes/workspace_id.
+- Added error logs around session computation to capture root causes in the server log.
+- Converted `refactorio` CLI main to Glazed help wiring and added logging flags.
+- Rewrote `refactorio api serve` and `refactorio js run` as Glazed commands with settings decoding and examples.
+
+### Why
+- Session 500s need a clear server-side trace. Structured logs provide immediate visibility into failures.
+- Glazed command wiring adds consistent flag parsing, logging flags, and help output.
+
+### What worked
+- The server now emits structured request logs with status codes, which makes the failing endpoint obvious.
+- CLI now supports `--log-level` and logs server startup parameters.
+
+### What didn't work
+- N/A (pending validation against the current DB schema).
+
+### What should be done in the future
+- Re-run `/api/sessions` with `--log-level debug` to see the root error (likely schema mismatch).
+- If the DB is old, re-index or migrate to the current `meta_runs` schema.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/logging.go` and `refactorio/pkg/workbenchapi/sessions.go`.
+- Review CLI wiring in `refactorio/cmd/refactorio/main.go`, `refactorio/cmd/refactorio/root.go`, and `refactorio/cmd/refactorio/api.go`.
+
+### Technical details
+Commands run:
+```bash
+docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 23,24
 ```
