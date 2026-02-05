@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { CommitDetail } from './CommitDetail'
-import { mockCommits, mockDiffFiles } from '../../mocks/data'
+import { mockCommits } from '../../mocks/data'
 import type { CommitFile } from '../../types/api'
 
 const meta: Meta<typeof CommitDetail> = {

@@ -12,11 +12,12 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
     "bootstrap": "^5.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0",
-    "zustand": "^5.0.8"
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^6.26.0"
   },
   "devDependencies": {
     "@storybook/addon-a11y": "^8.4.0",

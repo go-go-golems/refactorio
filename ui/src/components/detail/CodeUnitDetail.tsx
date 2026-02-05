@@ -82,7 +82,7 @@ export function CodeUnitDetail({
           content={codeUnit.body}
           language="go"
           startLine={codeUnit.start_line}
-          maxHeight={300}
+          maxHeight="300px"
         />
       </div>
 

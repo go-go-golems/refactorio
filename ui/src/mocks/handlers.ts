@@ -3,13 +3,17 @@ import {
   mockWorkspaces,
   mockDBInfo,
   mockRuns,
+  mockRunSummary,
   mockSessions,
   mockSymbols,
+  mockSymbolRefs,
   mockCodeUnits,
   mockCommits,
+  mockCommitFiles,
   mockDiffFiles,
   mockDiffHunks,
   mockDocTerms,
+  mockDocHits,
   mockFileTree,
   mockSearchResults,
 } from './data'
@@ -38,6 +42,29 @@ export const handlers = [
     return HttpResponse.json(workspace)
   }),
 
+  http.post(`${API_BASE}/workspaces`, async ({ request }) => {
+    await delay(200)
+    const body = (await request.json()) as Record<string, unknown>
+    return HttpResponse.json({
+      id: `ws-${Date.now()}`,
+      name: body.name || 'New Workspace',
+      db_path: body.db_path || '/tmp/new.db',
+      repo_root: body.repo_root || '',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { status: 201 })
+  }),
+
+  http.patch(`${API_BASE}/workspaces/:id`, async ({ params, request }) => {
+    await delay(200)
+    const body = (await request.json()) as Record<string, unknown>
+    const workspace = mockWorkspaces.find((w) => w.id === params.id)
+    if (!workspace) {
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    return HttpResponse.json({ ...workspace, ...body, updated_at: new Date().toISOString() })
+  }),
+
   // DB Info
   http.get(`${API_BASE}/db/info`, async () => {
     await delay(200)
@@ -63,6 +90,11 @@ export const handlers = [
     return HttpResponse.json(run)
   }),
 
+  http.get(`${API_BASE}/runs/:id/summary`, async () => {
+    await delay(150)
+    return HttpResponse.json(mockRunSummary)
+  }),
+
   // Sessions
   http.get(`${API_BASE}/sessions`, async () => {
     await delay(150)
@@ -85,6 +117,7 @@ export const handlers = [
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const offset = parseInt(url.searchParams.get('offset') || '0')
     const query = url.searchParams.get('q')
+    const kind = url.searchParams.get('kind')
 
     let items = mockSymbols
     if (query) {
@@ -93,6 +126,9 @@ export const handlers = [
           s.name.toLowerCase().includes(query.toLowerCase()) ||
           s.package_path.toLowerCase().includes(query.toLowerCase())
       )
+    }
+    if (kind) {
+      items = items.filter((s) => s.kind === kind)
     }
     const paginated = items.slice(offset, offset + limit)
     return HttpResponse.json({ items: paginated, total: items.length, limit, offset })
@@ -107,14 +143,29 @@ export const handlers = [
     return HttpResponse.json(symbol)
   }),
 
+  http.get(`${API_BASE}/symbols/:hash/refs`, async () => {
+    await delay(200)
+    return HttpResponse.json({ items: mockSymbolRefs })
+  }),
+
   // Code Units
   http.get(`${API_BASE}/code-units`, async ({ request }) => {
     await delay(200)
     const url = new URL(request.url)
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const offset = parseInt(url.searchParams.get('offset') || '0')
-    const items = mockCodeUnits.slice(offset, offset + limit)
-    return HttpResponse.json({ items, total: mockCodeUnits.length, limit, offset })
+    const kind = url.searchParams.get('kind')
+    const query = url.searchParams.get('q')
+
+    let items = mockCodeUnits
+    if (kind) {
+      items = items.filter((u) => u.kind === kind)
+    }
+    if (query) {
+      items = items.filter((u) => u.name.toLowerCase().includes(query.toLowerCase()))
+    }
+    const paginated = items.slice(offset, offset + limit)
+    return HttpResponse.json({ items: paginated, total: items.length, limit, offset })
   }),
 
   http.get(`${API_BASE}/code-units/:hash`, async ({ params }) => {
@@ -145,8 +196,18 @@ export const handlers = [
     const url = new URL(request.url)
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const offset = parseInt(url.searchParams.get('offset') || '0')
-    const items = mockCommits.slice(offset, offset + limit)
-    return HttpResponse.json({ items, total: mockCommits.length, limit, offset })
+    const query = url.searchParams.get('q')
+
+    let items = mockCommits
+    if (query) {
+      items = items.filter(
+        (c) =>
+          c.subject.toLowerCase().includes(query.toLowerCase()) ||
+          c.author_name.toLowerCase().includes(query.toLowerCase())
+      )
+    }
+    const paginated = items.slice(offset, offset + limit)
+    return HttpResponse.json({ items: paginated, total: items.length, limit, offset })
   }),
 
   http.get(`${API_BASE}/commits/:hash`, async ({ params }) => {
@@ -156,6 +217,11 @@ export const handlers = [
       return HttpResponse.json({ error: 'Commit not found' }, { status: 404 })
     }
     return HttpResponse.json(commit)
+  }),
+
+  http.get(`${API_BASE}/commits/:hash/files`, async () => {
+    await delay(150)
+    return HttpResponse.json({ items: mockCommitFiles })
   }),
 
   // Diff
@@ -188,6 +254,17 @@ export const handlers = [
   http.get(`${API_BASE}/docs/terms`, async () => {
     await delay(150)
     return HttpResponse.json({ items: mockDocTerms })
+  }),
+
+  http.get(`${API_BASE}/docs/hits`, async ({ request }) => {
+    await delay(150)
+    const url = new URL(request.url)
+    const term = url.searchParams.get('term')
+    let items = mockDocHits
+    if (term) {
+      items = items.filter((h) => h.term.toLowerCase().includes(term.toLowerCase()))
+    }
+    return HttpResponse.json({ items })
   }),
 
   // Files

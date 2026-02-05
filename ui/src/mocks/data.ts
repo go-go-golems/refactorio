@@ -4,13 +4,17 @@ import type {
   Workspace,
   DBInfo,
   Run,
+  RunSummary,
   Session,
   Symbol,
+  SymbolRef,
   CodeUnit,
   Commit,
+  CommitFile,
   DiffFile,
   DiffHunk,
   DocTerm,
+  DocHit,
   FileEntry,
   SearchResult,
 } from '../types/api'
@@ -112,6 +116,16 @@ export const mockRuns: Run[] = [
   },
 ]
 
+export const mockRunSummary: RunSummary = {
+  run_id: 44,
+  symbols_count: 234,
+  code_units_count: 189,
+  commits_count: 47,
+  diff_files_count: 23,
+  diff_lines_count: 891,
+  doc_hits_count: 45,
+}
+
 export const mockSessions: Session[] = [
   {
     id: 'main-head20-head-a7b3',
@@ -197,6 +211,12 @@ export const mockSymbols: Symbol[] = [
   },
 ]
 
+export const mockSymbolRefs: SymbolRef[] = [
+  { file_path: 'pkg/handlers/command.go', start_line: 45, start_col: 6, end_line: 45, end_col: 22, is_declaration: true },
+  { file_path: 'pkg/handlers/factory.go', start_line: 12, start_col: 10, end_line: 12, end_col: 26, is_declaration: false },
+  { file_path: 'pkg/api/server.go', start_line: 87, start_col: 15, end_line: 87, end_col: 31, is_declaration: false },
+]
+
 export const mockCodeUnits: CodeUnit[] = [
   {
     code_unit_hash: 'cu_a1b2c3',
@@ -255,6 +275,12 @@ export const mockCommits: Commit[] = [
   },
 ]
 
+export const mockCommitFiles: CommitFile[] = [
+  { file_path: 'pkg/handlers/command.go', status: 'M', additions: 15, deletions: 8 },
+  { file_path: 'pkg/handlers/types.go', status: 'A', additions: 45, deletions: 0 },
+  { file_path: 'pkg/handlers/old_handler.go', status: 'D', additions: 0, deletions: 32 },
+]
+
 export const mockDiffFiles: DiffFile[] = [
   {
     file_path: 'pkg/handlers/command.go',
@@ -302,6 +328,12 @@ export const mockDocTerms: DocTerm[] = [
   { term: 'CommandProcessor', count: 23 },
   { term: 'handler', count: 89 },
   { term: 'middleware', count: 34 },
+]
+
+export const mockDocHits: DocHit[] = [
+  { file_path: 'pkg/handlers/command.go', term: 'Processor', line: 45, col: 6, match_text: 'type CommandProcessor interface', run_id: 44 },
+  { file_path: 'pkg/api/server.go', term: 'Processor', line: 87, col: 15, match_text: 'var proc CommandProcessor', run_id: 44 },
+  { file_path: 'pkg/handlers/factory.go', term: 'Processor', line: 23, col: 12, match_text: 'func NewProcessor() CommandProcessor', run_id: 44 },
 ]
 
 export const mockFileTree: FileEntry[] = [
