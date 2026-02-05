@@ -26,14 +26,26 @@ RelatedFiles:
       Note: Track and check completion of live backend unblock tasks
     - Path: ui/src/App.tsx
       Note: Wire controlled workspace/session selectors and stable session labels
-    - Path: ui/src/components/selection/SessionCard.tsx
-      Note: Handle missing/invalid session last_updated values gracefully
+    - Path: ui/src/components/code-display/DiffViewer.stories.tsx
+      Note: Align DiffHunk story fixtures to current API contract
+    - Path: ui/src/components/code-display/DiffViewer.tsx
+      Note: Use current DiffHunk id and suppress unused mode warning
+    - Path: ui/src/components/data-display/EntityTable.stories.tsx
+      Note: Fix strict unknown-cast for generic sort access
+    - Path: ui/src/components/layout/AppShell.tsx
+      Note: Silence unused callback prop while preserving API
     - Path: ui/src/components/layout/Topbar.tsx
       Note: Implement real topbar combobox selectors
+    - Path: ui/src/components/selection/SessionCard.tsx
+      Note: Handle missing/invalid session last_updated values gracefully
+    - Path: ui/src/components/selection/SessionSelector.tsx
+      Note: Replace removed SessionAvailability import
     - Path: ui/src/pages/CodeUnitsPage.tsx
       Note: Prevent stale code unit rows on session switch
     - Path: ui/src/pages/CommitsPage.tsx
       Note: Prevent stale commit rows when session has no commits run
+    - Path: ui/src/pages/DashboardPage.tsx
+      Note: Use Run id contract in list key
     - Path: ui/src/pages/DiffsPage.tsx
       Note: Prevent stale diff run rows on session switch
     - Path: ui/src/pages/DocsPage.tsx
@@ -42,10 +54,11 @@ RelatedFiles:
       Note: Prevent stale symbol rows on session switch
 ExternalSources: []
 Summary: Implementation diary for the UI/API contract alignment work.
-LastUpdated: 2026-02-05T18:24:07-05:00
+LastUpdated: 2026-02-05T18:49:01-05:00
 WhatFor: Track step-by-step alignment changes and review guidance.
 WhenToUse: Use when resuming alignment work or reviewing what changed and why.
 ---
+
 
 
 
@@ -451,4 +464,58 @@ I refined session UX so first-load auto-selection prefers the session with the w
 Commands run:
 ```bash
 curl -sS "http://127.0.0.1:8080/api/sessions?workspace_id=refactorio-foobar" | jq -c '.'
+```
+
+## Step 9: Clear Remaining Frontend TypeScript Build Blockers
+I fixed the remaining TypeScript compile errors that were outside the earlier API-alignment code paths but still blocking `npm run build`. The changes align story fixtures and component usage with the current API type contracts and eliminate unused parameter/import errors.
+
+This closes the previously documented “build still fails due unrelated UI type issues” gap from Step 7 and Step 8.
+
+### Prompt Context
+**User prompt (verbatim):** "alright, fix them as part of REF-008. GIve me a rundown of 009 to 014 as well"
+
+**Assistant interpretation:** Fix all currently reported UI TypeScript errors and record the work under REF-008.
+
+**Inferred user intent:** Remove remaining build blockers so the alignment stream is executable end-to-end and give portfolio-level status visibility.
+
+**Commit (code):** f8bd48d — "Fix UI TypeScript build errors in stories and dashboard"
+
+### What I did
+- Updated `DiffViewer` stories to use `DiffHunk` contract keys (`id`, `old_lines`, `new_lines`) instead of legacy names.
+- Updated `DiffViewer` component to key hunks with `hunk.id` and explicitly mark `mode` as intentionally unused for now.
+- Fixed strict cast warnings in `EntityTable` interactive story by casting via `unknown`.
+- Fixed `SessionSelector` type import by using `Session['availability']` directly.
+- Fixed `DashboardPage` recent-run list key from `run.run_id` to `run.id`.
+- Marked new REF-008 done task: “Fix frontend TypeScript build blockers after API contract cutover.”
+
+### Why
+- These errors prevented `tsc -b` from succeeding, blocking confidence in the current UI/API state.
+
+### What worked
+- `npm --prefix ui run build` now succeeds.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Several story fixtures were still pinned to old `DiffHunk` shape, even though runtime pages were already migrated.
+
+### What was tricky to build
+- The failures were spread across unrelated files (stories, layout, dashboard), so a single compile pass was needed after each cluster of fixes to avoid chasing stale errors.
+
+### What warrants a second pair of eyes
+- Whether `DiffViewer` should implement split mode soon, since `mode` is currently accepted but not behaviorally used.
+
+### What should be done in the future
+- Run the live-backend playbook to complete the remaining two active REF-008 tasks.
+
+### Code review instructions
+- Start with `ui/src/components/code-display/DiffViewer.stories.tsx` and `ui/src/components/code-display/DiffViewer.tsx`.
+- Then check `ui/src/components/selection/SessionSelector.tsx` and `ui/src/pages/DashboardPage.tsx`.
+- Validate with `npm --prefix ui run build`.
+
+### Technical details
+Commands run:
+```bash
+npm --prefix ui run build
 ```

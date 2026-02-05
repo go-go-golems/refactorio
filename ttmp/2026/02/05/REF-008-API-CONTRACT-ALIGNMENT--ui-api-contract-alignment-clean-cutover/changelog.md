@@ -41,3 +41,16 @@ Refined session defaulting to prefer the highest-coverage session and hardened s
 
 - ui/src/App.tsx — Auto-select highest-coverage session (availability-first, timestamp tie-break)
 - ui/src/components/selection/SessionCard.tsx — Render `Updated n/a` when `last_updated` is absent/invalid
+
+## 2026-02-05
+
+Step 9: fixed remaining frontend TypeScript build blockers in DiffViewer stories/component, EntityTable story sorting cast, SessionSelector type import, AppShell unused prop, and Dashboard run key (commit f8bd48d).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/components/code-display/DiffViewer.stories.tsx — Align story data with DiffHunk contract fields
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/components/code-display/DiffViewer.tsx — Use DiffHunk id key and mark mode intentionally unused
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/components/data-display/EntityTable.stories.tsx — Fix strict cast through unknown for sortable field access
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/components/selection/SessionSelector.tsx — Use Session availability type directly
+- /home/manuel/workspaces/2026-02-04/implement-refactorio-refactoring/refactorio/ui/src/pages/DashboardPage.tsx — Use run.id key to match Run contract
+

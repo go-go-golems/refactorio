@@ -33,3 +33,4 @@
 - [x] Fix /api/files and file search handling for nullable file_exists/is_binary
 - [x] Wire topbar workspace/session selectors to Redux state for real session switching
 - [x] Prevent stale domain tables from persisting across session switches
+- [x] Fix frontend TypeScript build blockers after API contract cutover
