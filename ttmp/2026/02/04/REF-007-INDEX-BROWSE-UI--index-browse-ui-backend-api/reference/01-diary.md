@@ -39,6 +39,8 @@ RelatedFiles:
       Note: Shared JSON and error response helpers
     - Path: refactorio/pkg/workbenchapi/routes.go
       Note: Base route registration
+    - Path: refactorio/pkg/workbenchapi/runs.go
+      Note: Run list/detail/summary and raw outputs endpoints
     - Path: refactorio/pkg/workbenchapi/server.go
       Note: Server config
     - Path: refactorio/pkg/workbenchapi/workspace.go
@@ -49,6 +51,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -295,4 +298,58 @@ Commands run:
 gofmt -w refactorio/pkg/workbenchapi/db.go refactorio/pkg/workbenchapi/db_info.go refactorio/pkg/workbenchapi/routes.go
 git -C refactorio add pkg/workbenchapi/db.go pkg/workbenchapi/db_info.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add db info endpoint"
+```
+
+## Step 5: Implement Runs + Raw Outputs Endpoints
+I implemented the runs listing/detail endpoints, run summaries, and raw output listings. This powers the UI’s “Runs” and “Raw Outputs” pages and provides the run-level metadata needed for session grouping later.
+
+The summary endpoint computes per-run counts using targeted SQL queries and guards against missing tables, which keeps it safe on partially populated DBs.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Build the runs endpoints and commit the implementation with diary updates.
+
+**Inferred user intent:** Surface run metadata early so the UI can navigate data availability and diagnostics.
+
+**Commit (code):** 8619d3c — "Add run and raw output endpoints"
+
+### What I did
+- Added `/api/runs`, `/api/runs/:id`, `/api/runs/:id/summary`, and `/api/runs/:id/raw-outputs`.
+- Added `/api/raw-outputs` list endpoint with source/run filters.
+- Implemented limit/offset parsing and count helpers for run summaries.
+
+### Why
+- Run visibility is a prerequisite for the session dashboard and data debugging views.
+- Raw outputs provide traceability for ingestion artifacts and errors.
+
+### What worked
+- Run list supports basic filtering and pagination.
+- Summaries return counts even when some tables are missing.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Joining diff tables for run-level counts requires multi-step joins through diff_files.
+
+### What was tricky to build
+The summary query set had to handle tables that may not exist in older schemas. Guarding with `sqlite_master` checks prevents hard errors while still returning meaningful counts where possible.
+
+### What warrants a second pair of eyes
+- Confirm summary counts match UI expectations (especially diff line counts and commit-related joins).
+
+### What should be done in the future
+- Add optional totals for `/api/runs` once a paging strategy for large datasets is finalized.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/runs.go` for query logic and handlers.
+- Verify registration in `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/runs.go refactorio/pkg/workbenchapi/routes.go
+git -C refactorio add pkg/workbenchapi/runs.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add run and raw output endpoints"
 ```
