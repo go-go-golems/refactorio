@@ -7,6 +7,7 @@ import (
 
 func (s *Server) registerRoutes() {
 	s.registerBaseRoutes()
+	s.registerDBRoutes()
 	s.registerWorkspaceRoutes()
 }
 
