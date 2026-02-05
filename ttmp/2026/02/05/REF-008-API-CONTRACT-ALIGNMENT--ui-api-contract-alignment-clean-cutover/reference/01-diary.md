@@ -14,7 +14,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: "Implementation diary for the UI/API contract alignment work."
-LastUpdated: 2026-02-05T17:19:44-05:00
+LastUpdated: 2026-02-05T17:32:44-05:00
 WhatFor: "Track step-by-step alignment changes and review guidance."
 WhenToUse: "Use when resuming alignment work or reviewing what changed and why."
 ---
@@ -129,4 +129,51 @@ Ensuring that session changes invalidated page state without causing extra API c
 Commands run:
 ```bash
 docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 1,6
+```
+
+## Step 3: Fix Storybook MSW Coverage After Session Scoping
+I added global MSW handlers to Storybook so session-scoped pages always have `/api/sessions` mocked, then fixed story-specific handlers that still returned old response shapes.
+
+### Prompt Context
+**User prompt (verbatim):** "so go through the stories now because there are stories where I get a 404 in storybook... Can you do the same exhaustive analysis of all the storybook stories that need to be adjusted accordingly?"
+
+**Assistant interpretation:** Prevent Storybook 404s by ensuring all session-scoped stories have matching MSW handlers and that handlers match the backend response envelopes.
+
+**Inferred user intent:** Make Storybook reliable again after session scoping so page stories load without missing endpoints.
+
+**Commit (code):** N/A (pending)
+
+### What I did
+- Added global MSW handlers in Storybook preview so `/api/sessions` is mocked across all stories.
+- Fixed `/api/sessions` responses in `DashboardPage` stories to use `{ items: ... }`.
+- Fixed `/api/workspaces` responses in `WorkspacePage` stories to use `{ items: ... }`.
+- Updated Dashboard Empty story to use DB table flags rather than deprecated `row_counts`.
+
+### Why
+- Session scoping introduced a new dependency on `/api/sessions` for most page stories, causing 404s when not mocked.
+- Some stories still used pre-alignment response shapes (`sessions`, `workspaces`), which breaks RTK Query transforms.
+
+### What worked
+- A global MSW handler set eliminates redundant per-story session mocks and removes 404s in page stories.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Storybook is sensitive to response envelope drift; default handlers are the safest baseline.
+
+### What warrants a second pair of eyes
+- Verify that global MSW handlers are applied before per-story overrides in Storybook.
+
+### What should be done in the future
+- Run Storybook and confirm all page stories (Default/Empty/Loading) render without network errors.
+
+### Code review instructions
+- Check `refactorio/ui/.storybook/preview.ts` for MSW handler registration.
+- Review `refactorio/ui/src/pages/DashboardPage.stories.tsx` and `refactorio/ui/src/pages/WorkspacePage.stories.tsx`.
+
+### Technical details
+Commands run:
+```bash
+docmgr task check --ticket REF-008-API-CONTRACT-ALIGNMENT --id 20,21,22
 ```

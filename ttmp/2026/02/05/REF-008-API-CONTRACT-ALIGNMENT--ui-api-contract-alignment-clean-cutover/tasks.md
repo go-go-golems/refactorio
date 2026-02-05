@@ -24,3 +24,6 @@
 - [x] Wire session run ids into symbols, code units, commits, diffs, docs, and search queries
 - [x] Wire gopls refs run id into symbol refs query
 - [x] Reset page selections on session change to avoid stale detail panels
+- [x] Add global MSW handlers in Storybook preview to prevent 404s
+- [x] Fix Storybook story handlers to match API response shapes (sessions/workspaces)
+- [x] Audit page stories for missing session handlers after session scoping

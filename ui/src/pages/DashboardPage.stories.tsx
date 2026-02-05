@@ -18,7 +18,7 @@ const meta: Meta<typeof DashboardPage> = {
         }),
         http.get('/api/sessions', async () => {
           await delay(150)
-          return HttpResponse.json({ sessions: mockSessions })
+          return HttpResponse.json({ items: mockSessions })
         }),
         http.get('/api/runs', async ({ request }) => {
           await delay(150)
@@ -46,18 +46,19 @@ export const Empty: Story = {
           await delay(100)
           return HttpResponse.json({
             ...mockDBInfo,
-            row_counts: {
-              symbols: 0,
-              code_unit_snapshots: 0,
-              commits: 0,
-              diff_files: 0,
-              doc_hits: 0,
+            tables: {
+              ...mockDBInfo.tables,
+              symbol_occurrences: false,
+              code_unit_snapshots: false,
+              commits: false,
+              diff_files: false,
+              doc_hits: false,
             },
           })
         }),
         http.get('/api/sessions', async () => {
           await delay(100)
-          return HttpResponse.json({ sessions: [] })
+          return HttpResponse.json({ items: [] })
         }),
         http.get('/api/runs', async () => {
           await delay(100)
@@ -78,7 +79,7 @@ export const Loading: Story = {
         }),
         http.get('/api/sessions', async () => {
           await delay(999999)
-          return HttpResponse.json({ sessions: mockSessions })
+          return HttpResponse.json({ items: mockSessions })
         }),
         http.get('/api/runs', async () => {
           await delay(999999)

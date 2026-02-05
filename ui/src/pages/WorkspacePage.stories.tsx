@@ -13,7 +13,7 @@ const meta: Meta<typeof WorkspacePage> = {
     msw: {
       handlers: [
         http.get('/api/workspaces', () => {
-          return HttpResponse.json({ workspaces: mockWorkspaces })
+          return HttpResponse.json({ items: mockWorkspaces })
         }),
         http.post('/api/workspaces', async ({ request }) => {
           const body = (await request.json()) as Record<string, unknown>
@@ -54,7 +54,7 @@ export const Empty: Story = {
     msw: {
       handlers: [
         http.get('/api/workspaces', () => {
-          return HttpResponse.json({ workspaces: [] })
+          return HttpResponse.json({ items: [] })
         }),
         http.post('/api/workspaces', async ({ request }) => {
           const body = (await request.json()) as Record<string, unknown>
@@ -89,7 +89,7 @@ export const Loading: Story = {
       handlers: [
         http.get('/api/workspaces', async () => {
           await delay(999999)
-          return HttpResponse.json({ workspaces: [] })
+          return HttpResponse.json({ items: [] })
         }),
         http.post('/api/workspaces', async () => {
           await delay(999999)
