@@ -15,6 +15,6 @@
 - [x] Implement diff endpoints (/api/diff-runs, /api/diff/:run_id/files, /api/diff/:run_id/file)
 - [x] Implement commit endpoints (/api/commits, /api/commits/:hash, /api/commits/:hash/files, /api/commits/:hash/diff)
 - [x] Implement docs endpoints (/api/docs/terms, /api/docs/hits)
-- [ ] Implement files endpoints (/api/files tree, /api/file content, /api/files/history)
+- [x] Implement files endpoints (/api/files tree, /api/file content, /api/files/history)
 - [ ] Implement optional tree-sitter capture endpoint (/api/tree-sitter/captures)
 - [ ] Add API tests (db info, runs list, search smoke)

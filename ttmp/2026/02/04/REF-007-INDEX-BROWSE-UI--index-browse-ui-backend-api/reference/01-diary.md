@@ -43,6 +43,8 @@ RelatedFiles:
       Note: Diff run/file endpoints and hunk/line loading
     - Path: refactorio/pkg/workbenchapi/docs.go
       Note: Doc term and hit endpoints
+    - Path: refactorio/pkg/workbenchapi/files.go
+      Note: File tree
     - Path: refactorio/pkg/workbenchapi/json.go
       Note: Shared JSON and error response helpers
     - Path: refactorio/pkg/workbenchapi/routes.go
@@ -63,6 +65,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -840,4 +843,57 @@ gofmt -w refactorio/pkg/workbenchapi/docs.go refactorio/pkg/workbenchapi/routes.
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/docs.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add docs endpoints"
+```
+
+## Step 15: Implement File Endpoints
+I added file tree listing, file content retrieval, and file history endpoints. The file endpoint supports both working-tree reads and `git show` for specific refs when a repo root is configured.
+
+This enables the UI’s Files explorer and File Viewer panels to load content and history.\n\n### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement Task 13 (file endpoints), commit, and update the diary.
+
+**Inferred user intent:** Provide file browsing, viewing, and history in the UI.
+
+**Commit (code):** d303f9f — "Add file endpoints"
+
+### What I did
+- Added `GET /api/files` for tree-style file listing with prefix filtering.
+- Added `GET /api/file` for file content (optionally at a git ref).
+- Added `GET /api/files/history` for commit history per file.
+- Registered file routes in the server.
+
+### Why
+- File browsing and context views are central to the workbench experience.
+
+### What worked
+- Prefix tree listing returns a mix of directories and files.
+- File content supports both HEAD and explicit refs.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Keeping file tree responses compact avoids sending huge file lists unnecessarily.
+
+### What was tricky to build
+The tree logic needs to compute immediate children from a flat path list; handling prefixes cleanly required careful string normalization.
+
+### What warrants a second pair of eyes
+- Validate tree behavior for nested prefixes and root-level listings.
+- Confirm the `git show` invocation is acceptable for large repos and error messages.
+
+### What should be done in the future
+- Add caching for file content to avoid repeated git calls when browsing large diffs.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/files.go` and `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/files.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/files.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add file endpoints"
 ```
