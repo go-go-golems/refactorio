@@ -29,6 +29,8 @@ RelatedFiles:
       Note: Schema reviewed while mapping UI requirements
     - Path: refactorio/pkg/refactorindex/store.go
       Note: DB initialization and FTS setup reviewed
+    - Path: refactorio/pkg/workbenchapi/code_units.go
+      Note: Code unit list/detail/history/diff endpoints
     - Path: refactorio/pkg/workbenchapi/db.go
       Note: Workspace-aware DB open helper
     - Path: refactorio/pkg/workbenchapi/db_info.go
@@ -55,6 +57,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -612,4 +615,60 @@ gofmt -w refactorio/pkg/workbenchapi/symbols.go refactorio/pkg/workbenchapi/rout
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/symbols.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add symbol endpoints"
+```
+
+## Step 11: Implement Code Unit Endpoints
+I added code unit list, detail, history, and diff endpoints. The list endpoint supports both basic filters and FTS body search. The diff endpoint computes a simple line diff between two snapshots to support the UI’s “diff between versions” view.
+
+I also updated the code-unit search record shape to carry start/end columns so UI previews can highlight ranges consistently.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement Task 9 (code unit endpoints), commit, and update the diary.
+
+**Inferred user intent:** Enable code unit exploration and history viewing in the UI.
+
+**Commit (code):** 2e6b300 — "Add code unit endpoints"
+
+### What I did
+- Added `GET /api/code-units`, `GET /api/code-units/:hash`, `GET /api/code-units/:hash/history`, and `POST /api/code-units/:hash/diff`.
+- Added a simple line diff helper for snapshot comparisons.
+- Updated code unit search shape to include start/end columns.
+- Registered code unit routes in the server.
+
+### Why
+- Code units are a core browsing entity for refactor workflows.
+
+### What worked
+- List endpoint supports both FTS body search and basic filters.
+- Diff endpoint returns a compact line-by-line representation.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Keeping list responses slim (hashes + ranges) avoids large payloads while enabling detail fetches.
+
+### What was tricky to build
+The list endpoint has two paths (FTS vs non-FTS) and needed consistent field shapes; aligning both to a shared record structure prevented mismatched JSON fields.
+
+### What warrants a second pair of eyes
+- Verify the non-FTS query joins and column ordering, especially start/end column mapping.
+- Confirm the diff output format is acceptable for the frontend diff viewer.
+
+### What should be done in the future
+- Consider a richer diff format (e.g., unified hunks) if needed for advanced UI rendering.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/code_units.go` and updates in `refactorio/pkg/workbenchapi/search.go`.
+- Verify route registration in `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/code_units.go refactorio/pkg/workbenchapi/search.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/code_units.go pkg/workbenchapi/search.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add code unit endpoints"
 ```
