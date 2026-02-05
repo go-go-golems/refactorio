@@ -31,6 +31,8 @@ RelatedFiles:
       Note: DB initialization and FTS setup reviewed
     - Path: refactorio/pkg/workbenchapi/code_units.go
       Note: Code unit list/detail/history/diff endpoints
+    - Path: refactorio/pkg/workbenchapi/commits.go
+      Note: Commit list/detail/files/diff endpoints
     - Path: refactorio/pkg/workbenchapi/db.go
       Note: Workspace-aware DB open helper
     - Path: refactorio/pkg/workbenchapi/db_info.go
@@ -59,6 +61,7 @@ LastUpdated: 2026-02-05T09:30:00-05:00
 WhatFor: Track analysis steps and documentation work for the Workbench REST API.
 WhenToUse: Use when reviewing how the API design docs were produced.
 ---
+
 
 
 
@@ -728,4 +731,59 @@ gofmt -w refactorio/pkg/workbenchapi/diffs.go refactorio/pkg/workbenchapi/routes
 go test ./pkg/workbenchapi
 git -C refactorio add pkg/workbenchapi/diffs.go pkg/workbenchapi/routes.go
 git -C refactorio commit -m "Add diff endpoints"
+```
+
+## Step 13: Implement Commit Endpoints
+I added commit list/detail endpoints, commit file lists, and a best-effort commit diff view. The diff endpoint attempts to locate a diff run associated with the commit and then returns either diff files or per-file hunks, depending on the request.
+
+This aligns with the Commits explorer in the UI and provides a starting point for browsing per-commit changes.
+
+### Prompt Context
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement Task 11 (commit endpoints), commit, and update the diary.
+
+**Inferred user intent:** Provide commit-level browsing and diff inspection capabilities.
+
+**Commit (code):** aadc54b — "Add commit endpoints"
+
+### What I did
+- Added `GET /api/commits`, `GET /api/commits/:hash`, `GET /api/commits/:hash/files`, and `GET /api/commits/:hash/diff`.
+- Implemented filtering by run, author, date range, and path, with optional FTS query.
+- Added a diff run lookup based on `git_to` and `git_from`.
+- Registered commit routes in the server.
+
+### Why
+- Commit history is essential for understanding why and when changes happened.
+
+### What worked
+- Commit list supports filtering and pagination.
+- Commit diff endpoint returns a diff file list or hunks when a diff run is available.
+
+### What didn't work
+- N/A
+
+### What I learned
+- There is no direct link from commits to diff runs, so lookup relies on git range heuristics.
+
+### What was tricky to build
+The diff lookup is best-effort; it has to infer the diff run from `meta_runs` without explicit linkage. This should be reviewed once we add explicit run metadata.
+
+### What warrants a second pair of eyes
+- Verify the commit diff lookup heuristics and ensure they’re acceptable for expected ingestion workflows.
+- Validate the commit list query when both FTS and non-FTS paths are used.
+
+### What should be done in the future
+- Add explicit run metadata linking commits to diff runs to remove heuristic ambiguity.
+
+### Code review instructions
+- Start with `refactorio/pkg/workbenchapi/commits.go` and `refactorio/pkg/workbenchapi/routes.go`.
+
+### Technical details
+Commands run:
+```bash
+gofmt -w refactorio/pkg/workbenchapi/commits.go refactorio/pkg/workbenchapi/routes.go
+go test ./pkg/workbenchapi
+git -C refactorio add pkg/workbenchapi/commits.go pkg/workbenchapi/routes.go
+git -C refactorio commit -m "Add commit endpoints"
 ```
