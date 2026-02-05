@@ -11,6 +11,7 @@ func (s *Server) registerRoutes() {
 	s.registerWorkspaceRoutes()
 	s.registerRunRoutes()
 	s.registerSessionRoutes()
+	s.registerSearchRoutes()
 }
 
 func (s *Server) registerBaseRoutes() {
