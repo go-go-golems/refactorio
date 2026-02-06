@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useGetSymbolsQuery, useGetSymbolRefsQuery } from '../api/client'
+import { useSearchParams } from 'react-router-dom'
+import { useGetSymbolsQuery, useGetSymbolQuery, useGetSymbolRefsQuery } from '../api/client'
 import { useSessionContext } from '../hooks/useSessionContext'
 import { EntityTable, type Column } from '../components/data-display/EntityTable'
 import { InspectorPanel } from '../components/detail/InspectorPanel'
 import { SymbolDetail } from '../components/detail/SymbolDetail'
 import { EntityIcon } from '../components/foundation/EntityIcon'
 import type { Symbol } from '../types/api'
+import { parseSymbolDrillInParams } from '../features/search-drill-in'
 
 const columns: Column<Symbol>[] = [
   { key: 'kind', header: '', width: '32px', render: (s) => <EntityIcon type="symbol" kind={s.kind} size="sm" /> },
@@ -21,13 +23,15 @@ function symbolRowID(s: Symbol): string {
 
 export function SymbolsPage() {
   const { workspaceId, sessionId, activeSession } = useSessionContext()
+  const [searchParams] = useSearchParams()
+  const drillIn = parseSymbolDrillInParams(searchParams)
   const [offset, setOffset] = useState(0)
   const [selectedSymbol, setSelectedSymbol] = useState<Symbol | null>(null)
   const [kindFilter, setKindFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 50
-  const symbolsRunId = activeSession?.runs.symbols
-  const refsRunId = activeSession?.runs.gopls_refs ?? activeSession?.runs.symbols
+  const symbolsRunId = drillIn.runId ?? activeSession?.runs.symbols
+  const refsRunId = drillIn.runId ?? activeSession?.runs.gopls_refs ?? activeSession?.runs.symbols
   const symbolsAvailable = Boolean(symbolsRunId)
 
   const { data: symbols, isLoading } = useGetSymbolsQuery(
@@ -43,6 +47,11 @@ export function SymbolsPage() {
   )
   const symbolRows = symbolsAvailable ? (symbols ?? []) : []
 
+  const { data: drillInSymbol, isError: drillInSymbolMissing } = useGetSymbolQuery(
+    { hash: drillIn.symbolHash ?? '', workspace_id: workspaceId!, run_id: symbolsRunId },
+    { skip: !workspaceId || !drillIn.symbolHash },
+  )
+
   const { data: refs, isFetching: refsLoading } = useGetSymbolRefsQuery(
     { hash: selectedSymbol?.symbol_hash ?? '', workspace_id: workspaceId!, run_id: refsRunId },
     { skip: !selectedSymbol || !workspaceId || !refsRunId },
@@ -52,6 +61,18 @@ export function SymbolsPage() {
     setSelectedSymbol(null)
     setOffset(0)
   }, [sessionId])
+
+  useEffect(() => {
+    if (!drillIn.symbolHash) return
+    const fromRows = symbolRows.find((s) => s.symbol_hash === drillIn.symbolHash)
+    if (fromRows) {
+      setSelectedSymbol(fromRows)
+      return
+    }
+    if (drillInSymbol) {
+      setSelectedSymbol(drillInSymbol)
+    }
+  }, [drillIn.symbolHash, drillInSymbol, symbolRows])
 
   if (!workspaceId) {
     return <div className="p-4 text-muted">Select a workspace first.</div>
@@ -81,6 +102,11 @@ export function SymbolsPage() {
             />
           </div>
         </div>
+        {drillIn.symbolHash && drillInSymbolMissing && (
+          <div className="alert alert-warning py-2">
+            Target symbol <code>{drillIn.symbolHash}</code> was not found in the current scope.
+          </div>
+        )}
         <EntityTable
           columns={columns}
           data={symbolRows}

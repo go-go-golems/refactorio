@@ -63,6 +63,7 @@ export {
 // Files
 export {
   useGetFilesQuery,
+  useLazyGetFilesQuery,
   useGetFileContentQuery,
   useGetFileHistoryQuery,
 } from './files'

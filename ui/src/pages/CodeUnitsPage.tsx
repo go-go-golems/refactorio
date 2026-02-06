@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useGetCodeUnitsQuery, useGetCodeUnitQuery } from '../api/client'
 import { useSessionContext } from '../hooks/useSessionContext'
 import { EntityTable, type Column } from '../components/data-display/EntityTable'
@@ -6,6 +7,7 @@ import { InspectorPanel } from '../components/detail/InspectorPanel'
 import { CodeUnitDetail } from '../components/detail/CodeUnitDetail'
 import { EntityIcon } from '../components/foundation/EntityIcon'
 import type { CodeUnit } from '../types/api'
+import { parseCodeUnitDrillInParams } from '../features/search-drill-in'
 
 const columns: Column<CodeUnit>[] = [
   { key: 'kind_icon', header: '', width: '32px', render: (u) => <EntityIcon type="code_unit" kind={u.kind} size="sm" /> },
@@ -17,12 +19,14 @@ const columns: Column<CodeUnit>[] = [
 
 export function CodeUnitsPage() {
   const { workspaceId, sessionId, activeSession } = useSessionContext()
+  const [searchParams] = useSearchParams()
+  const drillIn = parseCodeUnitDrillInParams(searchParams)
   const [offset, setOffset] = useState(0)
   const [selected, setSelected] = useState<CodeUnit | null>(null)
   const [kindFilter, setKindFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 50
-  const codeUnitsRunId = activeSession?.runs.code_units
+  const codeUnitsRunId = drillIn.runId ?? activeSession?.runs.code_units
   const codeUnitsAvailable = Boolean(codeUnitsRunId)
 
   const { data: units, isLoading } = useGetCodeUnitsQuery(
@@ -30,6 +34,11 @@ export function CodeUnitsPage() {
     { skip: !workspaceId || !codeUnitsRunId },
   )
   const unitRows = codeUnitsAvailable ? (units ?? []) : []
+
+  const { data: drillInDetail, isError: drillInMissing } = useGetCodeUnitQuery(
+    { hash: drillIn.unitHash ?? '', workspace_id: workspaceId!, run_id: codeUnitsRunId },
+    { skip: !workspaceId || !drillIn.unitHash || !codeUnitsRunId },
+  )
 
   const { data: detail, isFetching: detailLoading } = useGetCodeUnitQuery(
     { hash: selected?.unit_hash ?? '', workspace_id: workspaceId!, run_id: codeUnitsRunId },
@@ -40,6 +49,32 @@ export function CodeUnitsPage() {
     setSelected(null)
     setOffset(0)
   }, [sessionId])
+
+  useEffect(() => {
+    if (!drillIn.unitHash) return
+    const fromRows = unitRows.find((u) => u.unit_hash === drillIn.unitHash)
+    if (fromRows) {
+      setSelected(fromRows)
+      return
+    }
+    if (drillInDetail) {
+      setSelected({
+        run_id: drillInDetail.run_id,
+        unit_hash: drillInDetail.unit_hash,
+        kind: drillInDetail.kind,
+        name: drillInDetail.name,
+        recv: drillInDetail.recv,
+        pkg: drillInDetail.pkg,
+        file: drillInDetail.file,
+        start_line: drillInDetail.start_line,
+        start_col: drillInDetail.start_col,
+        end_line: drillInDetail.end_line,
+        end_col: drillInDetail.end_col,
+        body_hash: drillInDetail.body_hash,
+        signature: drillInDetail.signature,
+      })
+    }
+  }, [drillIn.unitHash, drillInDetail, unitRows])
 
   if (!workspaceId) return <div className="p-4 text-muted">Select a workspace first.</div>
 
@@ -58,6 +93,11 @@ export function CodeUnitsPage() {
             <input type="search" className="form-control form-control-sm" placeholder="Search..." style={{ width: 200 }} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setOffset(0) }} />
           </div>
         </div>
+        {drillIn.unitHash && drillInMissing && (
+          <div className="alert alert-warning py-2">
+            Target code unit <code>{drillIn.unitHash}</code> was not found in the current scope.
+          </div>
+        )}
         <EntityTable
           columns={columns}
           data={unitRows}

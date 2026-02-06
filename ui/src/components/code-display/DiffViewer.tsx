@@ -13,6 +13,12 @@ export interface DiffViewerProps {
   onLineClick?: (line: DiffLine) => void
   /** Search query to highlight */
   highlightQuery?: string
+  /** Highlight old-side line number if present */
+  highlightLineOld?: number
+  /** Highlight new-side line number if present */
+  highlightLineNew?: number
+  /** Highlight all lines within a specific hunk */
+  highlightHunkId?: number
   /** Custom class name */
   className?: string
 }
@@ -37,11 +43,13 @@ function DiffLineRow({
   showLineNumbers,
   onClick,
   highlightQuery,
+  highlighted = false,
 }: {
   line: DiffLine
   showLineNumbers: boolean
   onClick?: () => void
   highlightQuery?: string
+  highlighted?: boolean
 }) {
   const kindClass = {
     '+': 'diff-add',
@@ -57,7 +65,7 @@ function DiffLineRow({
 
   return (
     <div
-      className={`diff-line ${kindClass} ${onClick ? 'clickable' : ''}`}
+      className={`diff-line ${kindClass} ${onClick ? 'clickable' : ''} ${highlighted ? 'diff-target' : ''}`}
       onClick={onClick}
     >
       {showLineNumbers && (
@@ -92,6 +100,9 @@ export function DiffViewer({
   showLineNumbers = true,
   onLineClick,
   highlightQuery,
+  highlightLineOld,
+  highlightLineNew,
+  highlightHunkId,
   className = '',
 }: DiffViewerProps) {
   if (hunks.length === 0) {
@@ -111,15 +122,22 @@ export function DiffViewer({
           {hunks.map((hunk, hunkIndex) => (
             <div key={hunk.id || hunkIndex} className="diff-hunk">
               <HunkHeader hunk={hunk} />
-              {hunk.lines.map((line, lineIndex) => (
-                <DiffLineRow
-                  key={lineIndex}
-                  line={line}
-                  showLineNumbers={showLineNumbers}
-                  onClick={onLineClick ? () => onLineClick(line) : undefined}
-                  highlightQuery={highlightQuery}
-                />
-              ))}
+              {hunk.lines.map((line, lineIndex) => {
+                const lineMatches =
+                  (highlightLineOld != null && line.line_no_old === highlightLineOld) ||
+                  (highlightLineNew != null && line.line_no_new === highlightLineNew)
+                const hunkMatches = highlightHunkId != null && hunk.id === highlightHunkId
+                return (
+                  <DiffLineRow
+                    key={lineIndex}
+                    line={line}
+                    showLineNumbers={showLineNumbers}
+                    onClick={onLineClick ? () => onLineClick(line) : undefined}
+                    highlightQuery={highlightQuery}
+                    highlighted={lineMatches || hunkMatches}
+                  />
+                )
+              })}
             </div>
           ))}
         </code>
@@ -173,6 +191,12 @@ export function DiffViewer({
         }
         .diff-line.diff-context {
           background: transparent;
+        }
+        .diff-line.diff-target {
+          outline: 2px solid #0d6efd;
+          outline-offset: -2px;
+          position: relative;
+          z-index: 1;
         }
         .line-number {
           display: inline-block;

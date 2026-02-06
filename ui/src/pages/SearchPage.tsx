@@ -1,14 +1,18 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSearchUnifiedQuery } from '../api/client'
 import { useSessionContext } from '../hooks/useSessionContext'
 import { GlobalSearchBar } from '../components/search/GlobalSearchBar'
 import { SearchResults } from '../components/data-display/SearchResults'
+import type { SearchResult } from '../types/api'
+import { buildSearchDrillInHref } from '../features/search-drill-in'
 
 export function SearchPage() {
   const { workspaceId, sessionId, searchRunIds } = useSessionContext()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') || '')
+  const [copyStatus, setCopyStatus] = useState<string | null>(null)
 
   const searchTypes = useMemo(() => {
     const types = Object.keys(searchRunIds)
@@ -39,6 +43,47 @@ export function SearchPage() {
     else setSearchParams({})
   }
 
+  const handleOpenResult = (result: SearchResult) => {
+    const href = buildSearchDrillInHref({
+      result,
+      query,
+      sessionId: sessionId ?? undefined,
+      source: 'search',
+    })
+    if (!href) return
+    navigate(href)
+  }
+
+  const handleOpenResultInNewTab = (result: SearchResult) => {
+    const href = buildSearchDrillInHref({
+      result,
+      query,
+      sessionId: sessionId ?? undefined,
+      source: 'search',
+    })
+    if (!href) return
+    window.open(href, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleCopyResultLink = async (result: SearchResult) => {
+    const href = buildSearchDrillInHref({
+      result,
+      query,
+      sessionId: sessionId ?? undefined,
+      source: 'search',
+    })
+    if (!href) return
+    try {
+      const text = `${window.location.origin}${href}`
+      await navigator.clipboard.writeText(text)
+      setCopyStatus('Deep link copied.')
+      window.setTimeout(() => setCopyStatus(null), 2000)
+    } catch {
+      setCopyStatus('Unable to copy deep link.')
+      window.setTimeout(() => setCopyStatus(null), 2500)
+    }
+  }
+
   if (!workspaceId) return <div className="p-4 text-muted">Select a workspace first.</div>
   if (!sessionId) return <div className="p-4 text-muted">Select a session first.</div>
 
@@ -53,6 +98,11 @@ export function SearchPage() {
           loading={isFetching}
           autoFocus
         />
+        {copyStatus && (
+          <div className="small mt-2 text-muted" role="status" aria-live="polite">
+            {copyStatus}
+          </div>
+        )}
       </div>
       <div className="flex-grow-1 overflow-auto">
         {!query ? (
@@ -60,7 +110,13 @@ export function SearchPage() {
         ) : isLoading ? (
           <SearchResults results={[]} loading query={query} />
         ) : results && results.length > 0 ? (
-          <SearchResults results={results} query={query} />
+          <SearchResults
+            results={results}
+            query={query}
+            onOpen={handleOpenResult}
+            onOpenInNewTab={handleOpenResultInNewTab}
+            onCopyLink={handleCopyResultLink}
+          />
         ) : (
           <div className="text-center text-muted py-5">No results found for &ldquo;{query}&rdquo;</div>
         )}

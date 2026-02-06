@@ -20,6 +20,7 @@ const filesApi = api.injectEndpoints({
 
 export const {
   useGetFilesQuery,
+  useLazyGetFilesQuery,
   useGetFileContentQuery,
   useGetFileHistoryQuery,
 } = filesApi

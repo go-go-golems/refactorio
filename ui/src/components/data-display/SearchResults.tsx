@@ -11,6 +11,12 @@ export interface SearchResultsProps {
   selectedId?: string
   /** Called when a result is clicked */
   onSelect?: (result: SearchResult) => void
+  /** Called to open/drill into a result */
+  onOpen?: (result: SearchResult) => void
+  /** Called to open a result in a new tab */
+  onOpenInNewTab?: (result: SearchResult) => void
+  /** Called to copy a deep-link for a result */
+  onCopyLink?: (result: SearchResult) => void
   /** Loading state */
   loading?: boolean
   /** Search query (for highlighting) */
@@ -76,45 +82,124 @@ function ResultItem({
   result,
   selected,
   onClick,
+  onOpenInNewTab,
+  onCopyLink,
   query,
 }: {
   result: SearchResult
   selected: boolean
   onClick?: () => void
+  onOpenInNewTab?: () => void
+  onCopyLink?: () => void
   query?: string
 }) {
   return (
-    <button
-      type="button"
-      className={`list-group-item list-group-item-action d-flex align-items-start gap-2 ${selected ? 'active' : ''}`}
-      onClick={onClick}
-    >
-      <EntityIcon
-        type={result.type}
-        kind={result.type === 'symbol' ? (result.payload as { kind?: string })?.kind : undefined}
-        size="sm"
-      />
-      <div className="flex-grow-1 min-width-0">
-        <div className="d-flex justify-content-between align-items-center">
-          <span className={`fw-medium ${selected ? '' : ''}`}>
-            {highlightMatch(result.primary, query)}
-          </span>
-          <span className={`badge ${selected ? 'bg-light text-dark' : 'bg-secondary-subtle text-secondary'}`}>
-            {result.type}
-          </span>
+    <div className={`list-group-item d-flex align-items-start gap-2 ${selected ? 'active' : ''}`}>
+      <button
+        type="button"
+        className={`btn btn-link p-0 text-start text-decoration-none border-0 bg-transparent d-flex align-items-start gap-2 flex-grow-1 ${selected ? 'text-light' : 'text-body'}`}
+        onClick={onClick}
+      >
+        <EntityIcon
+          type={result.type}
+          kind={result.type === 'symbol' ? (result.payload as { kind?: string })?.kind : undefined}
+          size="sm"
+        />
+        <div className="flex-grow-1 min-width-0">
+          <div className="d-flex justify-content-between align-items-center">
+            <span className="fw-medium">
+              {highlightMatch(result.primary, query)}
+            </span>
+            <span className={`badge ${selected ? 'bg-light text-dark' : 'bg-secondary-subtle text-secondary'}`}>
+              {result.type}
+            </span>
+          </div>
+          {result.snippet && (
+            <div className={`small ${selected ? 'text-light' : 'text-muted'} text-truncate`}>
+              {highlightMatch(result.snippet, query)}
+            </div>
+          )}
+          {result.path && (
+            <div className={`small ${selected ? 'text-light opacity-75' : 'text-muted'}`}>
+              <code className="small">{result.path}{result.line ? `:${result.line}` : ''}</code>
+            </div>
+          )}
         </div>
-        {result.snippet && (
-          <div className={`small ${selected ? 'text-light' : 'text-muted'} text-truncate`}>
-            {highlightMatch(result.snippet, query)}
-          </div>
-        )}
-        {result.path && (
-          <div className={`small ${selected ? 'text-light opacity-75' : 'text-muted'}`}>
-            <code className="small">{result.path}{result.line ? `:${result.line}` : ''}</code>
-          </div>
-        )}
-      </div>
-    </button>
+      </button>
+      {(onOpenInNewTab || onCopyLink) && (
+        <div className="d-flex gap-1 ms-2">
+          {onOpenInNewTab && (
+            <button
+              type="button"
+              className={`btn btn-sm ${selected ? 'btn-light' : 'btn-outline-secondary'}`}
+              onClick={onOpenInNewTab}
+              title="Open in new tab"
+              aria-label="Open result in new tab"
+            >
+              Open
+            </button>
+          )}
+          {onCopyLink && (
+            <button
+              type="button"
+              className={`btn btn-sm ${selected ? 'btn-light' : 'btn-outline-secondary'}`}
+              onClick={onCopyLink}
+              title="Copy deep link"
+              aria-label="Copy deep link"
+            >
+              Copy
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function resolveResultAction({
+  result,
+  onOpen,
+  onSelect,
+}: {
+  result: SearchResult
+  onOpen?: (result: SearchResult) => void
+  onSelect?: (result: SearchResult) => void
+}) {
+  if (onOpen) {
+    onOpen(result)
+    return
+  }
+  if (onSelect) {
+    onSelect(result)
+  }
+}
+
+function ResultItemWithActions({
+  result,
+  selected,
+  onOpen,
+  onSelect,
+  onOpenInNewTab,
+  onCopyLink,
+  query,
+}: {
+  result: SearchResult
+  selected: boolean
+  onOpen?: (result: SearchResult) => void
+  onSelect?: (result: SearchResult) => void
+  onOpenInNewTab?: (result: SearchResult) => void
+  onCopyLink?: (result: SearchResult) => void
+  query?: string
+}) {
+  return (
+    <ResultItem
+      result={result}
+      selected={selected}
+      onClick={() => resolveResultAction({ result, onOpen, onSelect })}
+      onOpenInNewTab={onOpenInNewTab ? () => onOpenInNewTab(result) : undefined}
+      onCopyLink={onCopyLink ? () => onCopyLink(result) : undefined}
+      query={query}
+    />
   )
 }
 
@@ -122,12 +207,18 @@ function ResultGroup({
   group,
   selectedId,
   onSelect,
+  onOpen,
+  onOpenInNewTab,
+  onCopyLink,
   query,
   defaultOpen = true,
 }: {
   group: GroupedResults
   selectedId?: string
   onSelect?: (result: SearchResult) => void
+  onOpen?: (result: SearchResult) => void
+  onOpenInNewTab?: (result: SearchResult) => void
+  onCopyLink?: (result: SearchResult) => void
   query?: string
   defaultOpen?: boolean
 }) {
@@ -152,11 +243,14 @@ function ResultGroup({
       {open && (
         <div className="list-group list-group-flush">
           {group.results.map((result) => (
-            <ResultItem
+            <ResultItemWithActions
               key={buildResultId(result)}
               result={result}
               selected={buildResultId(result) === selectedId}
-              onClick={() => onSelect?.(result)}
+              onOpen={onOpen}
+              onSelect={onSelect}
+              onOpenInNewTab={onOpenInNewTab}
+              onCopyLink={onCopyLink}
               query={query}
             />
           ))}
@@ -171,6 +265,9 @@ export function SearchResults({
   groupByType = true,
   selectedId,
   onSelect,
+  onOpen,
+  onOpenInNewTab,
+  onCopyLink,
   loading = false,
   query,
   className = '',
@@ -218,6 +315,9 @@ export function SearchResults({
             group={group}
             selectedId={selectedId}
             onSelect={onSelect}
+            onOpen={onOpen}
+            onOpenInNewTab={onOpenInNewTab}
+            onCopyLink={onCopyLink}
             query={query}
           />
         ))}
@@ -229,11 +329,14 @@ export function SearchResults({
   return (
     <div className={`list-group list-group-flush ${className}`}>
       {results.map((result) => (
-        <ResultItem
+        <ResultItemWithActions
           key={buildResultId(result)}
           result={result}
           selected={buildResultId(result) === selectedId}
-          onClick={() => onSelect?.(result)}
+          onOpen={onOpen}
+          onSelect={onSelect}
+          onOpenInNewTab={onOpenInNewTab}
+          onCopyLink={onCopyLink}
           query={query}
         />
       ))}

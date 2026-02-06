@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useGetDiffRunsQuery, useGetDiffFilesQuery, useGetDiffFileQuery } from '../api/client'
 import { useSessionContext } from '../hooks/useSessionContext'
 import { EntityTable, type Column } from '../components/data-display/EntityTable'
 import { DiffViewer } from '../components/code-display/DiffViewer'
 import { StatusBadge } from '../components/foundation/StatusBadge'
 import type { DiffRun, DiffFile } from '../types/api'
+import { parseDiffDrillInParams } from '../features/search-drill-in'
 
 const runColumns: Column<DiffRun>[] = [
   { key: 'id', header: 'Run', width: '60px', render: (r) => <span className="font-monospace">#{r.id}</span> },
@@ -21,9 +23,12 @@ const fileColumns: Column<DiffFile>[] = [
 
 export function DiffsPage() {
   const { workspaceId, sessionId, activeSession } = useSessionContext()
+  const [searchParams] = useSearchParams()
+  const drillIn = parseDiffDrillInParams(searchParams)
   const [selectedRun, setSelectedRun] = useState<DiffRun | null>(null)
   const [selectedFile, setSelectedFile] = useState<DiffFile | null>(null)
-  const diffAvailable = Boolean(activeSession?.runs.diff)
+  const diffViewerRef = useRef<HTMLDivElement | null>(null)
+  const diffAvailable = Boolean(activeSession?.runs.diff || drillIn.runId)
 
   const { data: runs, isLoading: runsLoading } = useGetDiffRunsQuery(
     { workspace_id: workspaceId!, session_id: sessionId ?? undefined },
@@ -31,7 +36,7 @@ export function DiffsPage() {
   )
   const runRows = diffAvailable ? (runs ?? []) : []
 
-  const { data: files, isLoading: filesLoading } = useGetDiffFilesQuery(
+  const { data: files, isLoading: filesLoading, isError: filesMissing } = useGetDiffFilesQuery(
     { run_id: selectedRun?.id ?? 0, workspace_id: workspaceId! },
     { skip: !selectedRun || !workspaceId },
   )
@@ -47,10 +52,35 @@ export function DiffsPage() {
   }, [sessionId])
 
   useEffect(() => {
+    if (drillIn.runId && selectedRun?.id !== drillIn.runId) {
+      setSelectedRun({ id: drillIn.runId })
+      setSelectedFile(null)
+      return
+    }
+  }, [drillIn.runId, selectedRun])
+
+  useEffect(() => {
+    if (drillIn.runId) return
     if (!selectedRun && runRows.length > 0) {
       setSelectedRun(runRows[0])
     }
-  }, [runRows, selectedRun])
+  }, [runRows, selectedRun, drillIn.runId])
+
+  useEffect(() => {
+    if (!drillIn.path || !files || files.length === 0) return
+    const target = files.find((f) => f.path === drillIn.path)
+    if (target) {
+      setSelectedFile(target)
+    }
+  }, [drillIn.path, files])
+
+  useEffect(() => {
+    if (!hunks || hunks.length === 0 || (!drillIn.hunkId && !drillIn.lineNew && !drillIn.lineOld)) return
+    const node = diffViewerRef.current?.querySelector('.diff-target')
+    if (node && node instanceof HTMLElement) {
+      node.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
+  }, [hunks, drillIn.hunkId, drillIn.lineNew, drillIn.lineOld])
 
   if (!workspaceId) return <div className="p-4 text-muted">Select a workspace first.</div>
 
@@ -88,6 +118,16 @@ export function DiffsPage() {
 
       {/* Right: Diff viewer */}
       <div className="flex-grow-1 p-3 overflow-auto">
+        {drillIn.runId && filesMissing && (
+          <div className="alert alert-warning py-2">
+            Target diff run <code>{drillIn.runId}</code> was not found in the current scope.
+          </div>
+        )}
+        {drillIn.path && files && files.length > 0 && !files.some((f) => f.path === drillIn.path) && (
+          <div className="alert alert-warning py-2">
+            Target diff file <code>{drillIn.path}</code> was not found in run <code>{selectedRun?.id}</code>.
+          </div>
+        )}
         {selectedFile ? (
           hunksLoading ? (
             <div className="text-muted p-4">Loading diff...</div>
@@ -97,7 +137,14 @@ export function DiffsPage() {
                 <span className="font-monospace small">{selectedFile.path}</span>
                 <button type="button" className="btn-close btn-sm" onClick={() => setSelectedFile(null)} />
               </div>
-              <DiffViewer hunks={hunks} />
+              <div ref={diffViewerRef}>
+                <DiffViewer
+                  hunks={hunks}
+                  highlightLineNew={drillIn.lineNew}
+                  highlightLineOld={drillIn.lineOld}
+                  highlightHunkId={drillIn.hunkId}
+                />
+              </div>
             </>
           ) : (
             <div className="text-muted p-4">No diff data</div>

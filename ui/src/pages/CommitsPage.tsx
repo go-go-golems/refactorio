@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useGetCommitsQuery, useGetCommitFilesQuery } from '../api/client'
+import { useSearchParams } from 'react-router-dom'
+import { useGetCommitsQuery, useGetCommitFilesQuery, useGetCommitQuery } from '../api/client'
 import { useSessionContext } from '../hooks/useSessionContext'
 import { EntityTable, type Column } from '../components/data-display/EntityTable'
 import { InspectorPanel } from '../components/detail/InspectorPanel'
 import { CommitDetail } from '../components/detail/CommitDetail'
 import type { Commit } from '../types/api'
+import { parseCommitDrillInParams } from '../features/search-drill-in'
 
 const columns: Column<Commit>[] = [
   { key: 'hash', header: 'Hash', width: '90px', render: (c) => <span className="font-monospace">{c.hash.slice(0, 7)}</span> },
@@ -15,11 +17,13 @@ const columns: Column<Commit>[] = [
 
 export function CommitsPage() {
   const { workspaceId, sessionId, activeSession } = useSessionContext()
+  const [searchParams] = useSearchParams()
+  const drillIn = parseCommitDrillInParams(searchParams)
   const [offset, setOffset] = useState(0)
   const [selected, setSelected] = useState<Commit | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 50
-  const commitsRunId = activeSession?.runs.commits
+  const commitsRunId = drillIn.runId ?? activeSession?.runs.commits
   const commitsAvailable = Boolean(commitsRunId)
 
   const { data: commits, isLoading } = useGetCommitsQuery(
@@ -27,6 +31,11 @@ export function CommitsPage() {
     { skip: !workspaceId || !commitsRunId },
   )
   const commitRows = commitsAvailable ? (commits ?? []) : []
+
+  const { data: drillInCommit, isError: drillInCommitMissing } = useGetCommitQuery(
+    { hash: drillIn.commitHash ?? '', workspace_id: workspaceId! },
+    { skip: !workspaceId || !drillIn.commitHash },
+  )
 
   const { data: files, isFetching: filesLoading } = useGetCommitFilesQuery(
     { hash: selected?.hash ?? '', workspace_id: workspaceId! },
@@ -37,6 +46,18 @@ export function CommitsPage() {
     setSelected(null)
     setOffset(0)
   }, [sessionId])
+
+  useEffect(() => {
+    if (!drillIn.commitHash) return
+    const fromRows = commitRows.find((c) => c.hash === drillIn.commitHash)
+    if (fromRows) {
+      setSelected(fromRows)
+      return
+    }
+    if (drillInCommit) {
+      setSelected(drillInCommit)
+    }
+  }, [drillIn.commitHash, drillInCommit, commitRows])
 
   if (!workspaceId) return <div className="p-4 text-muted">Select a workspace first.</div>
 
@@ -54,6 +75,11 @@ export function CommitsPage() {
             onChange={(e) => { setSearchQuery(e.target.value); setOffset(0) }}
           />
         </div>
+        {drillIn.commitHash && drillInCommitMissing && (
+          <div className="alert alert-warning py-2">
+            Target commit <code>{drillIn.commitHash}</code> was not found in the current scope.
+          </div>
+        )}
         <EntityTable
           columns={columns}
           data={commitRows}
