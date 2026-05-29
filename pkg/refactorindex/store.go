@@ -543,7 +543,7 @@ func ensureColumn(ctx context.Context, tx *sql.Tx, table string, column string, 
 	if err != nil {
 		return errors.Wrap(err, "inspect table columns")
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		var cid int

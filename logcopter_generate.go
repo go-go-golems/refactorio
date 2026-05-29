@@ -1,0 +1,3 @@
+package refactorio
+
+//go:generate go tool logcopter-gen -include-main -var zlog -area-prefix go-go-golems.refactorio -strip-prefix github.com/go-go-golems/refactorio ./cmd/... ./pkg/...
