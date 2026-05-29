@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/go-go-golems/glazed v1.3.6
 	github.com/go-go-golems/logcopter v0.1.0
-	github.com/go-go-golems/oak v0.5.2
+	github.com/go-go-golems/oak v0.5.3
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.45.0

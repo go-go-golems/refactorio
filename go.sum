@@ -36,8 +36,8 @@ github.com/go-go-golems/glazed v1.3.6 h1:33jWLP0nE9cDapB8oG/Z6UeqdNszI/OB3OogkhA
 github.com/go-go-golems/glazed v1.3.6/go.mod h1:Q+GuLpSK6OHfDJBbrA4RFOkpYPw++2jj5FAquem8w8g=
 github.com/go-go-golems/logcopter v0.1.0 h1:CGBxAGudhoQOncJ6GEWDJ6c1g5LrU59/ewGlPFKBmdk=
 github.com/go-go-golems/logcopter v0.1.0/go.mod h1:HNCeqsUqxu+Jm5h05YlbN5+KFtK84D5ZnOimvVLyWH4=
-github.com/go-go-golems/oak v0.5.2 h1:zmEIGPH9mJWLuAK5HD/g5zMJ/xTtEYJEQTiNS3stQW0=
-github.com/go-go-golems/oak v0.5.2/go.mod h1:JKo5PKMqtLI0zIRRjYm8glC0tKsxessH/XGSQPLOPf8=
+github.com/go-go-golems/oak v0.5.3 h1:wWeNKACkDBP1mqeuPFAo2nR+Ujz5VJZqKkbhjsYWuIs=
+github.com/go-go-golems/oak v0.5.3/go.mod h1:THwUwcY9RIFRppUVIGfaoRR0rjDc2NeSyYF2kr/F2EI=
 github.com/go-jose/go-jose/v4 v4.1.4 h1:moDMcTHmvE6Groj34emNPLs/qtYXRVcd6S7NHbHz3kA=
 github.com/go-jose/go-jose/v4 v4.1.4/go.mod h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=
 github.com/go-openapi/errors v0.22.0 h1:c4xY/OLxUBSTiepAg3j/MHuAv5mJhnf53LLMWFB+u/w=
