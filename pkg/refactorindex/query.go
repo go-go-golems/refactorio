@@ -61,7 +61,7 @@ func (s *Store) ListDiffFiles(ctx context.Context, runID int64) ([]DiffFileRecor
 	if err != nil {
 		return nil, errors.Wrap(err, "query diff files")
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var results []DiffFileRecord
 	for rows.Next() {
@@ -123,7 +123,7 @@ func (s *Store) ListSymbolInventory(ctx context.Context, filter SymbolInventoryF
 	if err != nil {
 		return nil, errors.Wrap(err, "query symbol inventory")
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var results []SymbolInventoryRecord
 	for rows.Next() {

@@ -99,7 +99,7 @@ func queryRows(ctx context.Context, db *sql.DB, query string, args ...interface{
 	if err != nil {
 		return nil, errors.Wrap(err, "execute report query")
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	columns, err := rows.Columns()
 	if err != nil {
